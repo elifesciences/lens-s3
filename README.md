@@ -18,4 +18,9 @@ Note: eLife bot also contains lens template files that may require updating when
 
 # Deploying
 
-Copy files to the S3 bucket, replacing existing files. Create a CloudFront invalidation for the new files (optional).
+* Copy files to the S3 bucket, replacing existing files.
+* **Note**: .json files may require a MIME / content type of ``application/json`` to be set instead of the default application/octet-stream used by S3, especially for ``manual/content.json`` for lens to load the data natively.
+
+## Optional
+
+Create a CloudFront invalidation for the new files (optional).
