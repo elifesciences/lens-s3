@@ -1,7 +1,15121 @@
-!function t(e,n,r){function i(s,a){if(!n[s]){if(!e[s]){var c="function"==typeof require&&require;if(!a&&c)return c(s,!0);if(o)return o(s,!0);var u=new Error("Cannot find module '"+s+"'");throw u.code="MODULE_NOT_FOUND",u}var l=n[s]={exports:{}};e[s][0].call(l.exports,function(t){var n=e[s][1][t];return i(n?n:t)},l,l.exports,t,e,n,r)}return n[s].exports}for(var o="function"==typeof require&&require,s=0;s<r.length;s++)i(r[s]);return i}({1:[function(t){window.Lens=t("./src/lens")},{"./src/lens":145}],2:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=t("substance-document"),o=t("substance-application").$$,s=function(t){t=t||{},t.schema=r.deepclone(i.schema),t.schema.id="lens-article",t.schema.version="0.3.0",n.each(s.types,function(e,n){t.schema.types[n]=e}),n.each(s.annotations,function(e,n){t.schema.types[n]=e}),n.each(s.nodeTypes,function(e,n){t.schema.types[n]=e.Model.type}),n.each(s.indexes,function(e,n){t.schema.indexes[n]=e}),i.call(this,t),this.bySourceId=this.addIndex("by_source_id",{types:["content"],property:"source_id"}),this.nodeTypes=s.nodeTypes,void 0===t.seed&&(this.create({id:"document",type:"document",guid:t.id,creator:t.creator,created_at:t.created_at,views:s.views,title:"","abstract":"",authors:[]}),n.each(s.views,function(t){this.create({id:t,type:"view",nodes:[]})},this))};s.Renderer=function(t,e){this.docCtrl=t,this.nodeTypes=s.nodeTypes,this.options=e||{},this.nodes={},n.each(this.docCtrl.getNodes(),function(t){this.nodes[t.id]=this.createView(t)},this)},s.Renderer.Prototype=function(){this.createView=function(t){var e=this.nodeTypes[t.type].View;if(!e)throw new Error('Node type "'+t.type+'" not supported');var n=new e(t,this);return n.listenTo(this.docCtrl,"operation:applied",n.onGraphUpdate),n},this.render=function(){n.each(this.nodes,function(t){t.dispose()});var t=document.createDocumentFragment(),e=this.docCtrl.container.getTopLevelNodes();return n.each(e,function(e){this.renderNode(e,t)},this),t},this.renderNode=function(t,e){var n=this.createView(t);e.appendChild(n.render().el),"heading"===t.type&&n.el.appendChild(o("a.top",{href:"#",html:'<i class="icon-chevron-up"></i>'})),this.options.afterRender&&this.options.afterRender(this.docCtrl,n)}},s.Renderer.prototype=new s.Renderer.Prototype,s.Prototype=function(){this.fromSnapshot=function(t,e){return s.fromSnapshot(t,e)},this.getNodeBySourceId=function(t){var e=this.bySourceId.get(t),n=Object.keys(e)[0],r=e[n];return r},this.getHeadings=function(){var t=n.filter(this.get("content").getNodes(),function(t){return"heading"===t.type});return t}},s.fromSnapshot=function(t,e){return e=e||{},e.seed=t,new s(e)},s.views=["content","figures","citations","definitions","info"],s.nodeTypes=t("./nodes"),s.annotations={strong:{parent:"annotation",properties:{}},emphasis:{properties:{},parent:"annotation"},subscript:{properties:{},parent:"annotation"},superscript:{properties:{},parent:"annotation"},underline:{properties:{},parent:"annotation"},code:{parent:"annotation",properties:{}},link:{parent:"annotation",properties:{url:"string"}},idea:{parent:"annotation",properties:{}},error:{parent:"annotation",properties:{}},question:{parent:"annotation",properties:{}},resource_reference:{parent:"annotation",properties:{target:"node"}},contributor_reference:{parent:"resource_reference",properties:{target:"contributor"}},figure_reference:{parent:"resource_reference",properties:{target:"figure"}},citation_reference:{parent:"resource_reference",properties:{target:"content"}},definition_reference:{parent:"resource_reference",properties:{target:"content"}},cross_reference:{parent:"annotation",properties:{target:"content"}},formula_reference:{parent:"annotation",properties:{target:"content"}},author_callout:{parent:"annotation",properties:{style:"string"}},inline_image:{parent:"annotation",properties:{url:"string"}},label:{parent:"annotation",properties:{}},custom:{parent:"annotation",properties:{name:"string"}}},s.types={annotation:{properties:{path:["array","string"],range:"object"}},figure:{properties:{}},institution:{properties:{}},email:{properties:{}},funding:{properties:{}},caption:{properties:{}},citation:{properties:{}},document:{properties:{views:["array","view"],guid:"string",creator:"string",title:"string",authors:["array","contributor"],on_behalf_of:"string","abstract":"string"}},comment:{properties:{content:"string",created_at:"string",creator:"string",node:"node"}}};var a={id:"lens_article",nodes:{document:{type:"document",id:"document",views:["content"],title:"The Anatomy of a Lens Article",authors:["contributor_1","contributor_2","contributor_3"],guid:"lens_article"},content:{type:"view",id:"content",nodes:["cover"]},cover:{id:"cover",type:"cover"},contributor_1:{id:"contributor_1",type:"contributor",name:"Michael Aufreiter"},contributor_2:{id:"contributor_2",type:"contributor",name:"Ivan Grubisic"},contributor_3:{id:"contributor_3",type:"contributor",name:"Rebecca Close"}}};s.describe=function(){var t=new s({seed:a}),e=0;return n.each(s.nodeTypes,function(r){r=r.Model;var i="heading_"+r.type.id;t.create({id:i,type:"heading",content:r.description.name,level:1});var o=r.description.remarks.join(" "),s="text_"+r.type.id+"_intro";t.create({id:s,type:"text",content:o}),t.show("content",[i,s],-1),t.create({id:i+"_properties",type:"text",content:r.description.name+" uses the following properties:"}),t.show("content",[i+"_properties"],-1);var a=[];n.each(r.description.properties,function(n,r){var i="text_"+ ++e;t.create({id:i,type:"text",content:r+": "+n}),t.create({id:e+"_annotation",type:"code",path:[i,"content"],range:[0,r.length]}),a.push(i)}),t.create({id:i+"_property_list",type:"list",items:a,ordered:!1}),t.show("content",[i+"_property_list"],-1),t.create({id:i+"_example",type:"text",content:"Here's an example:"}),t.create({id:i+"_example_codeblock",type:"codeblock",content:JSON.stringify(r.example,null,"  ")}),t.show("content",[i+"_example",i+"_example_codeblock"],-1)}),t},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s,Object.defineProperties(s.prototype,{id:{get:function(){return this.get("document").guid},set:function(t){this.get("document").guid=t}},creator:{get:function(){return this.get("document").creator},set:function(t){this.get("document").creator=t}},created_at:{get:function(){return this.get("document").created_at},set:function(t){this.get("document").created_at=t}},title:{get:function(){return this.get("document").title},set:function(t){this.get("document").title=t}},"abstract":{get:function(){return this.get("document").abstract},set:function(t){this.get("document").abstract=t}},on_behalf_of:{get:function(){return this.get("document").on_behalf_of},set:function(t){this.get("document").on_behalf_of=t}},authors:{get:function(){var t=this.get("document");return t.authors?n.map(t.authors,function(t){return this.get(t)},this):""},set:function(t){var e=this.get("document");e.authors=n.clone(t)}},views:{get:function(){return this.get("document").views.slice(0)}}}),e.exports=s},{"./nodes":34,"substance-application":62,"substance-document":73,"substance-util":139,underscore:144}],3:[function(t,e){var n={1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",19:"October",11:"November",12:"December"},r={};r.formatDate=function(t){var e=t.split("-");if(t.split("-").length>=3){var r=new Date(e[0],e[1]-1,e[2]);return r.toUTCString().slice(0,16)}var i=e[1].replace("0",""),o=e[0];return n[i]+" "+o},e.exports=r},{}],4:[function(t,e){"use strict";var n=t("./article");e.exports=n},{"./article":2}],5:[function(t,e){"use strict";var n=t("substance-document").Node,r=t("underscore"),i=function(t,e){n.call(this,t,e)};i.type={id:"affiliation",parent:"content",properties:{source_id:"string",city:"string",country:"string",department:"string",institution:"string",label:"string"}},i.description={name:"Affiliation",description:"Person affiliation",remarks:["Name of a institution or organization, such as a university or corporation, that is the affiliation for a contributor such as an author or an editor."],properties:{institution:"Name of institution",department:"Department name",country:"Country where institution is located",city:"City of institution",label:"Affilation label. Usually a number counting up"}},i.example={id:"affiliation_1",source_id:"aff1",city:"Jena",country:"Germany",department:"Department of Molecular Ecology",institution:"Max Planck Institute for Chemical Ecology",label:"1",type:"affiliation"},i.Prototype=function(){},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={};r.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],6:[function(t,e){"use strict";e.exports={Model:t("./affiliation")}},{"./affiliation":5}],7:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"box",parent:"content",properties:{source_id:"string",label:"string",children:["array","paragraph"]}},i.description={name:"Box",remarks:["A box type."],properties:{label:"string",children:"0..n Paragraph nodes"}},i.example={id:"box_1",type:"box",label:"Box 1",children:["paragraph_1","paragraph_2"]},i.Prototype=function(){},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={},o={header:{get:function(){return this.properties.label}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],8:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(r.html,t("../node").View),o=t("substance-application").$$,s=function(t,e){i.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node box")};s.Prototype=function(){this.render=function(){if(i.prototype.render.call(this),this.node.label){var t=o(".label",{text:this.node.label});this.content.appendChild(t)}var e=this.node.children;return n.each(e,function(t){var e=this.node.document.get(t),n=this.viewFactory.createView(e),r=n.render().el;this.content.appendChild(r)},this),this.el.appendChild(this.content),this}},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,e.exports=s},{"../node":36,"substance-application":62,"substance-util":139,underscore:144}],9:[function(t,e){"use strict";e.exports={Model:t("./box"),View:t("./box_view")}},{"./box":7,"./box_view":8}],10:[function(t,e){"use strict";var n=t("substance-document"),r=function(t,e){n.Composite.call(this,t,e)};r.type={id:"caption",parent:"content",properties:{source_id:"string",title:"paragraph",children:["array","paragraph"]}},r.description={name:"Caption",remarks:["Container element for the textual description that is associated with a Figure, Table, Video node etc.","This is the title for the figure or the description of the figure that prints or displays with the figure."],properties:{title:"Caption title (optional)",children:"0..n Paragraph nodes"}},r.example={id:"caption_1",children:["paragraph_1","paragraph_2"]},r.Prototype=function(){this.hasTitle=function(){return!!this.properties.title},this.getNodes=function(){var t=[];return this.properties.children&&(t=t.concat(this.properties.children)),t},this.getTitle=function(){return this.properties.title?this.document.get(this.properties.title):void 0}},r.Prototype.prototype=n.Composite.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,n.Node.defineProperties(r.prototype,["title","children"]),e.exports=r},{"substance-document":73}],11:[function(t,e){"use strict";var n=t("../composite").View,r=(t("substance-document").List,t("substance-application").$$),i=function(t,e){n.call(this,t,e)};i.Prototype=function(){this.render=function(){this.content=r("div.content");var t;for(t=0;t<this.childrenViews.length;t++)this.childrenViews[t].dispose();var e=this.node.getTitle();if(e){var n=this.viewFactory.createView(e),i=n.render().el;i.classList.add("caption-title"),this.content.appendChild(i)}var o=this.node.getNodes();for(t=0;t<o.length;t++){var s=this.node.document.get(o[t]),a=this.viewFactory.createView(s),c=a.render().el;this.content.appendChild(c),this.childrenViews.push(a)}return this.el.appendChild(this.content),this},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&"items"===t.path[1]&&this.render()}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../composite":17,"substance-application":62,"substance-document":73}],12:[function(t,e){"use strict";e.exports={Model:t("./caption"),View:t("./caption_view")}},{"./caption":10,"./caption_view":11}],13:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"article_citation",parent:"content",properties:{source_id:"string",title:"string",label:"string",authors:["array","string"],doi:"string",source:"string",volume:"string",citation_type:"string",publisher_name:"string",publisher_location:"string",fpage:"string",lpage:"string",year:"string",comment:"string",citation_urls:["array","object"]}},i.description={name:"Citation",remarks:["A journal citation.","This element can be used to describe all kinds of citations."],properties:{title:"The article's title",label:"Optional label (could be a number for instance)",doi:"DOI reference",source:"Usually the journal name",volume:"Issue number",citation_type:"Citation Type",publisher_name:"Publisher Name",publisher_location:"Publisher Location",fpage:"First page",lpage:"Last page",year:"The year of publication",comment:"Author comment.",citation_urls:"A list of links for accessing the article on the web"}},i.example={id:"article_nature08160",type:"article_citation",label:"5",title:"The genome of the blood fluke Schistosoma mansoni",authors:["M Berriman","BJ Haas","PT LoVerde"],citation_type:"Journal Article",doi:"http://dx.doi.org/10.1038/nature08160",source:"Nature",volume:"460",fpage:"352",lpage:"8",year:"1984",comment:"This is a comment.",citation_urls:[{name:"PubMed",url:"http://www.ncbi.nlm.nih.gov/pubmed/19606141"}]},i.Prototype=function(){this.urls=function(){return this.properties.citation_urls.length>0?this.properties.citation_urls:[this.properties.doi]}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={header:{get:function(){return n.compact([this.properties.label,this.properties.citation_type||"Citation"]).join(" - ")}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],14:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(r.html,t("../node").View),o=t("../text").View,s=t("substance-application").$$,a=function(t){var e=document.createDocumentFragment(),r=t.node,i=new o(r,{path:[r.id,"title"],classes:"title"});e.appendChild(i.render().el),e.appendChild(s(".authors",{html:r.authors.join(", ")}));var a=[];if(r.source&&""===r.volume&&a.push(r.source),r.source&&r.volume&&a.push([r.source,r.volume].join(", ")+": "),r.fpage&&r.lpage&&a.push([r.fpage,r.lpage].join("-")+", "),r.publisher_name&&r.publisher_location&&a.push([r.publisher_name,r.publisher_location].join(", ")+", "),r.year&&a.push(r.year),e.appendChild(s(".source",{html:a.join("")})),r.comment){var c=new o(r,{path:[r.id,"comment"],classes:"comment"});e.appendChild(c.render().el)}r.doi&&e.appendChild(s(".doi",{children:[s("b",{text:"DOI: "}),s("a",{href:r.doi,target:"_new",text:r.doi})]}));var u=s(".citation-urls");return n.each(r.citation_urls,function(t){u.appendChild(s("a.url",{href:t.url,text:t.name,target:"_blank"}))}),e.appendChild(u),e},c=function(t){i.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("citation")};c.Prototype=function(){this.render=function(){return i.prototype.render.call(this),this.content.appendChild(new a(this)),this}},c.Prototype.prototype=i.prototype,c.prototype=new c.Prototype,c.prototype.constructor=c,e.exports=c},{"../node":36,"../text":47,"substance-application":62,"substance-util":139,underscore:144}],15:[function(t,e){"use strict";e.exports={Model:t("./citation"),View:t("./citation_view")}},{"./citation":13,"./citation_view":14}],16:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.codeblock},{"substance-nodes":84}],17:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.composite},{"substance-nodes":84}],18:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"contributor",parent:"content",properties:{source_id:"string",name:"string",role:"string",affiliations:["array","affiliation"],present_address:["string"],fundings:["array","string"],image:"string",emails:["array","string"],contribution:"string",deceased:"boolean",members:["array","string"],orcid:"string",equal_contrib:["array","string"],competing_interests:["array","string"]}},i.description={name:"Contributor",remarks:["A contributor entity."],properties:{name:"Full name",affiliations:"A list of affiliation ids",present_address:"Present address of the contributor",role:"Role of contributor (e.g. Author, Editor)",fundings:"A list of funding descriptions",deceased:!1,emails:"A list of emails",orcid:"ORCID",contribution:"Description of contribution",equal_contrib:"A list of people who contributed equally",competing_interests:"A list of conflicts",members:"a list of group members"}},i.example={id:"person_1",type:"contributor",name:"John Doe",affiliations:["affiliation_1","affiliation_2"],role:"Author",fundings:["Funding Organisation 1"],emails:["a@b.com"],contribution:"Revising the article, data cleanup",equal_contrib:["John Doe","Jane Doe"]},i.Prototype=function(){this.getAffiliations=function(){return n.map(this.properties.affiliations,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={},o={header:{get:function(){return"Author"}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],19:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(r.html,t("../node").View),o=t("substance-application").$$,s=function(t){i.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("content-node contributor")};s.Prototype=function(){this.render=function(){return i.prototype.render.call(this),this.content.appendChild(o(".contributor-name",{text:this.node.name})),this.content.appendChild(o(".affiliations",{children:n.map(this.node.getAffiliations(),function(t){var e=n.compact([t.department,t.institution,t.city,t.country]).join(", ");return o(".affiliation",{text:e})})})),this.node.present_address&&(this.content.appendChild(o(".label",{text:"Present address"})),this.content.appendChild(o(".contribution",{text:this.node.present_address}))),this.node.contribution&&(this.content.appendChild(o(".label",{text:"Contribution"})),this.content.appendChild(o(".contribution",{text:this.node.contribution}))),this.node.equal_contrib&&this.node.equal_contrib.length>0&&(this.content.appendChild(o(".label",{text:"Contributed equally with"})),this.content.appendChild(o(".equal-contribution",{text:this.node.equal_contrib}))),this.node.emails.length>0&&(this.content.appendChild(o(".label",{text:"For correspondence"})),this.content.appendChild(o(".emails",{children:n.map(this.node.emails,function(t){return o("a",{href:"mailto:"+t,text:t})})}))),this.node.fundings.length>0&&(this.content.appendChild(o(".label",{text:"Funding"})),this.content.appendChild(o(".fundings",{children:n.map(this.node.fundings,function(t){return o(".funding",{text:t})})}))),this.node.competing_interests.length>0&&(this.content.appendChild(o(".label",{text:"Competing Interests"})),this.content.appendChild(o(".competing-interests",{children:n.map(this.node.competing_interests,function(t){return o(".conflict",{text:t})})}))),this.node.orcid&&(this.content.appendChild(o(".label",{text:"ORCID"})),this.content.appendChild(o("a.orcid",{href:this.node.orcid,text:this.node.orcid}))),this.node.members.length>0&&(this.content.appendChild(o(".label",{text:"Group Members"})),this.content.appendChild(o(".members",{children:n.map(this.node.members,function(t){return o(".member",{text:t})})}))),this.node.deceased&&this.content.appendChild(o(".label",{text:"* Deceased"})),this}},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,e.exports=s},{"../node":36,"substance-application":62,"substance-util":139,underscore:144}],20:[function(t,e){"use strict";e.exports={Model:t("./contributor"),View:t("./contributor_view")}},{"./contributor":18,"./contributor_view":19}],21:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"cover",parent:"content",properties:{source_id:"string",authors:["array","paragraph"],breadcrumbs:"object"}},i.description={name:"Cover",remarks:["Virtual view on the title and authors of the paper."],properties:{authors:"A paragraph that has the authors names plus references to the person cards"}},i.example={id:"cover",type:"cover"},i.Prototype=function(){this.getAuthors=function(){return n.map(this.properties.authors,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;Object.defineProperties(i.prototype,{title:{get:function(){return this.document.title}},authors:{get:function(){return this.document.authors}},breadcrumbs:{get:function(){return this.properties.breadcrumbs}}}),e.exports=i},{"substance-document":73,underscore:144}],22:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(r.html,t("../node").View),o=t("../text").View,s=t("substance-application").$$,a=t("../../article_util"),c=function(t,e){i.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node cover")};c.Prototype=function(){this.render=function(){i.prototype.render.call(this);var t=this.node,e=this.node.document.get("publication_info");if("HighWire"===e.provider){var r=s(".intro.container",{children:[s(".intro-text",{html:'<i class="icon-info"></i>&nbsp;&nbsp;Lens provides a novel way of looking at research on the web.'}),s("a.send-feedback",{href:"http://home.highwire.org/feedback/lens-feedback",text:"Send feedback",target:"_blank"})]});this.content.appendChild(r)}if(t.breadcrumbs&&t.breadcrumbs.length>0){var c=s(".breadcrumbs",{children:n.map(t.breadcrumbs,function(t){var e;return e=t.image?'<img src="'+t.image+'" title="'+t.name+'"/>':t.name,s("a",{href:t.url,html:e})})});this.content.appendChild(c)}if(e){var u=e.published_on;u&&this.content.appendChild(s(".published-on",{text:a.formatDate(u)}))}var l=new o(this.node,{path:["document","title"],classes:"title"});this.content.appendChild(l.render().el);var p=s(".authors",{children:n.map(t.getAuthors(),function(t){var e=this.viewFactory.createView(t),n=e.render().el;return this.content.appendChild(n),n},this)});if(p.appendChild(s(".content-node.text.plain",{children:[s(".content",{text:this.node.document.on_behalf_of})]})),this.content.appendChild(p),e&&e.links.length>0){var h=s(".links");n.each(e.links,function(t){if("json"===t.type&&""===t.url){var e=JSON.stringify(this.node.document.toJSON(),null,"  "),n=new Blob([e],{type:"application/json"});h.appendChild(s("a.json",{href:window.URL?window.URL.createObjectURL(n):"#",html:'<i class="icon-external-link-sign"></i> '+t.name,target:"_blank"}))}else h.appendChild(s("a."+t.type,{href:t.url,html:'<i class="icon-external-link-sign"></i> '+t.name,target:"_blank"}))},this),this.content.appendChild(h)}if(e){var d=e.doi;d&&this.content.appendChild(s(".doi",{html:'DOI: <a href="'+d+'">'+d+"</a>"}))}return this}},c.Prototype.prototype=i.prototype,c.prototype=new c.Prototype,e.exports=c},{"../../article_util":3,"../node":36,"../text":47,"substance-application":62,"substance-util":139,underscore:144}],23:[function(t,e){"use strict";e.exports={Model:t("./cover"),View:t("./cover_view")}},{"./cover":21,"./cover_view":22}],24:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t){r.call(this,t)};i.type={id:"definition",parent:"content",properties:{source_id:"string",title:"string",description:"string"}},i.description={name:"Definition",remarks:["A journal citation.","This element can be used to describe all kinds of citations."],properties:{title:"The article's title",description:"Definition description"}},i.example={id:"definition_def1",type:"Definition",title:"IAP",description:"Integrated Analysis Platform"},i.Prototype=function(){this.urls=function(){return this.properties.citation_urls.length>0?this.properties.citation_urls:[this.properties.doi]}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={header:{get:function(){return this.properties.label?[this.properties.label,this.properties.title].join(". "):this.properties.title}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],25:[function(t,e){"use strict";var n=(t("underscore"),t("substance-util")),r=(n.html,t("../node").View),i=t("substance-application").$$,o=function(t){r.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("definition")};o.Prototype=function(){this.render=function(){return r.prototype.render.call(this),this.content.appendChild(i(".description",{text:this.node.description})),this}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,e.exports=o},{"../node":36,"substance-application":62,"substance-util":139,underscore:144}],26:[function(t,e){"use strict";e.exports={Model:t("./definition"),View:t("./definition_view")}},{"./definition":24,"./definition_view":25}],27:[function(t,e){"use strict";var n=t("substance-document"),r=function(t,e){n.Composite.call(this,t,e)};r.type={parent:"content",properties:{source_id:"string",label:"string",url:"string",caption:"caption",attrib:"string"}},r.config={zoomable:!0},r.description={name:"Figure",remarks:["A figure is a figure is figure."],properties:{label:"Label used as header for the figure cards",url:"Image url",caption:"A reference to a caption node that describes the figure",attrib:"Figure attribution"}},r.example={id:"figure_1",label:"Figure 1",url:"http://example.com/fig1.png",caption:"caption_1"},r.Prototype=function(){this.hasCaption=function(){return!!this.properties.caption},this.getNodes=function(){var t=[];return this.properties.caption&&t.push(this.properties.caption),t},this.getCaption=function(){return this.properties.caption?this.document.get(this.properties.caption):void 0}},r.Prototype.prototype=n.Composite.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,n.Node.defineProperties(r.prototype,["source_id","label","url","caption","attrib"]),Object.defineProperties(r.prototype,{header:{get:function(){return this.properties.label}}}),e.exports=r},{"substance-document":73}],28:[function(t,e){"use strict";var n=t("../composite").View,r=t("substance-application").$$,i=function(t,e){n.call(this,t,e)};i.Prototype=function(){this.render=function(){this.el.innerHTML="",this.content=r("div.content");var t=r(".image-wrapper",{children:[r("a",{href:this.node.url,target:"_blank",children:[r("img",{src:this.node.url})]})]});this.content.appendChild(t);var e=this.node.getCaption();if(e){var n=this.viewFactory.createView(e),i=n.render().el;this.content.appendChild(i),this.childrenViews.push(n)}return this.node.attrib&&(console.log("ATTRIB!!"),this.content.appendChild(r(".figure-attribution",{text:this.node.attrib}))),this.el.appendChild(this.content),this}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../composite":17,"substance-application":62}],29:[function(t,e){"use strict";e.exports={Model:t("./figure"),View:t("./figure_view")}},{"./figure":27,"./figure_view":28}],30:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.footnote},{"substance-nodes":84}],31:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.formula},{"substance-nodes":84}],32:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.heading},{"substance-nodes":84}],33:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.image},{"substance-nodes":84}],34:[function(t,e){"use strict";e.exports={publication_info:t("./publication_info"),box:t("./box"),cover:t("./cover"),text:t("./text"),paragraph:t("./paragraph"),heading:t("./heading"),figure:t("./figure"),caption:t("./caption"),image:t("./image"),webresource:t("./web_resource"),table:t("./table"),supplement:t("./supplement"),video:t("./video"),contributor:t("./contributor"),definition:t("./definition"),citation:t("./citation"),formula:t("./formula"),list:t("./list"),codeblock:t("./codeblock"),affiliation:t("./_affiliation"),footnote:t("./footnote")}},{"./_affiliation":6,"./box":9,"./caption":12,"./citation":15,"./codeblock":16,"./contributor":20,"./cover":23,"./definition":26,"./figure":29,"./footnote":30,"./formula":31,"./heading":32,"./image":33,"./list":35,"./paragraph":37,"./publication_info":38,"./supplement":41,"./table":44,"./text":47,"./video":49,"./web_resource":52}],35:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.list},{"substance-nodes":84}],36:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.node},{"substance-nodes":84}],37:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.paragraph},{"substance-nodes":84}],38:[function(t,e){"use strict";e.exports={Model:t("./publication_info"),View:t("./publication_info_view")}},{"./publication_info":39,"./publication_info_view":40}],39:[function(t,e){"use strict";var n=t("substance-document").Node,r=t("underscore"),i=function(t,e){n.call(this,t,e)};i.type={id:"publication_info",parent:"content",properties:{received_on:"string",accepted_on:"string",published_on:"string",journal:"string",provider:"string",article_type:"string",keywords:["array","string"],research_organisms:["array","string"],subjects:["array","string"],links:["array","objects"],doi:"string",supplements:["array","object"],related_article:"string",article_info:"paragraph"}},i.description={name:"PublicationInfo",description:"PublicationInfo Node",remarks:["Summarizes the article's meta information. Meant to be customized by publishers"],properties:{received_on:"Submission received",accepted_on:"Paper accepted on",published_on:"Paper published on",journal:"The Journal",provider:"Who is hosting this article",article_type:"Research Article vs. Insight, vs. Correction etc.",keywords:"Article's keywords",research_organisms:"Research Organisms",subjects:"Article Subjects",doi:"Article DOI",related_article:"DOI of related article if there is any"}},i.example={id:"publication_info",received_on:"2012-06-20",accepted_on:"2012-09-05",published_on:"2012-11-13",journal:"eLife",provider:"eLife",article_type:"Research Article",keywords:["innate immunity","histones","lipid droplet","anti-bacterial"],research_organisms:["B. subtilis","D. melanogaster","E. coli","Mouse"],subjects:["Immunology","Microbiology and infectious disease"],doi:"http://dx.doi.org/10.7554/eLife.00003"},i.Prototype=function(){this.getArticleInfo=function(){return this.document.get("articleinfo")}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={};r.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],40:[function(t,e){"use strict";var n=t("../node").View,r=t("substance-application").$$,i=t("../../article_util"),o=t("underscore"),s=function(t,e){n.call(this,t,e),this.$el.addClass("publication-info"),this.$el.attr("id",this.node.id)
-};s.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=r(".meta-data");if(this.node.article_type){var e=r(".article-type.container",{children:[r("div.label",{text:"Article Type"}),r("div.value",{text:this.node.article_type})]});t.appendChild(e)}if(this.node.subjects&&this.node.subjects.length>0){var s=r(".subject.container",{children:[r("div.label",{text:"Subject"}),r("div.value",{text:this.node.subjects.join(", ")})]});t.appendChild(s)}if(this.node.research_organisms&&this.node.research_organisms.length>0){var a=r(".subject.container",{children:[r("div.label",{text:"Organism"}),r("div.value",{text:this.node.research_organisms.join(", ")})]});t.appendChild(a)}if(this.node.keywords&&this.node.keywords.length>0){var c=r(".keywords.container",{children:[r("div.label",{text:"Keywords"}),r("div.value",{text:this.node.keywords.join(", ")})]});t.appendChild(c)}if(this.node.doi){var u=r(".doi.container",{children:[r("div.label",{text:"DOI"}),r("div.value",{children:[r("a",{href:this.node.doi,text:this.node.doi,target:"_blank"})]})]});t.appendChild(u)}if(this.node.related_article){var l=r(".related-article.container",{children:[r("div.label",{text:"Related Article"}),r("div.value",{children:[r("a",{href:this.node.related_article,text:this.node.related_article})]})]});t.appendChild(l)}var p=[];this.node.received_on&&p.push("received on <b>"+i.formatDate(this.node.received_on)+"</b>"),this.node.accepted_on&&p.push("accepted on <b>"+i.formatDate(this.node.accepted_on)+"</b>"),this.node.published_on&&p.push("published on <b>"+i.formatDate(this.node.published_on)+"</b>");var h=r(".dates");h.appendChild(r("span",{text:"The article was "})),1===p.length?h.appendChild(r("span",{html:" "+p[0]+"."})):(h.appendChild(r("span",{html:p.slice(0,-1).join(", ")})),h.appendChild(r("span",{html:" and "+o.last(p)+"."}))),t.appendChild(h),this.content.appendChild(t);var d=this.node.getArticleInfo(),f=this.viewFactory.createView(d),g=f.render().el;return this.content.appendChild(g),this},this.dispose=function(){n.prototype.dispose.call(this)}},s.Prototype.prototype=n.prototype,s.prototype=new s.Prototype,e.exports=s},{"../../article_util":3,"../node":36,"substance-application":62,underscore:144}],41:[function(t,e){"use strict";e.exports={Model:t("./supplement"),View:t("./supplement_view")}},{"./supplement":42,"./supplement_view":43}],42:[function(t,e){var n=t("underscore"),r=t("substance-document"),i=function(t,e){r.Composite.call(this,t,e)};i.type={id:"supplement",parent:"content",properties:{source_id:"string",label:"string",url:"string",caption:"caption"}},i.description={name:"Supplement",remarks:["A Supplement entity."],properties:{source_id:"Supplement id as it occurs in the source NLM file",label:"Supplement label",caption:"References a caption node, that has all the content",url:"URL of downloadable file"}},i.example={id:"supplement_1",source_id:"SD1-data",type:"supplement",label:"Supplementary file 1.",url:"http://myserver.com/myfile.pdf",caption:"caption_supplement_1"},i.Prototype=function(){this.getNodes=function(){var t=[];return this.properties.caption&&t.push(this.properties.caption),t},this.getCaption=function(){return this.properties.caption?this.document.get(this.properties.caption):null}},i.Prototype.prototype=r.Composite.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),o.header={get:function(){return this.properties.label}},Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],43:[function(t,e){"use strict";var n=(t("underscore"),t("substance-util")),r=(n.html,t("../composite").View),i=t("substance-application").$$,o=function(t,e){r.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node supplement")};o.Prototype=function(){this.render=function(){var t=this.node;this.content=i("div.content");var e=t.getCaption();if(e){var n=this.viewFactory.createView(e),r=n.render().el;this.content.appendChild(r),this.childrenViews.push(n)}var o=i("div.file",{children:[i("a",{href:t.url,html:'<i class="icon-download-alt"/> Download'})]});return this.content.appendChild(o),this.el.appendChild(this.content),this}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,e.exports=o},{"../composite":17,"substance-application":62,"substance-util":139,underscore:144}],44:[function(t,e){"use strict";e.exports={Model:t("./table"),View:t("./table_view")}},{"./table":45,"./table_view":46}],45:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"table",parent:"content",properties:{source_id:"string",label:"string",content:"string",footers:["array","string"],caption:"caption"}},i.config={zoomable:!0},i.description={name:"Table",remarks:["A table figure which is expressed in HTML notation"],properties:{source_id:"string",label:"Label shown in the resource header.",title:"Full table title",content:"HTML data",footers:"Table footers expressed as an array strings",caption:"References a caption node, that has all the content"}},i.example={id:"table_1",type:"table",label:"Table 1.",title:"Lorem ipsum table",content:"<table>...</table>",footers:[],caption:"caption_1"},i.Prototype=function(){this.getCaption=function(){return this.properties.caption?this.document.get(this.properties.caption):void 0}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={header:{get:function(){return this.properties.label}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],46:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(r.html,t("../node").View),o=t("substance-application").$$,s=function(t,e){i.call(this,t),this.viewFactory=e,this.$el.attr({id:t.id}),this.$el.addClass("content-node table")};s.Prototype=function(){this.render=function(){var t=this.node;i.prototype.render.call(this);var e=o(".table-wrapper",{html:t.content});this.content.appendChild(e);var r=o(".footers",{children:n.map(t.footers,function(t){return o(".footer",{html:"<b>"+t.label+"</b> "+t.content})})}),s=this.node.getCaption();if(s){var a=this.viewFactory.createView(s),c=a.render().el;this.content.appendChild(c)}return this.content.appendChild(r),this}},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,e.exports=s},{"../node":36,"substance-application":62,"substance-util":139,underscore:144}],47:[function(t,e){"use strict";var n=t("substance-nodes"),r=n.text,i=t("./text_view_patch");i(r.View),e.exports=r},{"./text_view_patch":48,"substance-nodes":84}],48:[function(t,e){function n(t){t.prototype.createAnnotationElement=a,t.prototype.renderWithAnnotations=c}var r=t("substance-document"),i=r.Annotator,o=t("substance-application").$$,s={link:1,cross_reference:1,definition_reference:1,figure_reference:1,person_reference:1,contributor_reference:1,citation_reference:1,strong:2,emphasis:2,code:2,subscript:2,superscript:2,underline:2,author_callout:3,inline_image:3,label:3,custom:3},a=function(t){var e;if("link"===t.type)e=o("a.annotation."+t.type,{id:t.id,href:this.node.document.get(t.id).url});else if("author_callout"===t.type){var n=this.node.document.get(t.id);e=o("span.annotation."+n.style,{id:t.id})}else e="inline_image"===t.type?o("img.annotation."+t.type,{id:t.id,src:this.node.document.get(t.id).url}):"custom"===t.type?o("span.annotation."+this.node.document.get(t.id).name,{id:t.id}):o("span.annotation."+t.type,{id:t.id});return e},c=function(t){var e=this,n=this.property.get(),r=document.createDocumentFragment(),o=new i.Fragmenter({levels:s});o.onText=function(t,e){t.appendChild(document.createTextNode(e))},o.onEnter=function(t,n){var r=e.createAnnotationElement(t);return n.appendChild(r),r},o.start(r,n,t),this.content.innerHTML="",this.content.appendChild(r)};e.exports=n},{"substance-application":62,"substance-document":73}],49:[function(t,e){"use strict";e.exports={Model:t("./video"),View:t("./video_view")}},{"./video":50,"./video_view":51}],50:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"video",parent:"content",properties:{source_id:"string",label:"string",url:"string",url_webm:"string",url_ogv:"string",caption:"caption",poster:"string"}},i.config={zoomable:!0},i.description={name:"Video",remarks:["A video type intended to refer to video resources.","MP4, WebM and OGV formats are supported."],properties:{label:"Label shown in the resource header.",url:"URL to mp4 version of the video.",url_webm:"URL to WebM version of the video.",url_ogv:"URL to OGV version of the video.",poster:"Video poster image.",caption:"References a caption node, that has all the content"}},i.example={id:"video_1",type:"video",label:"Video 1.",url:"http://cdn.elifesciences.org/video/eLifeLensIntro2.mp4",url_webm:"http://cdn.elifesciences.org/video/eLifeLensIntro2.webm",url_ogv:"http://cdn.elifesciences.org/video/eLifeLensIntro2.ogv",poster:"http://cdn.elifesciences.org/video/eLifeLensIntro2.png",caption:"caption_25"},i.Prototype=function(){},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,n.extend(o,{header:{get:function(){return this.properties.label}},caption:{get:function(){return this.properties.caption?this.document.get(this.properties.caption):""}}})),e.exports=i},{"substance-document":73,underscore:144}],51:[function(t,e){"use strict";var n=(t("underscore"),t("substance-util")),r=(n.html,t("../node").View),i=t("substance-application").$$,o=function(t,e){r.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node video")};o.Prototype=function(){this.render=function(){r.prototype.render.call(this);var t=this.node,e=[i("source",{src:t.url,type:"video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;"})];t.url_ogv&&e.push(i("source",{src:t.url_ogv,type:"video/ogg; codecs=&quot;theora, vorbis&quot;"})),t.url_webm&&e.push(i("source",{src:t.url_webm,type:"video/webm; codecs=&quot;vp8, vorbis%quot;"}));var n=i(".video-wrapper",{children:[i("video",{controls:"controls",poster:t.poster,preload:"none",children:e})]});if(this.content.appendChild(n),t.title&&this.content.appendChild(i(".title",{text:t.title})),this.node.caption){var o=this.viewFactory.createView(this.node.caption);this.content.appendChild(o.render().el),this.captionView=o}return t.doi&&this.content.appendChild(i(".doi",{children:[i("b",{text:"DOI: "}),i("a",{href:t.doi,target:"_new",text:t.doi})]})),this}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node":36,"substance-application":62,"substance-util":139,underscore:144}],52:[function(t,e){"use strict";var n=t("substance-nodes");e.exports=n.webresource},{"substance-nodes":84}],53:[function(t,e){"use strict";var n=t("./src/lens_converter");e.exports=n},{"./src/lens_converter":59}],54:[function(t,e){var n=(t("underscore"),function(){});n.Prototype=function(){this.enhanceSupplement=function(){},this.enhanceTable=function(){},this.enhanceCover=function(){},this.getBaseURL=function(t){var e=t.xmlDoc.querySelector("article").getAttribute("xml:base");return e||t.options.baseURL},this.enhanceVideo=function(t,e,n){var r=(n.querySelector("media")||n,n.getAttribute("xlink:href"));if(r.match(/http:/)){var i=r.lastIndexOf("."),o=r.substring(0,i);return e.url=o+".mp4",e.url_ogv=o+".ogv",e.url_webm=o+".webm",void(e.poster=o+".png")}var s=this.getBaseURL(t),o=r.split(".")[0];e.url=s+o+".mp4",e.url_ogv=s+o+".ogv",e.url_webm=s+o+".webm",e.poster=s+o+".png"},this.enhanceFigure=function(t,e,n){var r=n.querySelector("graphic"),i=r.getAttribute("xlink:href");e.url=this.resolveURL(t,i)},this.enhanceArticle=function(){},this.extractPublicationInfo=function(){},this.resolveURL=function(t){return t},this.resolveURL=function(t,e){return e.match(/http:/)?e:[t.options.baseURL,e].join("")}},n.prototype=new n.Prototype,e.exports=n},{underscore:144}],55:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=t("./default"),o=function(){};o.Prototype=function(){this.enhanceCover=function(t,e,n){var r=n.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;try{var i=n.querySelector("subj-group[subj-group-type=heading] subject").textContent}catch(o){var i=null}e.breadcrumbs=[{name:"eLife",url:"http://elifesciences.org/",image:"http://lens.elifesciences.org/lens-elife/styles/elife.png"},{name:r,url:"http://elifesciences.org/category/"+r.replace(/ /g,"-").toLowerCase()}],i&&e.breadcrumbs.push({name:i,url:"http://elifesciences.org/category/"+i.replace(/ /g,"-").toLowerCase()})},this.enhanceFigure=function(t,e,n){var r=n.querySelector("graphic"),i=r.getAttribute("xlink:href");e.url=this.resolveURL(t,i)},this.enhanceVideo=function(t,e,n){var r=(n.querySelector("media")||n,n.getAttribute("xlink:href").split(".")),i=r[0];e.url="http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+i+".mp4",e.url_ogv="http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+i+".ogv",e.url_webm="http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+i+".webm",e.poster="http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+i+".jpg"},this.resolveURL=function(t,e){if(e.match(/http:\/\//))return e;var n=this.getBaseURL(t);return n?[n,e].join(""):["http://cdn.elifesciences.org/elife-articles/",t.doc.id,"/jpg/",e,".jpg"].join("")},this.enhanceSupplement=function(t,e){var n=this.getBaseURL(t);return n?[n,e.url].join(""):void(e.url=["http://cdn.elifesciences.org/elife-articles/",t.doc.id,"/suppl/",e.url].join(""))},this.extractPublicationInfo=function(t,e,i){function o(t){if(!t)return null;var e=t.querySelector("day").textContent,n=t.querySelector("month").textContent,r=t.querySelector("year").textContent;return[r,n,e].join("-")}var s=e.doc,a={id:"articleinfo",type:"paragraph",children:[]},c=a.children,u=i.querySelectorAll("meta-value"),l=u[1];if(l){var p={type:"heading",id:e.nextId("heading"),level:3,content:"Impact"};s.create(p),c.push(p.id);var h=t.paragraphGroup(e,l);c.push(h[0].id)}var d=i.querySelector("contrib[contrib-type=editor]");if(d){var f=[],g=t.getName(d.querySelector("name"));g&&f.push(g);var m=d.querySelector("institution");m&&f.push(m.textContent);var y=d.querySelector("country");y&&f.push(y.textContent);var p={type:"heading",id:e.nextId("heading"),level:3,content:"Reviewing Editor"};s.create(p),c.push(p.id);var v={type:"text",id:e.nextId("text"),content:f.join(", ")};s.create(v),c.push(v.id)}for(var b=i.querySelectorAll("sec"),w=0;w<b.length;w++){var x=b[w],_=x.getAttribute("sec-type");if("datasets"===_){var p={type:"heading",id:e.nextId("heading"),level:3,content:"Major Datasets"};s.create(p),c.push(p.id);for(var C=t.datasets(e,n.dom.getChildren(x)),P=0;P<C.length;P++)C[P]&&c.push(C[P])}}var S=i.querySelector("ack");if(S){var p={type:"heading",id:e.nextId("heading"),level:3,content:"Acknowledgements"};s.create(p),c.push(p.id);var h=t.bodyNodes(e,n.dom.getChildren(S));c.push(h[0].id)}var N=i.querySelector("permissions");if(N){var p={type:"heading",id:e.nextId("heading"),level:3,content:"Copyright and License"};s.create(p),c.push(p.id);var k=N.querySelector("copyright-statement");if(k){var h=t.paragraphGroup(e,k),A=h[0].children[0];s.nodes[A].content+=". ",c.push(h[0].id)}for(var E=N.querySelector("license"),T=n.dom.getChildren(E),w=0;w<T.length;w++){var $=T[w],_=n.dom.getNodeType($);if("p"===_||"license-p"===_){var h=t.paragraphGroup(e,$);c.push(h[0].id)}}}s.create(a);var V=i.querySelector("article-meta"),I=V.querySelector("pub-date"),O=V.querySelector("date[date-type=received]"),j=V.querySelector("date[date-type=accepted]"),L=V.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd"),R=V.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd"),q=V.querySelectorAll("subj-group[subj-group-type=heading] subject"),M=V.querySelector("subj-group[subj-group-type=display-channel] subject"),F=i.querySelector("journal-title"),D=i.querySelector("article-id[pub-id-type=doi]"),U=i.querySelector("self-uri[content-type=pdf]"),B=["http://cdn.elifesciences.org/elife-articles/",e.doc.id,"/pdf/",U?U.getAttribute("xlink:href"):"#"].join(""),H=i.querySelector("related-article"),G=[];B&&G.push({url:B,name:"PDF",type:"pdf"}),G.push({url:"https://s3.amazonaws.com/elife-cdn/elife-articles/"+e.doc.id+"/elife"+e.doc.id+".xml",name:"Source XML",type:"xml"}),G.push({url:"",name:"Lens JSON",type:"json"});var J={id:"publication_info",type:"publication_info",published_on:o(I),received_on:o(O),accepted_on:o(j),keywords:r.pluck(L,"textContent"),research_organisms:r.pluck(R,"textContent"),subjects:r.pluck(q,"textContent"),article_type:M?M.textContent:"",journal:F?F.textContent:"",related_article:H?["http://dx.doi.org/",H.getAttribute("xlink:href")].join(""):"",doi:D?["http://dx.doi.org/",D.textContent].join(""):"",article_info:a.id,links:G};s.create(J),s.show("info",J.id,0)},this.enhanceInfo=function(){},this.enhanceArticle=function(t,e,r){var i=[],o=r.querySelector("#SA1");if(o){var s={id:e.nextId("heading"),type:"heading",level:1,content:"Article Commentary"};doc.create(s),i.push(s);var s={id:e.nextId("heading"),type:"heading",level:2,content:"Decision letter"};doc.create(s),i.push(s);var a=o.querySelector("body");i=i.concat(t.bodyNodes(e,n.dom.getChildren(a)))}var c=r.querySelector("#SA2");if(c){var s={id:e.nextId("heading"),type:"heading",level:2,content:"Author response"};doc.create(s),i.push(s);var a=c.querySelector("body");i=i.concat(t.bodyNodes(e,n.dom.getChildren(a)))}i.length>0&&t.show(e,i),this.enhanceInfo(t,e,r)}},o.Prototype.prototype=i.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,e.exports=o},{"./default":54,"substance-util":139,underscore:144}],56:[function(t,e){var n=t("./default"),r=function(){};r.Prototype=function(){{var t={CC:"cc",INTV:"intravital",CIB:"cib"};n.prototype}this.enhanceSupplement=function(e,n,r){var i=r.querySelector("graphic, media")||r,o=i.getAttribute("xlink:href"),s=e.xmlDoc.querySelector("journal-id").textContent,o=["https://www.landesbioscience.com/journals/",t[s],"/",o].join("");n.url=o},this.enhanceVideo=function(t,e){e.url="provide_url_here"},this.enhanceFigure=function(e,n,r){var i=r.querySelector("graphic"),o=i.getAttribute("xlink:href"),s=e.xmlDoc.querySelector("journal-id").textContent,o=["https://www.landesbioscience.com/article_figure/journals/",t[s],"/",o].join("");if(n.url=o,!n.label){var a=n.type;n.label=a.charAt(0).toUpperCase()+a.slice(1)}}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"./default":54}],57:[function(t,e){var n=t("./default"),r=function(){};r.Prototype=function(){this.enhanceFigure=function(t,e,n){var r=n.querySelector("graphic"),i=r.getAttribute("xlink:href");e.url=i},this.enhanceVideo=function(t,e){e.url="http://mickey.com/mouse.mp4"}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"./default":54}],58:[function(t,e){var n=t("./default"),r=function(){};r.Prototype=function(){this.enhanceFigure=function(t,e,n){var r=n.querySelector("graphic"),i=r.getAttribute("xlink:href");i=["http://www.plosone.org/article/fetchObject.action?uri=",i,"&representation=PNG_L"].join(""),e.url=i},this.enhanceVideo=function(t,e){e.url="http://mickey.com/mouse.mp4"}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"./default":54}],59:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=i.define("ImporterError"),s=t("./configurations/elife"),a=t("./configurations/landes"),c=t("./configurations/default"),u=t("./configurations/plos"),l=t("./configurations/peerj"),p=function(t){this.options=t||{}};p.Prototype=function(){var e=function(t){if(!t)return"N/A";var e=[],n=t.querySelector("surname"),r=t.querySelector("given-names"),i=t.querySelector("suffix");return r&&e.push(r.textContent),n&&e.push(n.textContent),i?[e.join(" "),i.textContent].join(", "):e.join(" ")};this.getName=e;var i=function(t){if(!t)return"";var e=document.createElement("DIV");return e.appendChild(t.cloneNode(!0)),e.innerHTML};this.import=function(t,e){var r;if(n.isString(t)){var i=new DOMParser;r=i.parseFromString(t,"text/xml")}else r=t;var o=this.createDocument();window.doc=o;var s=new p.State(r,o,e);return this.document(s,r)},this.createDocument=function(){var e=t("lens-article"),n=new e;return n};var h={box:"content",supplement:"figures",figure:"figures",table:"figures",video:"figures"};this.show=function(t,e){var r=t.doc;n.each(e,function(t){var e=h[t.type]||"content";r.show(e,t.id)})},this.extractCover=function(t,e){var r=t.doc,i=r.get("document"),o={id:"cover",type:"cover",title:i.title,authors:[],"abstract":i.abstract};n.each(i.authors,function(e){var n=r.get(e),i={id:"text_"+e+"_reference",type:"text",content:n.name};r.create(i),o.authors.push(i.id);var s={id:t.nextId("contributor_reference"),type:"contributor_reference",path:["text_"+e+"_reference","content"],range:[0,n.name.length],target:e};r.create(s)},this),t.config.enhanceCover(t,o,e),r.create(o),r.show("content",o.id,0)},this.contribGroup=function(t,e){var n,r=e.querySelectorAll("aff");for(n=0;n<r.length;n++)this.affiliation(t,r[n]);var i=e.querySelectorAll("contrib");for(n=0;n<i.length;n++)this.contributor(t,i[n]);var o=t.doc,s=e.querySelector("on-behalf-of");s&&(o.on_behalf_of=s.textContent.trim())},this.affiliation=function(t,e){var n=t.doc,r=e.querySelector("institution"),i=e.querySelector("country"),o=e.querySelector("label"),s=e.querySelector("addr-line named-content[content-type=department]"),a=e.querySelector("addr-line named-content[content-type=city]"),c={id:t.nextId("affiliation"),type:"affiliation",source_id:e.getAttribute("id"),label:o?o.textContent:null,department:s?s.textContent:null,city:a?a.textContent:null,institution:r?r.textContent:null,country:i?i.textContent:null};n.create(c)},this.contributor=function(t,r){function i(i){var o=[],s=t.xmlDoc.querySelectorAll("xref[rid="+i+"]");return n.each(s,function(t){var n=t.parentNode;n!==r&&o.push(e(n.querySelector("name")))}),o}var o=t.doc,s=t.nextId("contributor"),a={id:s,source_id:r.getAttribute("id"),type:"contributor",name:"",affiliations:[],fundings:[],image:"",deceased:!1,emails:[],contribution:"",members:[]};"yes"===r.getAttribute("deceased")&&(a.deceased=!0);var c=r.querySelector("uri[content-type=orcid]");c&&(a.orcid=c.getAttribute("xlink:href"));var u=r.querySelector("name");if(u)a.name=e(u);else{var l=r.querySelector("collab");a.name=l?l.textContent:"N/A";var p=r.querySelector("xref[ref-type=other]");if(p){var h=p.getAttribute("rid"),d=t.xmlDoc.querySelectorAll("#"+h+" contrib");a.members=n.map(d,function(t){return e(t.querySelector("name"))})}}var f=[],g=r.querySelectorAll("xref"),m=[];n.each(g,function(e){if("aff"===e.getAttribute("ref-type")){var n=e.getAttribute("rid"),r=o.getNodeBySourceId(n);r&&a.affiliations.push(r.id)}else if("other"===e.getAttribute("ref-type")){var s=t.xmlDoc.getElementById(e.getAttribute("rid"));if(!s)return;var c=s.querySelector("funding-source");if(!c)return;var u=s.querySelector("award-id");u=u?", "+u.textContent:"";var l=c.childNodes[0].textContent;a.fundings.push([l,u].join(""))}else if("corresp"===e.getAttribute("ref-type")){var p=t.xmlDoc.getElementById(e.getAttribute("rid"));if(!p)return;var h=p.querySelector("email");if(!h)return;a.emails.push(h.textContent)}else if("fn"===e.getAttribute("ref-type")){var d=t.xmlDoc.getElementById(e.getAttribute("rid"));d&&"con"===d.getAttribute("fn-type")?a.contribution=d.textContent:d&&"conflict"===d.getAttribute("fn-type")?m.push(d.textContent.trim()):d&&"present-address"===d.getAttribute("fn-type")?a.present_address=d.querySelector("p").textContent:d&&"equal"===d.getAttribute("fn-type")?f=i(d.getAttribute("id")):d&&"other"===d.getAttribute("fn-type")&&d.getAttribute("id").indexOf("equal-contrib")>=0&&(f=i(d.getAttribute("id")))}}),a.equal_contrib=f,m.length>1&&(m=n.filter(m,function(t){return t.indexOf("no competing")<0})),a.competing_interests=m,"author"===r.getAttribute("contrib-type")&&o.nodes.document.authors.push(s),o.create(a),o.show("info",a.id)};var d={bold:"strong",italic:"emphasis",monospace:"code",sub:"subscript",sup:"superscript",underline:"underline","ext-link":"link",xref:"","named-content":""};this.isAnnotation=function(t){return void 0!==d[t]};var f=/author-callout-style/;this.createAnnotation=function(t,e,r,i){var o=e.tagName.toLowerCase(),s={path:n.last(t.stack).path,range:[r,i]};if("xref"===o){var a=e.getAttribute("ref-type"),c=e.getAttribute("rid");s.type="bibr"===a?"citation_reference":"fig"===a||"table"===a||"supplementary-material"===a||"other"===a?"figure_reference":"cross_reference",c&&(s.target=c.split(" ")[0])}else if("named-content"===o){var u=e.getAttribute("content-type");if(!f.test(u))return;s.type="author_callout",s.style=u}else{if(void 0===d[o])return void console.log("Ignoring annotation: ",o,e);s.type=d[o],"ext-link"===o&&(s.url=e.getAttribute("xlink:href"),"doi"===e.getAttribute("ext-link-type")&&(s.url=["http://dx.doi.org/",s.url].join("")))}s.id=t.nextId(s.type),t.annotations.push(s)},this.annotatedText=function(t,e,n,i){var s="";for(void 0===n&&(n=0);e.hasNext();){var a=e.next();if(a.nodeType===Node.TEXT_NODE){var c=t.acceptText(a.textContent);s+=c,n+=c.length}else{var u=r.dom.getNodeType(a);if(!this.isAnnotation(u)){if(i)throw new o("Node not yet supported in annoted text: "+u);e.back();break}var l=n,p=new r.dom.ChildNodeIterator(a),h=this.annotatedText(t,p,n,"nested");s+=h,n+=h.length,t.ignoreAnnotations||this.createAnnotation(t,a,l,n)}}return s},this.document=function(t,e){var r=e.querySelector("publisher-name").textContent;t.config="Landes Bioscience"===r?new a:"eLife Sciences Publications, Ltd"===r?new s:"Public Library of Science"===r?new u:"PeerJ Inc."===r?new l:new c;var i=t.doc,p=e.querySelector("article");if(!p)throw new o("Expected to find an 'article' element.");this.article(t,p);for(var h=0;h<t.annotations.length;h++){var d=t.annotations[h];if(d.target){var f=t.doc.getNodeBySourceId(d.target);f&&(d.target=f.id)}i.create(t.annotations[h])}return n.each(i.views,function(t){i.get(t).rebuild()}),i},this.extractContributors=function(t,e){var n=e.querySelector("article-meta contrib-group");n&&this.contribGroup(t,n)},this.extractFigures=function(t,e){for(var n,i=e.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]"),o=[],s=0;s<i.length;s++){var a=i[s],c=r.dom.getNodeType(a);"fig"===c?(n=this.figure(t,a),n&&o.push(n)):"table-wrap"===c?(n=this.tableWrap(t,a),n&&o.push(n)):"media"===c?(n=this.video(t,a),n&&o.push(n)):"supplementary-material"===c&&(n=this.supplement(t,a),n&&o.push(n))}o.length>0&&this.show(t,o)},this.extractCitations=function(t,e){var n=e.querySelector("ref-list");n&&this.refList(t,n)},this.figure=function(t,e){var n=t.doc,r=e.querySelector("label"),i={type:"figure",id:t.nextId("figure"),source_id:e.getAttribute("id"),label:r?r.textContent:"Figure",url:"http://images.wisegeek.com/young-calico-cat.jpg",caption:null},o=e.querySelector("caption");if(o){var s=this.caption(t,o);s&&(i.caption=s.id)}var a=e.querySelector("attrib");return a&&(i.attrib=a.textContent),t.config.enhanceFigure(t,i,e),n.create(i),i},this.supplement=function(t,e){var n=t.doc,r=e.querySelector("label"),i=e.querySelector("media"),o=i?i.getAttribute("xlink:href"):null,s=e.querySelector("object-id[pub-id-type='doi']");s=s?"http://dx.doi.org/"+s.textContent:"";var a={id:t.nextId("supplement"),source_id:e.getAttribute("id"),type:"supplement",label:r?r.textContent:"",url:o,caption:null},c=e.querySelector("caption");if(c){var u=this.caption(t,c);u&&(a.caption=u.id)}return t.config.enhanceSupplement(t,a,e),n.create(a),a},this.caption=function(t,e){var r=t.doc,i=e.querySelector("title"),o=n.select(e.querySelectorAll("p"),function(t){return t.parentNode===e});if(0===o.length)return null;var s={id:t.nextId("caption"),source_id:e.getAttribute("id"),type:"caption",title:"",children:[]};if(i){var a=this.paragraph(t,i);a&&(s.title=a.id)}var c=[];return n.each(o,function(e){var n=this.paragraph(t,e);n&&c.push(n.id)},this),s.children=c,r.create(s),s},this.video=function(t,e){var n=t.doc,r=e.querySelector("label").textContent,i=t.nextId("video"),o={id:i,source_id:e.getAttribute("id"),type:"video",label:r,title:"",caption:null,poster:""},s=e.querySelector("caption");if(s){var a=this.caption(t,s);a&&(o.caption=a.id)}return t.config.enhanceVideo(t,o,e),n.create(o),o},this.tableWrap=function(t,e){var n=t.doc,r=e.querySelector("label"),o={id:t.nextId("table"),source_id:e.getAttribute("id"),type:"table",title:"",label:r?r.textContent:"Table",content:"",caption:null,footers:[]},s=e.querySelector("table");o.content=i(s);var a=e.querySelector("caption");if(a){var c=this.caption(t,a);c&&(o.caption=c.id)}return t.config.enhanceTable(t,o,e),n.create(o),o},this.article=function(t,e){var n=t.doc,i=e.querySelector("article-id");n.id=i?i.textContent:r.uuid(),this.extractContributors(t,e),this.extractCitations(t,e),this.extractFigures(t,e),this.extractCover(t,e),this.extractArticleMeta(t,e);var o=e.querySelector("body");o&&this.body(t,o),t.config.enhanceArticle(this,t,e)},this.extractArticleMeta=function(t,e){var r=e.querySelector("article-meta");if(!r)throw new o("Expected element: 'article-meta'");var i=r.querySelectorAll("article-id");this.articleIds(t,i);var s=r.querySelector("title-group");s&&this.titleGroup(t,s);var a=r.querySelectorAll("pub-date");this.pubDates(t,a);var c=r.querySelectorAll("abstract");n.each(c,function(e){this.abstract(t,e)},this),t.config.extractPublicationInfo(this,t,e)},this.articleIds=function(t,e){var n=t.doc;n.id=e.length>0?e[0].textContent:r.uuid()},this.titleGroup=function(t,e){var n=t.doc,r=e.querySelector("article-title");r&&(n.title=r.textContent)},this.pubDates=function(t,e){var n=t.doc;if(e.length>0){var r=this.pubDate(t,e[0]);n.created_at=r.date}},this.pubDate=function(t,e){var i=-1,o=-1,s=-1;n.each(r.dom.getChildren(e),function(t){var e=r.dom.getNodeType(t),n=t.textContent;"day"===e?i=parseInt(n,10):"month"===e?o=parseInt(n,10):"year"===e&&(s=parseInt(n,10))},this);var a=new Date(s,o,i);return{date:a}},this.abstract=function(t,e){var n=t.doc,i=[],o=e.querySelector("title"),s={id:t.nextId("heading"),type:"heading",level:1,content:o?o.textContent:"Abstract"};n.create(s),i.push(s),i=i.concat(this.bodyNodes(t,r.dom.getChildren(e))),i.length>0&&this.show(t,i)},this.body=function(t,e){var n=t.doc,i={id:t.nextId("heading"),type:"heading",level:1,content:"Main Text"};n.create(i);var o=[i].concat(this.bodyNodes(t,r.dom.getChildren(e)));o.length>0&&this.show(t,o)},this.bodyNodes=function(t,e,n){var i,o=[];n=n||0;for(var s=n;s<e.length;s++){var a=e[s],c=r.dom.getNodeType(a);"p"===c?o=o.concat(this.paragraphGroup(t,a)):"sec"===c?o=o.concat(this.section(t,a)):"list"===c?(i=this.list(t,a),i&&o.push(i)):"disp-formula"===c?(i=this.formula(t,a),i&&o.push(i)):"caption"===c?(i=this.caption(t,a),i&&o.push(i)):"boxed-text"===c?(i=this.boxedText(t,a),i&&o.push(i)):"disp-quote"===c&&(i=this.boxedText(t,a),i&&o.push(i))}return o},this.boxedText=function(t,e){var i=t.doc,o=this.bodyNodes(t,r.dom.getChildren(e)),s=e.querySelector("label"),a=t.nextId("box"),c={type:"box",id:a,source_id:e.getAttribute("id"),children:n.pluck(o,"id")};return i.create(c),s?(i.show("figures",a,-1),null):c},this.datasets=function(t,e){for(var n=[],i=0;i<e.length;i++){var o=e[i],s=r.dom.getNodeType(o);if("p"===s){var a=o.querySelector("related-object");if(a)n=n.concat(this.indivdata(t,a));else{var c=this.paragraphGroup(t,o);c.length>0&&n.push(c[0].id)}}}return n},this.indivdata=function(t,e){var n=t.doc,i={type:"paragraph",id:t.nextId("paragraph"),children:[]},o={type:"text",id:t.nextId("text"),content:""};
-i.children.push(o.id);for(var s=r.dom.getChildren(e),a=0;a<s.length;a++){var c,u=s[a],l=r.dom.getNodeType(u);if("name"===l)for(var p=r.dom.getChildren(u),h=0;h<p.length;h++){var d=p[h];if(0===h)c=this.paragraphGroup(t,d),i.children.push(c[0].children[0]);else{var f={type:"text",id:t.nextId("text"),content:", "};n.create(f),i.children.push(f.id),c=this.paragraphGroup(t,d),i.children.push(c[0].children[0])}}else c=this.paragraphGroup(t,u),c&&c[0]&&c[0].children&&i.children.push(c[0].children[0])}return n.create(i),n.create(o),i.id},this.section=function(t,e){t.sectionLevel++;var n=t.doc,i=r.dom.getChildren(e),o=i[0];t.ignoreAnnotations=!0;var s=new r.dom.ChildNodeIterator(o),a=this.annotatedText(t,s);t.ignoreAnnotations=!1;var c={id:t.nextId("heading"),source_id:e.getAttribute("id"),type:"heading",level:t.sectionLevel,content:a};n.create(c);var u=this.bodyNodes(t,i,1);return u.unshift(c),t.sectionLevel--,u},this.ignoredParagraphElements={comment:!0,"supplementary-material":!0,fig:!0,"fig-group":!0,"table-wrap":!0,media:!0},this.acceptedParagraphElements={"boxed-text":{handler:"boxedText"},list:{handler:"list"},"disp-formula":{handler:"formula"}},this.inlineParagraphElements={"inline-graphic":!0,"inline-formula":!0},this.segmentParagraphElements=function(t){for(var e=[],i="",o=new r.dom.ChildNodeIterator(t);o.hasNext();){var s=o.next(),a=r.dom.getNodeType(s);this.ignoredParagraphElements[a]||("text"===a||this.isAnnotation(a)||this.inlineParagraphElements[a]?("paragraph"!==i&&(e.push({handler:"paragraph",nodes:[]}),i="paragraph"),n.last(e).nodes.push(s)):(this.acceptedParagraphElements[a]&&e.push(n.extend({node:s},this.acceptedParagraphElements[a])),i=a))}return e},this.paragraphGroup=function(t,e){for(var n=[],r=this.segmentParagraphElements(e),i=0;i<r.length;i++){var o,s=r[i];"paragraph"===s.handler?(o=this.paragraph(t,s.nodes),o&&(o.source_id=e.getAttribute("id"))):o=this[s.handler](t,s.node),o&&n.push(o)}return n},this.paragraph=function(t,e){for(var i=t.doc,o={id:t.nextId("paragraph"),type:"paragraph",children:null},s=[],a=new r.dom.ChildNodeIterator(e);a.hasNext();){var c=a.next(),u=r.dom.getNodeType(c);if("text"===u||this.isAnnotation(u)){var l={id:t.nextId("text"),type:"text",content:null};t.stack.push({node:l,path:[l.id,"content"]});var p=this.annotatedText(t,a.back(),0);p.length>0&&(l.content=p,i.create(l),s.push(l)),t.stack.pop()}else if("inline-graphic"===u){var h=c.getAttribute("xlink:href"),d={id:t.nextId("image"),type:"image",url:t.config.resolveURL(t,h)};i.create(d),s.push(d)}else if("inline-formula"===u){var f=this.formula(t,c,"inline");f&&s.push(f)}}return 0===s.length?null:(o.children=n.map(s,function(t){return t.id}),i.create(o),o)},this.list=function(t,e){var n=t.doc,i={id:t.nextId("list"),source_id:e.getAttribute("id"),type:"list",items:[],ordered:!1};"ordered"===e.getAttribute("list-type")&&(i.ordered=!0);for(var o=e.querySelectorAll("list-item"),s=0;s<o.length;s++)for(var a=o[s],c=this.bodyNodes(t,r.dom.getChildren(a),0),u=0;u<c.length;u++)i.items.push(c[u].id);return n.create(i),i};var g=function(t,e){for(var n=r.dom.getChildren(t),o=0;o<n.length;o++){var s=n[o],a=r.dom.getNodeType(s);if("mml:math"===a)return e||s.setAttribute("display","block"),{format:"mathml",data:i(s)};if("tex-math"===a)return{format:"latex",data:s.textContent}}return null};this.formula=function(t,e,n){var r=t.doc,i=t.nextId(n?"inline_formula":"formula"),o={id:i,source_id:e.getAttribute("id"),type:"formula",label:"",data:"",format:""};n&&(o.inline=!0);var s=e.querySelector("label");s&&(o.label=s.textContent);var a=g(e,n);return a?(o.format=a.format,o.data=a.data,r.create(o),o):null},this.refList=function(t,e){for(var n=e.querySelectorAll("ref"),r=0;r<n.length;r++)this.ref(t,n[r])},this.ref=function(t,e){for(var n=r.dom.getChildren(e),i=0;i<n.length;i++){var o=n[i],s=r.dom.getNodeType(o);"mixed-citation"===s||"element-citation"===s?this.citation(t,e,o):"label"===s||console.error("Not supported in 'ref': ",s)}},this.citation=function(t,n,r){var i,o,s=t.doc,a=t.nextId("article_citation"),c=r.querySelector("person-group");if(!c)return void console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...",r);i={id:a,source_id:n.getAttribute("id"),type:"citation",title:"N/A",label:"",authors:[],doi:"",source:"",volume:"",fpage:"",lpage:"",citation_urls:[]};var u=c.querySelectorAll("name");for(o=0;o<u.length;o++)i.authors.push(e(u[o]));var l=c.querySelectorAll("collab");for(o=0;o<l.length;o++)i.authors.push(l[o].textContent);var p=r.querySelector("source");p&&(i.source=p.textContent);var h=r.querySelector("article-title");if(h)i.title=h.textContent;else{var d=r.querySelector("comment");d?i.title=d.textContent:p?i.title=p.textContent:console.error("FIXME: this citation has no title",r)}var f=r.querySelector("volume");f&&(i.volume=f.textContent);var g=r.querySelector("publisher-loc");g&&(i.publisher_location=g.textContent);var m=r.querySelector("publisher-name");m&&(i.publisher_name=m.textContent);var y=r.querySelector("fpage");y&&(i.fpage=y.textContent);var v=r.querySelector("lpage");v&&(i.lpage=v.textContent);var b=r.querySelector("year");b&&(i.year=b.textContent);var w=n.querySelector("label");w&&(i.label=w.textContent);var x=r.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");x&&(i.doi="http://dx.doi.org/"+x.textContent),s.create(i),s.show("citations",a)}},p.State=function(t,e,n){this.xmlDoc=t,this.doc=e,this.options=n||{},this.annotations=[],this.stack=[],this.sectionLevel=1;var r={};this.nextId=function(t){return r[t]=r[t]||0,r[t]++,t+"_"+r[t]};var i=/^\s+/g,o=/^\s*/g,s=/\s+$/g,a=/\s+/g,c=" ",u=/[\t\n\r]+/g;this.lastChar="",this.acceptText=function(t){return this.options.TRIM_WHITESPACES?(t=t.replace(u,""),t=this.lastChar===c?t.replace(o,""):t.replace(i,c),t=t.replace(s,c),this.options.REMOVE_INNER_WS&&(t=t.replace(a,c)),this.lastChar=t[t.length-1]||this.lastChar,t):t}},p.prototype=new p.Prototype,e.exports={Importer:p}},{"./configurations/default":54,"./configurations/elife":55,"./configurations/landes":56,"./configurations/peerj":57,"./configurations/plos":58,"lens-article":4,"substance-util":139,underscore:144}],60:[function(t,e){"use strict";var n=t("./outline");e.exports=n},{"./outline":61}],61:[function(t,e){"use strict";var n=t("substance-application").View,r=t("substance-application").$$,i=t("underscore"),o=function(t){n.call(this),this.surface=t,this.state={selectedNode:null,highlightedNodes:[]},this.$el.addClass("lens-outline"),i.bindAll(this,"mouseDown","mouseUp","mouseMove","updateVisibleArea"),this.$el.mousedown(this.mouseDown),$(window).mousemove(this.mouseMove),$(window).mouseup(this.mouseUp)};o.Prototype=function(){this.render=function(){var t=this,e=0,n=document.createDocumentFragment();this.visibleArea=r(".visible-area"),n.appendChild(this.visibleArea);var o=this.surface.$(".nodes").height(),s=this.surface.$el.height(),a=o/s;this.factor=a;var c=this.surface.doc.container,u=c.getTopLevelNodes();i.each(u,function(t){var r=this.surface.$("#"+t.id),i=r.outerHeight(!0)/a,o=$('<div class="node">').attr({id:"outline_"+t.id}).css({position:"absolute",height:i-1,top:e}).addClass(t.type).append('<div class="arrow">');n.appendChild(o[0]),e+=i},this);var l=t.surface.$el.scrollTop();return t.el.innerHTML="",t.el.appendChild(n),t.updateVisibleArea(l),this},this.updateVisibleArea=function(t){$(this.visibleArea).css({top:t/this.factor,height:this.surface.$el.height()/this.factor})},this.update=function(t){this.render(),this.state=t,this.$(".node").removeClass("selected").removeClass("highlighted"),this.$el.removeClass("figures").removeClass("citations"),this.$el.addClass(t.context),this.$("#outline_"+t.selectedNode).addClass("selected"),i.each(t.highlightedNodes,function(t){this.$("#outline_"+t).addClass("highlighted")},this)},this.mouseDown=function(t){this._mouseDown=!0;var e=t.pageY;return t.target!==this.visibleArea?(this.offset=$(this.visibleArea).height()/2,this.mouseMove(t)):this.offset=e-$(this.visibleArea).position().top,!1},this.mouseUp=function(){this._mouseDown=!1},this.mouseMove=function(t){if(this._mouseDown){var e=t.pageY,n=(e-this.offset)*this.factor;this.surface.$el.scrollTop(n)}}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,e.exports=o},{"substance-application":62,underscore:144}],62:[function(t,e){"use strict";var n=t("./src/application");n.View=t("./src/view"),n.Router=t("./src/router"),n.Controller=t("./src/controller"),n.ElementRenderer=t("./src/renderers/element_renderer"),n.$$=n.ElementRenderer.$$,e.exports=n},{"./src/application":63,"./src/controller":64,"./src/renderers/element_renderer":65,"./src/router":66,"./src/view":67}],63:[function(t,e){"use strict";var n=t("./view"),r=t("./router"),i=(t("substance-util"),t("underscore")),o=function(t){n.call(this),this.config=t};o.Prototype=function(){this.initRouter=function(){this.router=new r,i.each(this.config.routes,function(t){this.router.route(t.route,t.name,i.bind(this.controller[t.command],this.controller))},this),r.history.start()},this.start=function(){this.$el=$("body"),this.el=this.$el[0],this.render(),this.initRouter()}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,e.exports=o},{"./router":66,"./view":67,"substance-util":139,underscore:144}],64:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=function(){this.state={},this.context=null};i.Prototype=function(){this.updateState=function(t,e){console.error("updateState is deprecated, use modifyState. State is now a rich object where context replaces the old state variable");var n=this.context;this.context=t,this.state=e,this.trigger("state-changed",this.context,n,e)},this.modifyState=function(t){var e=this.state.context;r.extend(this.state,t),t.context&&t.context!==e&&this.trigger("context-changed",t.context),this.trigger("state-changed",this.state.context)}},i.Prototype.prototype=n.Events,i.prototype=new i.Prototype,e.exports=i},{"substance-util":139,underscore:144}],65:[function(t,e){"use strict";var n=t("substance-util"),r=t("substance-regexp"),i=function(t){return this.attributes=t,this.tagName=t.tag,this.children=t.children||[],this.text=t.text||"",this.html=t.html,delete t.children,delete t.text,delete t.html,delete t.tag,this.render()};i.Prototype=function(){this.render=function(){var t=document.createElement(this.tagName);this.html?t.innerHTML=this.html:t.textContent=this.text;for(var e in this.attributes){var n=this.attributes[e];t.setAttribute(e,n)}for(var r=0;r<this.children.length;r++){var i=this.children[r];t.appendChild(i)}return this.el=t,t}};var o=function(t,e){var e=e||{},n=/^([a-zA-Z0-9]*)/.exec(t);e.tag=n&&n[1]?n[1]:"div";var o=/#([a-zA-Z0-9_]*)/.exec(t);o&&o[1]&&(e.id=o[1]);var s=new r(/\.([a-zA-Z0-9_-]*)/g);return e.class||(e.class=s.match(t).map(function(t){return t.match[1]}).join(" ")),new i(e)};i.$$=o,i.Prototype.prototype=n.Events,i.prototype=new i.Prototype,e.exports=i},{"substance-regexp":133,"substance-util":139}],66:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=function(t){t||(t={}),t.routes&&(this.routes=t.routes),this._bindRoutes(),this.initialize.apply(this,arguments)},o=/\((.*?)\)/g,s=/(\(\?)?:\w+/g,a=/\*\w+/g,c=/[\-{}\[\]+?.,\\\^$|#\s]/g;r.extend(i.prototype,n.Events,{initialize:function(){},route:function(t,e,n){r.isRegExp(t)||(t=this._routeToRegExp(t)),r.isFunction(e)&&(n=e,e=""),n||(n=this[e]);var o=this;return i.history.route(t,function(r){var s=o._extractParameters(t,r);n&&n.apply(o,s),o.trigger.apply(o,["route:"+e].concat(s)),o.trigger("route",e,s),i.history.trigger("route",o,e,s)}),this},navigate:function(t,e){return i.history.navigate(t,e),this},_bindRoutes:function(){if(this.routes){this.routes=r.result(this,"routes");for(var t,e=r.keys(this.routes);null!=(t=e.pop());)this.route(t,this.routes[t])}},_routeToRegExp:function(t){return t=t.replace(c,"\\$&").replace(o,"(?:$1)?").replace(s,function(t,e){return e?t:"([^/]+)"}).replace(a,"(.*?)"),new RegExp("^"+t+"$")},_extractParameters:function(t,e){var n=t.exec(e).slice(1);return r.map(n,function(t){return t?decodeURIComponent(t):null})}});var u=i.History=function(){this.handlers=[],r.bindAll(this,"checkUrl"),"undefined"!=typeof window&&(this.location=window.location,this.history=window.history)},l=/^[#\/]|\s+$/g,p=/^\/+|\/+$/g,h=/msie [\w.]+/,d=/\/$/;u.started=!1,r.extend(u.prototype,n.Events,{interval:50,getHash:function(t){var e=(t||this).location.href.match(/#(.*)$/);return e?e[1]:""},getFragment:function(t,e){if(null==t)if(this._hasPushState||!this._wantsHashChange||e){t=this.location.pathname;var n=this.root.replace(d,"");t.indexOf(n)||(t=t.substr(n.length))}else t=this.getHash();return t.replace(l,"")},start:function(t){if(u.started)throw new Error("Router.history has already been started");u.started=!0,this.options=r.extend({},{root:"/"},this.options,t),this.root=this.options.root,this._wantsHashChange=this.options.hashChange!==!1,this._wantsPushState=!!this.options.pushState,this._hasPushState=!!(this.options.pushState&&this.history&&this.history.pushState);var e=this.getFragment(),n=document.documentMode,i=h.exec(navigator.userAgent.toLowerCase())&&(!n||7>=n);this.root=("/"+this.root+"/").replace(p,"/"),i&&this._wantsHashChange&&(this.iframe=$('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo("body")[0].contentWindow,this.navigate(e)),this._hasPushState?$(window).on("popstate",this.checkUrl):this._wantsHashChange&&"onhashchange"in window&&!i?$(window).on("hashchange",this.checkUrl):this._wantsHashChange&&(this._checkUrlInterval=setInterval(this.checkUrl,this.interval)),this.fragment=e;var o=this.location,s=o.pathname.replace(/[^\/]$/,"$&/")===this.root;return this._wantsHashChange&&this._wantsPushState&&!this._hasPushState&&!s?(this.fragment=this.getFragment(null,!0),this.location.replace(this.root+this.location.search+"#"+this.fragment),!0):(this._wantsPushState&&this._hasPushState&&s&&o.hash&&(this.fragment=this.getHash().replace(l,""),this.history.replaceState({},document.title,this.root+this.fragment+o.search)),this.options.silent?void 0:this.loadUrl())},stop:function(){$(window).off("popstate",this.checkUrl).off("hashchange",this.checkUrl),clearInterval(this._checkUrlInterval),u.started=!1},route:function(t,e){this.handlers.unshift({route:t,callback:e})},checkUrl:function(){var t=this.getFragment();return t===this.fragment&&this.iframe&&(t=this.getFragment(this.getHash(this.iframe))),t===this.fragment?!1:(this.iframe&&this.navigate(t),void(this.loadUrl()||this.loadUrl(this.getHash())))},loadUrl:function(t){var e=this.fragment=this.getFragment(t),n=r.any(this.handlers,function(t){return t.route.test(e)?(t.callback(e),!0):void 0});return n},navigate:function(t,e){if(!u.started)return!1;if(e&&e!==!0||(e={trigger:e}),t=this.getFragment(t||""),this.fragment!==t){this.fragment=t;var n=this.root+t;if(this._hasPushState)this.history[e.replace?"replaceState":"pushState"]({},document.title,n);else{if(!this._wantsHashChange)return this.location.assign(n);this._updateHash(this.location,t,e.replace),this.iframe&&t!==this.getFragment(this.getHash(this.iframe))&&(e.replace||this.iframe.document.open().close(),this._updateHash(this.iframe.location,t,e.replace))}e.trigger&&this.loadUrl(t)}},_updateHash:function(t,e,n){if(n){var r=t.href.replace(/(javascript:|#).*$/,"");t.replace(r+"#"+e)}else t.hash="#"+e}}),i.history=new u,e.exports=i},{"substance-util":139,underscore:144}],67:[function(t,e){"use strict";var n=t("substance-util"),r=function(){this.$el=$("<div/>"),this.el=this.$el[0],this.dispatchDOMEvents()};r.Prototype=function(){this.$=function(t){return this.$el.find(t)},this.dispatchDOMEvents=function(){function t(t){var e=/(\w+)\((.*)\)/.exec(t);if(!e)throw new Error("Invalid click handler '"+t+"'");return{method:e[1],args:e[2].split(",")}}var e=this;this.$el.delegate("[sbs-click]","click",function(n){var r=t($(n.currentTarget).attr("sbs-click")),i=e[r.method];return i?(i.apply(e,r.args),!1):void 0})}},r.Prototype.prototype=n.Events,r.prototype=new r.Prototype,e.exports=r},{"substance-util":139}],68:[function(t,e){"use strict";var n={};n.VERSION="0.8.0",n.Graph=t("./src/simple_graph"),e.exports=n},{"./src/simple_graph":72}],69:[function(t,e){var n=t("underscore"),r=t("substance-util"),i=function(t,e){e=e||{},this.graph=t,this.nodes={},this.scopes={},e.filter?this.filter=e.filter:e.types&&(this.filter=i.typeFilter(t.schema,e.types)),e.property&&(this.property=e.property),this.createIndex()};i.Prototype=function(){var t=function(t){var e=this;if(null!==t)for(var n=0;n<t.length;n++){var r=t[n];e.scopes[r]=e.scopes[r]||{nodes:{},scopes:{}},e=e.scopes[r]}return e},e=function(t){if(!this.property)return null;var e=t[this.property]?t[this.property]:null;return n.isString(e)&&(e=[e]),e},r=function(t){var e=n.extend({},t.nodes);return n.each(t.scopes,function(t,i){"nodes"!==i&&n.extend(e,r(t))}),e};this.onGraphChange=function(t){this.applyOp(t)},this._add=function(n){if(!this.filter||this.filter(n)){var r=e.call(this,n),i=t.call(this,r);i.nodes[n.id]=n.id}},this._remove=function(n){if(!this.filter||this.filter(n)){var r=e.call(this,n),i=t.call(this,r);delete i.nodes[n.id]}},this._update=function(e,r,i,o){if(this.property===r&&(!this.filter||this.filter(e))){var s=o;n.isString(s)&&(s=[s]);var a=t.call(this,s);delete a.nodes[e.id],s=i,a.nodes[e.id]=e.id}},this.applyOp=function(t){if("create"===t.type)this._add(t.val);else if("delete"===t.type)this._remove(t.val);else{var e,n=this.graph.resolve(this,t.path),r=n.get();if(void 0===r)return;"set"===t.type?e=t.original:console.error("Operational updates are not supported in this implementation"),this._update(n.node,n.key,r,e)}},this.createIndex=function(){this.reset();var r=this.graph.nodes;n.each(r,function(n){if(!this.filter||this.filter(n)){var r=e.call(this,n),i=t.call(this,r);i.nodes[n.id]=n.id}},this)},this.get=function(e){0===arguments.length?e=null:n.isString(e)&&(e=[e]);var i,o=t.call(this,e);return i=r(o),n.each(i,function(t){i[t]=this.graph.get(t)},this),i},this.reset=function(){this.nodes={},this.scopes={}},this.dispose=function(){this.stopListening()},this.rebuild=function(){this.reset(),this.createIndex()}},i.prototype=n.extend(new i.Prototype,r.Events.Listener),i.typeFilter=function(t,e){return function(n){for(var r=t.typeChain(n.type),i=0;i<e.length;i++)if(r.indexOf(e[i])>=0)return!0;return!1}},e.exports=i},{"substance-util":139,underscore:144}],70:[function(t,e){"use strict";var n=t("underscore"),r=function(t,e){if(!e)throw new Error("Illegal argument: path is null/undefined.");this.graph=t,this.schema=t.schema,n.extend(this,this.resolve(e))};r.Prototype=function(){this.resolve=function(t){for(var e,n,r=this.graph,i=r,o="graph",s=0;s<t.length;s++)if("graph"===o||void 0!==this.schema.types[o]){if(i=this.graph.get(t[s]),void 0===i)return void 0;r=i,o=this.schema.properties(i.type),n=r,e=void 0}else{if(void 0===i)return void 0;e=t[s];var a=t[s];o=o[a],n=i[e],s<t.length-1&&(i=i[a])}return{node:r,parent:i,type:o,key:e,value:n}},this.get=function(){return void 0!==this.key?this.parent[this.key]:this.node},this.set=function(t){if(void 0===this.key)throw new Error("'set' is only supported for node properties.");this.parent[this.key]=this.schema.parseValue(this.baseType,t)}},r.prototype=new r.Prototype,Object.defineProperties(r.prototype,{baseType:{get:function(){return n.isArray(this.type)?this.type[0]:this.type}},path:{get:function(){return[this.node.id,this.key]}}}),e.exports=r},{underscore:144}],71:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=function(t){n.extend(this,t)};i.Prototype=function(){this.defaultValue=function(t){return"object"===t?{}:"array"===t?[]:"string"===t?"":"number"===t?0:"boolean"===t?!1:"date"===t?new Date:null},this.parseValue=function(t,e){if(null===e)return e;if(n.isString(e)){if("object"===t)return JSON.parse(e);if("array"===t)return JSON.parse(e);if("string"===t)return e;if("number"===t)return parseInt(e,10);if("boolean"===t){if("true"===e)return!0;if("false"===e)return!1;throw new Error("Can not parse boolean value from: "+e)}return"date"===t?new Date(e):e}if("array"===t){if(!n.isArray(e))throw new Error("Illegal value type: expected array.");e=r.deepclone(e)}else if("string"===t){if(!n.isString(e))throw new Error("Illegal value type: expected string.")}else if("object"===t){if(!n.isObject(e))throw new Error("Illegal value type: expected object.");e=r.deepclone(e)}else if("number"===t){if(!n.isNumber(e))throw new Error("Illegal value type: expected number.")}else if("boolean"===t){if(!n.isBoolean(e))throw new Error("Illegal value type: expected boolean.")}else{if("date"!==t)throw new Error("Unsupported value type: "+t);e=new Date(e)}return e},this.type=function(t){return this.types[t]},this.typeChain=function(t){var e=this.types[t];if(!e)throw new Error("Type "+t+" not found in schema");var n=e.parent?this.typeChain(e.parent):[];return n.push(t),n},this.isInstanceOf=function(t,e){var n=this.typeChain(t);return n&&n.indexOf(e)>=0?!0:!1},this.baseType=function(t){return this.typeChain(t)[0]},this.properties=function(t){t=n.isObject(t)?t:this.type(t);var e=t.parent?this.properties(t.parent):{};return n.extend(e,t.properties),e},this.propertyType=function(t,e){var r=this.properties(t),i=r[e];if(!i)throw new Error("Property not found for"+t+"."+e);return n.isArray(i)?i:[i]},this.propertyBaseType=function(t,e){return this.propertyType(t,e)[0]}},i.prototype=new i.Prototype,e.exports=i},{"substance-util":139,underscore:144}],72:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./schema"),s=t("./property"),a=t("./graph_index"),c=i.define("GraphError"),u=["object","array","string","number","boolean","date"],l=function(t){return n.isArray(t)&&(t=t[0]),u.indexOf(t)>=0},p=function(t,e){if(e=e||{},this.schema=new o(t),this.schema.id&&e.seed&&e.seed.schema&&!n.isEqual(e.seed.schema,[this.schema.id,this.schema.version]))throw new c(["Graph does not conform to schema. Expected: ",this.schema.id+"@"+this.schema.version," Actual: ",e.seed.schema[0]+"@"+e.seed.schema[1]].join(""));this.nodes={},this.indexes={},this.__seed__=e.seed,this.init()};p.Prototype=function(){n.extend(this,r.Events),this.create=function(t){this.nodes[t.id]=t,this._updateIndexes({type:"create",path:[t.id],val:t})},this.delete=function(t){var e=this.nodes[t];delete this.nodes[t],this._updateIndexes({type:"delete",path:[t],val:e})},this.set=function(t,e){var n=this.resolve(t);if(!n)throw new c("Could not resolve property with path "+JSON.stringify(t));var r=n.get();n.set(e),this._updateIndexes({type:"set",path:t,val:e,original:r})},this.get=function(t){if(!n.isArray(t)&&!n.isString(t))throw new c("Invalid argument path. Must be String or Array");if(arguments.length>1&&(t=n.toArray(arguments)),n.isString(t))return this.nodes[t];var e=this.resolve(t);return e.get()},this.query=function(t){var e=this.resolve(t),n=e.type,r=e.baseType,i=e.get();return"array"===r?this._queryArray.call(this,i,n):l(r)?i:this.get(i)},this.toJSON=function(){return{id:this.id,schema:[this.schema.id,this.schema.version],nodes:r.deepclone(this.nodes)}},this.contains=function(t){return!!this.nodes[t]},this.resolve=function(t){return new s(this,t)},this.reset=function(){this.init(),this.trigger("graph:reset")},this.init=function(){this.__is_initializing__=!0,this.nodes=this.__seed__?r.clone(this.__seed__.nodes):{},n.each(this.indexes,function(t){t.reset()}),delete this.__is_initializing__},this.addIndex=function(t,e){if(this.indexes[t])throw new c("Index with name "+t+"already exists.");var n=new a(this,e);return this.indexes[t]=n,n},this.removeIndex=function(t){delete this.indexes[t]},this._updateIndexes=function(t){n.each(this.indexes,function(e){t?e.onGraphChange(t):e.rebuild()},this)},this._queryArray=function(t,e){if(!n.isArray(e))throw new c("Illegal argument: array types must be specified as ['array'(, 'array')*, <type>]");var r,i;if("array"===e[1])for(r=[],i=0;i<t.length;i++)r.push(this._queryArray(t[i],e.slice(1)));else if(l(e[1]))r=t;else for(r=[],i=0;i<t.length;i++)r.push(this.get(t[i]));return r}},p.STRICT_INDEXING=2,p.DEFAULT_MODE=p.STRICT_INDEXING,p.prototype=new p.Prototype,p.Schema=o,p.Property=s,p.Index=a,e.exports=p},{"./graph_index":69,"./property":70,"./schema":71,"substance-util":139,underscore:144}],73:[function(t,e){"use strict";var n=(t("underscore"),t("./src/document"));n.Annotator=t("./src/annotator"),n.Container=t("./src/container"),n.Cursor=t("./src/cursor"),n.Selection=t("./src/selection"),n.Controller=t("./src/controller"),n.Node=t("./src/node"),n.Composite=t("./src/composite"),n.TextNode=t("./src/text_node"),n.Writer=t("./src/controller"),e.exports=n},{"./src/annotator":74,"./src/composite":76,"./src/container":77,"./src/controller":78,"./src/cursor":79,"./src/document":80,"./src/node":81,"./src/selection":82,"./src/text_node":83,underscore:144}],74:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=(t("substance-data"),t("./document")),o=(t("./selection"),i.DocumentError),s=t("substance-operator"),a=function(t,e){e=e||{},this.document=t,this.document.on("operation:applied",this.handleOperation,this),this.group={emphasis:"style",strong:"style",link:"style",question:"marker",idea:"marker",error:"marker"},this.expansion={emphasis:{left:a.isOnNodeStart},strong:{left:a.isOnNodeStart}},this.splittable=["emphasis","strong"],this._index=a.createIndex(t),this.withTransformation=e.withTransformation};a.Prototype=function(){var t=function(t,e){for(var n=e.getNodes(),r={},i=0;i<n.length;i++){var o=n[i],s=[0,null];0===i&&(s[0]=e.startChar()),i===n.length-1&&(s[1]=e.endChar()),r[o.id]=s}return r},e=function(t,e,i,o,s){var a={id:r.uuid(),type:i,path:e,range:o};return s&&n.extend(a,s),t.create(a)},i=function(t,e){t.document.delete(e.id)},a=function(t,e,n){t.document.apply(s.ObjectOperation.Set([e.id,"range"],e.range,n))},c=function(t,e,r){var i=this._index.get(e);if(r){var o=r[0],s=r[1],a={};n.each(i,function(t){var e=t.range[0],n=t.range[1],r=n>=o;s&&(r&=s>=e),r&&(a[t.id]=t)}),i=a}return i},u=function(t,n,r){var o,s=n.range[0],c=r[0],u=n.range[1],l=r[1];if(s>=c&&l>=u)i(t,n);else if(s>=c&&u>l)o=[l,u],a(t,n,o);else if(c>s&&l>=u)o=[s,c],a(t,n,o);else if(t.isSplittable(n.type)){o=[s,c],a(t,n,o);var p=[l,u];e(t,n.path,n.type,p)}else i(t,n)};this.handleOperation=function(t){var e,r,o;if("delete"===t.type||"create"===t.type)e=this.document.schema.typeChain(t.val.type),e.indexOf("annotation")>=0?(o=t.val,this.triggerLater("annotation:changed",t.type,o)):"delete"===t.type&&(r=this._index.get(t.path),n.each(r,function(t){i(this,t)},this));else if("update"===t.type||"set"===t.type){var s=this.document.get(t.path[0]);if(void 0===s)return;if(e=this.document.schema.typeChain(s.type),e.indexOf("annotation")>=0){if("range"!==t.path[1])return;this.triggerLater("annotation:changed","update",s)}else this.withTransformation&&this.transform(t)}},this.create=function(t){return this.document.create(t),t};var l=function(t,e){if(n.isEqual(e.path,t.path))if("update"===t.type){var o=!1,a=!1,c=this.expansion[e.type];c&&(c.left&&(o=c.left(e)),c.right&&(a=c.right(e)));var u=r.clone(e.range),l=s.TextOperation.Range.transform(u,t.diff,o,a);l&&(u[0]===u[1]?i(this,e):this.document.set([e.id,"range"],u))}else("delete"===t.type||"set"===t.type)&&i(this,e)};this.transform=function(t){var e=this._index.get(t.path);n.each(e,function(e){l.call(this,t,e)},this)},this.paste=function(t,e,r){for(var i=0;i<t.length;i++){var o=t[i];void 0!==e&&(o.path=n.clone(o.path),o.path[0]=e),void 0!==r&&(o.range[0]+=r,o.range[1]+=r),this.create(o)}},this.copy=function(e){var i=t(this,e),o=this.getAnnotations({selection:e}),s=[];return n.each(o,function(t){var e,n=i[t.path[0]],o=n[0]>t.range[0]||n[1]<t.range[1];o?this.isSplittable(t.type)&&(e=r.clone(t),e.id=r.uuid(),e.range=[Math.max(0,t.range[0]-n[0]),t.range[1]-n[0]],s.push(e)):(e=r.clone(t),e.id=r.uuid(),e.range=[e.range[0]-n[0],e.range[1]-n[0]],s.push(e))},this),s},this.getAnnotations=function(t){t=t||{},t.view||(t.view="content");var e=this.document,r={};if(t.node)r=c.call(this,t.view,t.node,t.range);else if(t.selection)for(var i=t.selection,o=i.getRanges(),s=0;s<o.length;s++){var a=o[s];n.extend(r,c.call(this,t.view,a.node.id,[a.start,a.end]))}else n.each(e.nodes,function(t){var n=e.schema.baseType(t.type);"annotation"===n&&(r[t.id]=t)});if(t.filter){var u={};n.each(r,function(e){t.filter(e)&&(u[e.id]=e)}),r=u}return r},this.isExclusive=function(t,e){return this.group[t]===this.group[e]},this.isSplittable=function(t){return this.splittable.indexOf(t)>=0},this.annotate=function(t,r,s){var a=t.range(),c=t.cursor.node;if(a.start[0]!==a.end[0])throw new o("Multi-node annotations are not supported.");var l=[a.start[1],a.end[1]],p=this.getAnnotations({node:c.id,range:l});if(t.isCollapsed())n.each(p,function(t){t.type===r&&i(this,t)},this);else{var h=!1;if(n.each(p,function(t){this.isExclusive(r,t.type)&&(u(this,t,l),r===t.type&&(h=!0))},this),!h)return e(this,[c.id,"content"],r,l,s)}}},a.Prototype.prototype=r.Events,a.prototype=new a.Prototype,a.isOnNodeStart=function(t){return 0===t.range[0]},a.isTrue=function(){return!0},a.createIndex=function(t){if(void 0===t.indexes.annotations){var e={types:["annotation"],property:"path"},n=t.addIndex("annotations",e);n.ENABLE_LOGGING=!0,t.indexes.annotations=n}return t.indexes.annotations};var c={idea:1,question:1,error:1,link:1,strong:2,emphasis:2,code:2,subscript:2,superscript:2,underline:2,cross_reference:1,figure_reference:1,person_reference:1,contributor_reference:1,citation_reference:1},u=1,l=-1,p=function(t){this.levels=t.levels||c};p.Prototype=function(){var t=function(t,e){if(t.pos<e.pos)return-1;if(t.pos>e.pos)return 1;if(t.mode<e.mode)return-1;if(t.mode>e.mode)return 1;if(t.mode===u){if(t.level<e.level)return-1;if(t.level>e.level)return 1}if(t.mode===l){if(t.level>e.level)return-1;if(t.level<e.level)return 1}return 0},e=function(t){var e=[];return n.each(t,function(t){var n=this.levels[t.type];void 0!==n&&(e.push({pos:t.range[0],mode:u,level:n,id:t.id,type:t.type}),e.push({pos:t.range[1],mode:l,level:n,id:t.id,type:t.type}))},this),e};this.onText=function(){},this.onEnter=function(){return null},this.enter=function(t,e){return this.onEnter(t,e)},this.createText=function(t,e){this.onText(t,e)},this.start=function(n,r,i){var o=e.call(this,i);o.sort(t.bind(this));for(var s=[{context:n,entry:null}],a=0,c=0;c<o.length;c++){var p=o[c];this.createText(s[s.length-1].context,r.substring(a,p.pos)),a=p.pos;var h,d=1;if(p.mode===u){for(;d<s.length&&!(p.level<s[d].entry.level);d++);s.splice(d,0,{entry:p})}else if(p.mode===l){for(;d<s.length&&s[d].entry.id!==p.id;d++);s.splice(d,1)}for(h=d;h<s.length;h++)s[h].context=this.enter(s[h].entry,s[h-1].context)}this.createText(n,r.substring(a))}},p.prototype=new p.Prototype,a.Fragmenter=p,e.exports=a},{"./document":80,"./selection":82,"substance-data":68,"substance-operator":152,"substance-util":139,underscore:144}],75:[function(t,e){"use strict";var n=(t("underscore"),t("substance-util")),r=function(){};r.Prototype=function(){this.setContent=function(t){this.content=t},this.getContent=function(){return this.content}},r.Prototype.prototype=n.Events,r.prototype=new r.Prototype,e.exports=r},{"substance-util":139,underscore:144}],76:[function(t,e){var n=t("./node"),r=function(t,e){n.call(this,t,e)};r.type={id:"composite",parent:"content",properties:{}},r.description={name:"Composite",remarks:["A file reference to an external resource."],properties:{}},r.example={no_example:"yet"},r.Prototype=function(){this.getLength=function(){throw new Error("Composite.getLength() is abstract.")},this.getNodes=function(){throw new Error("Composite.getNodes() is abstract.")},this.isMutable=function(){return!1},this.insertOperation=function(){return null},this.deleteOperation=function(){return null},this.insertChild=function(){throw new Error("This composite is immutable.")},this.deleteChild=function(){throw new Error("This composite is immutable.")},this.getChangePosition=function(){return 0
-}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"./node":81}],77:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=t("./composite"),o=function(t,e){this.document=t,this.view=e,this.treeView=[],this.listView=[],this.__parents={},this.__composites={},this.rebuild()};o.Prototype=function(){var t=function(t,e){var n,r=[];for(n=this.treeView.length-1;n>=0;n--)r.unshift({id:this.treeView[n],parent:null});for(var o,s;r.length>0;){if(o=r.shift(),s=this.document.get(o.id),s instanceof i){var a=s.getNodes();for(n=a.length-1;n>=0;n--)r.unshift({id:a[n],parent:s.id})}t.call(e,s,o.parent)}};this.rebuild=function(){this.treeView.splice(0,this.treeView.length),this.listView.splice(0,this.listView.length),this.treeView=n.clone(this.view.nodes);for(var e=0;e<this.view.length;e++)this.treeView.push(this.view[e]);this.__parents={},this.__composites={},t.call(this,function(t,e){if(t instanceof i)this.__parents[t.id]=e,this.__composites[e]=e;else{if(this.listView.push(t.id),this.__parents[t.id])throw new Error("Nodes must be unique in one view.");this.__parents[t.id]=e,this.__composites[e]=e}},this)},this.getTopLevelNodes=function(){return n.map(this.treeView,function(t){return this.document.get(t)},this)},this.getNodes=function(t){var e=this.listView;if(t)return n.clone(e);for(var r=[],i=0;i<e.length;i++)r.push(this.document.get(e[i]));return r},this.getPosition=function(t){var e=this.listView;return e.indexOf(t)},this.getNodeFromPosition=function(t){var e=this.listView,n=e[t];return void 0!==n?this.document.get(n):null},this.getParent=function(t){return this.__parents[t]},this.getRoot=function(t){for(var e=t;e;)t=e,e=this.getParent(t);return t},this.update=function(t){var e=t.path,n=e[0]===this.view.id||void 0!==this.__composites[e[0]];n&&this.rebuild()},this.getLength=function(){return this.listView.length},this.hasSuccessor=function(t){var e=this.getLength();return e-1>t},this.hasPredecessor=function(t){return t>0},this.getPredecessor=function(t){var e=this.getPosition(t);return 0>=e?null:this.getNodeFromPosition(e-1)},this.getSuccessor=function(t){var e=this.getPosition(t);return e>=this.getLength()-1?null:this.getNodeFromPosition(e+1)},this.firstChild=function(t){if(t instanceof i){var e=this.document.get(t.getNodes()[0]);return this.firstChild(e)}return t},this.lastChild=function(t){if(t instanceof i){var e=this.document.get(n.last(t.getNodes()));return this.lastChild(e)}return t},this.before=function(t){var e=this.firstChild(t),n=this.getPosition(e.id);return[n,0]},this.after=function(t){var e=this.lastChild(t),n=this.getPosition(e.id),r=e.getLength();return[n,r]}},o.prototype=n.extend(new o.Prototype,r.Events.Listener),Object.defineProperties(o.prototype,{id:{get:function(){return this.view.id}},type:{get:function(){return this.view.type}},nodes:{get:function(){return this.view.nodes},set:function(t){this.view.nodes=t}}}),e.exports=o},{"./composite":76,"substance-util":139,underscore:144}],78:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=t("substance-operator"),o=t("./selection"),s=t("./annotator"),a=t("./clipboard"),c=t("./composite"),u=function(t,e){e=e||{},this.view=e.view||"content",this.__document=t,this.chronicle=t.chronicle,this.annotator=new s(t),this.container=t.get(this.view),this.selection=new o(this.container),this.clipboard=new a};u.Prototype=function(){this.getNodes=function(t){return this.container.getNodes(t)},this.getContainer=function(){return this.container},this.getPosition=function(t,e){return this.container.getPosition(t,e)},this.getNodeFromPosition=function(t){return this.container.getNodeFromPosition(t)},this.getAnnotations=function(t){return t=t||{},t.view=this.view,this.annotator.getAnnotations(t)},this.delete=function(t){var e=this.startManipulation(),n=e.sel,r=n.container;if(!n.isNull())if(n.isCollapsed()&&n.expand(t,"char"),e.deleteSelection(),e.save(),0===r.getLength())this.selection.clear();else{var i=r.listView.length;if(n.cursor.nodePos>=i){var o=r.getNodeFromPosition(i-1).getLength();this.selection.set([i-1,o])}else n.collapse("left"),this.selection.set(n)}},this.copy=function(){console.log("I am sorry. Currently disabled.")},this.cut=function(){this.copy(),this.delete()},this.paste=function(){console.log("I am sorry. Currently disabled.")},this.modifyNode=function(){this.breakNode()},this.breakNode=function(){if(this.selection.isNull())return void console.log("Can not write, as no position has been selected.");var t=this.startManipulation(),e=t.doc,n=t.sel,r=n.container;n.isCollapsed()||t.deleteSelection();var i=n.getNodes()[0],o=(n.start[0],n.start[1]);if(i.isBreakable()){var s,a=r.getParent(i.id);if(a){var c=e.get(a);if(c.isBreakable()){{c.getNodes()}s=c.break(e,i.id,o)}else console.log("Node type '"+c.type+"' is not splittable.")}else{s=i.break(e,o);var u=r.treeView.indexOf(i.id)+1;e.show(this.view,s.id,u)}}if(s){var l=r.before(s);n.set(l)}t.save(),this.selection.set(n)},this.insertNode=function(t,e){console.log("I am sorry. Currently disabled.",t,e)},this.annotate=function(t,e){return this.annotator.annotate(this.selection,t,e)},this.startManipulation=function(){var t=this.__document.startSimulation();new s(t,{withTransformation:!0});var e=new o(t.get(this.view),this.selection);return new u.ManipulationSession(t,e)},this.write=function(t){if(this.selection.isNull())return void console.log("Can not write, as no position has been selected.");var e=this.startManipulation(),n=e.doc,r=e.sel;r.isCollapsed()||e.deleteSelection();var i=r.getNodes()[0],o=r.start[0],s=r.start[1],a=i.insertOperation(s,t);a&&n.apply(a),e.save(),this.selection.set([o,s+t.length])},this.get=function(){return this.__document.get.apply(this.__document,arguments)},this.on=function(){return this.__document.on.apply(this.__document,arguments)},this.off=function(){return this.__document.off.apply(this.__document,arguments)};var t=function(t){function e(t){if("update"===t.type||"set"===t.type){var e=n.get(t.path[0]);if(!e)return void console.log("Hmmm... this.should not happen, though.");var i=-1,o=-1;return e instanceof c||e.getChangePosition&&(i=r.getPosition(e.id),o=e.getChangePosition(t)),i>=0&&o>=0?[i,o]:void 0}}if(t){var n=(this.view,this.__document),r=this.container;i.Helpers.each(t,function(t){var n=e(t);return n?(this.selection.set(n),!1):void 0},this,"reverse")}};this.undo=function(){var e=this.chronicle.rewind();t.call(this,e)},this.redo=function(){var e=this.chronicle.forward();t.call(this,e)},this.getDocument=function(){return this.__document}},u.prototype=n.extend(new u.Prototype,r.Events.Listener),Object.defineProperties(u.prototype,{id:{get:function(){return this.__document.id},set:function(){throw"immutable property"}},nodeTypes:{get:function(){return this.__document.nodeTypes},set:function(){throw"immutable property"}},title:{get:function(){return this.__document.get("document").title},set:function(){throw"immutable property"}},updated_at:{get:function(){return this.__document.get("document").updated_at},set:function(){throw"immutable property"}},creator:{get:function(){return this.__document.get("document").creator},set:function(){throw"immutable property"}}});var l=function(t,e){this.doc=t,this.sel=e,this.container=e.container,this.viewId=this.container.view.id};l.Prototype=function(){this.save=function(){this.doc.save()},this.join=function(t,e){var n=this.doc,r=this.container,i=n.get(t),o=n.get(e),s=r.getParent(t),a=r.getParent(e),c=s?n.get(s):null;if(!i.canJoin(o)||c&&!c.isMutable())return!1;i.join(n,o),this.deleteNode(o.id);var u=a?n.get(a):null;if(c&&u&&c.id!==u.id&&c.canJoin(u)&&r.getParent(s)!==a){var l=c.getNodes(),p=u.getNodes(),h=l.indexOf(t)+1;if(h===l.length){this.deleteNode(u.id);for(var d=0;d<p.length;d++)c.insertChild(n,h+d,p[d])}}return!0},this.deleteNode=function(t){var e=this.doc,n=this.container.getParent(t),r=n?e.get(n):null;n?(r.deleteChild(e,t),0===r.getLength()&&this.deleteNode(r.id)):(e.hide(this.viewId,t),e.delete(t))},this.deleteSelection=function(){function t(t){var e=n.clone(t.getNodes());for(r.deleteNode(t.id);e.length>0;){var o=e.shift();i.delete(o),p[o]=!0}p[t.id]=!0}function e(n){if(void 0===p[n.id]){var r=s.firstChild(n),o=l[r.id],a=s.lastChild(n),c=l[a.id];if(o&&c&&o.isFull()&&c.isFull()){var u=s.getParent(n.id);u&&e(i.get(u)),p[u]||t(n)}else p[n.id]=!1}return p[n.id]}var r=this,i=this.doc,o=this.sel,s=o.container,a=o.getRanges(),c=a.length>1&&!a[0].isFull()&&!n.last(a).isFull(),u=0,l={};for(u=0;u<a.length;u++)l[a[u].node.id]=a[u];var p={};for(u=0;u<a.length;u++){var h=a[u],d=h.node;if(!p[d.id])if(h.isFull()){var f=s.getParent(d.id);if(f&&e(i.get(f)),!p[f])if(0===h.node.getLength())this.deleteNode(d.id);else{var g=h.node.deleteOperation(h.start,h.end);g&&!g.isNOP()&&i.apply(g),u>0&&this.deleteNode(d.id)}}else{var g=h.node.deleteOperation(h.start,h.end);g&&!g.isNOP()&&i.apply(g)}}c&&this.join(a[0].node.id,a[a.length-1].node.id)}},l.prototype=new l.Prototype,u.ManipulationSession=l,e.exports=u},{"./annotator":74,"./clipboard":75,"./composite":76,"./selection":82,"substance-operator":152,"substance-util":139,underscore:144}],79:[function(t,e){var n=t("underscore"),r=(t("substance-regexp"),t("substance-util")),i=r.errors,o=i.define("CursorError"),s=function(t,e,r,i){if(this.container=t,this.view=i||"content",this.nodePos=e,this.charPos=r,null!==e&&!n.isNumber(e))throw new o("Illegal argument: expected nodePos as number");if(null!==r&&!n.isNumber(r))throw new o("Illegal argument: expected charPos as number")};s.Prototype=function(){this.copy=function(){return new s(this.container,this.nodePos,this.charPos,this.view)},this.isValid=function(){if(null===this.nodePos||null===this.charPos)return!1;if(this.nodePos<0||this.charPos<0)return!1;var t=this.container.getNodeFromPosition(this.nodePos);return t?this.charPos>=t.getLength()?!1:!0:!1},this.isRightBound=function(){return this.charPos===this.node.getLength()},this.isLeftBound=function(){return 0===this.charPos},this.isEndOfDocument=function(){return this.isRightBound()&&this.nodePos===this.container.getLength()-1},this.isBeginOfDocument=function(){return this.isLeftBound()&&0===this.nodePos},this.prevNode=function(){this.isLeftBound()?this.nodePos>0&&(this.nodePos-=1,this.charPos=this.node.length):this.charPos=0},this.nextNode=function(){this.isRightBound()?this.nodePos<this.container.getLength()-1&&(this.nodePos+=1,this.charPos=0):this.charPos=this.node.length},this.prevWord=function(){if(!this.node)throw new o("Invalid node position");if(this.isLeftBound())this.prevChar();else{if(!this.node.prevWord)return this.prevChar();this.charPos=this.node.prevWord(this.charPos)}},this.nextWord=function(){if(!this.node)throw new o("Invalid node position");this.isRightBound()?this.nextChar():this.node.nextWord?this.charPos=this.node.nextWord(this.charPos):this.nextChar()},this.nextChar=function(){if(!this.node)throw new o("Invalid node position");this.isRightBound()?this.nodePos<this.container.getLength()-1&&(this.nodePos+=1,this.charPos=0):this.charPos+=1},this.prevChar=function(){if(!this.node)throw new o("Invalid node position");if(this.charPos<0)throw new o("Invalid char position");this.isLeftBound()?this.nodePos>0&&(this.nodePos-=1,this.charPos=this.node.getLength()):this.charPos-=1},this.move=function(t,e){"left"===t?"word"===e?this.prevWord():"char"===e?this.prevChar():"node"===e&&this.prevNode():"word"===e?this.nextWord():"char"===e?this.nextChar():"node"===e&&this.nextNode()},this.set=function(t,e){if(this.nodePos=t,this.charPos=e,null!==t&&!n.isNumber(t))throw new o("Illegal argument: expected nodePos as number");if(null!==e&&!n.isNumber(e))throw new o("Illegal argument: expected charPos as number");if(null!==t){if(!n.isNumber(t))throw new o("Illegal argument: expected nodePos as number");var r=this.container.getLength();if(0>t||t>=r)throw new o("Invalid node position: "+t);var i=this.container.getNodeFromPosition(t),s=i.getLength();if(0>e||e>s)throw new o("Invalid char position: "+e)}},this.position=function(){return[this.nodePos,this.charPos]}},s.prototype=new s.Prototype,Object.defineProperties(s.prototype,{node:{get:function(){return this.container.getNodeFromPosition(this.nodePos)}}}),e.exports=s},{"substance-regexp":133,"substance-util":139,underscore:144}],80:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("substance-data"),s=t("./container"),a=i.define("DocumentError"),c=function(t){o.Graph.call(this,t.schema,t),this.containers={}};c.schema={indexes:{},types:{content:{properties:{}},view:{properties:{nodes:["array","content"]}}}},c.Prototype=function(){var t=r.prototype(this);this.getIndex=function(t){return this.indexes[t]},this.getSchema=function(){return this.schema},this.create=function(e){return t.create.call(this,e),this.get(e.id)},this.get=function(e){var n=t.get.call(this,e);if(!n)return n;if("view"===n.type)return this.containers[n.id]||(this.containers[n.id]=new s(this,n)),this.containers[n.id];var r=this.nodeTypes[n.type],i=void 0!==r?r.Model:null;return!i||n instanceof i||(n=new i(n,this),this.nodes[n.id]=n),n},this.toJSON=function(){var e=t.toJSON.call(this);return e.id=this.id,e},this.hide=function(t,e){var r=this.get(t);if(!r)throw new a("Invalid view id: "+t);n.isString(e)&&(e=[e]);var i=[];if(n.each(e,function(t){var e=r.nodes.indexOf(t);e>=0&&i.push(e)},this),0!==i.length){i=i.sort().reverse(),i=n.uniq(i);for(var o=this.nodes[t],s=0;s<i.length;s++)o.nodes.slice(i[s],1)}},this.show=function(t,e,n){void 0===n&&(n=-1);var r=this.get(t);if(!r)throw new a("Invalid view id: "+t);var i=r.nodes.length;n=Math.min(n,i),0>n&&(n=Math.max(0,i+n+1)),r.nodes.splice(n,0,e)},this.fromSnapshot=function(t,e){return c.fromSnapshot(t,e)},this.uuid=function(t){return t+"_"+r.uuid()}},c.Prototype.prototype=o.Graph.prototype,c.prototype=new c.Prototype,c.fromSnapshot=function(t,e){return e=e||{},e.seed=t,new c(e)},c.DocumentError=a,e.exports=c},{"./container":77,"substance-data":68,"substance-util":139,underscore:144}],81:[function(t,e){"use strict";var n=t("underscore"),r=function(t,e){this.document=e,this.properties=t};r.type={parent:"content",properties:{}},r.properties={"abstract":!0,immutable:!0,mergeableWith:[],preventEmpty:!0,allowedAnnotations:[]},r.Prototype=function(){this.toJSON=function(){return n.clone(this.properties)},this.getLength=function(){throw new Error("Node.getLength() is abstract.")},this.getChangePosition=function(){throw new Error("Node.getCharPosition() is abstract.")},this.insertOperation=function(){throw new Error("Node.insertOperation() is abstract.")},this.deleteOperation=function(){throw new Error("Node.deleteOperation() is abstract.")},this.canJoin=function(){return!1},this.join=function(){throw new Error("Node.join() is abstract.")},this.isBreakable=function(){return!1},this.break=function(){throw new Error("Node.split() is abstract.")},this.getAnnotations=function(){return this.document.getIndex("annotations").get(this.properties.id)}},r.prototype=new r.Prototype,r.prototype.constructor=r,r.defineProperties=function(t,e,r){n.each(e,function(e){var n={get:function(){return this.properties[e]}};r||(n.set=function(t){return this.properties[e]=t,this}),Object.defineProperty(t,e,n)})},r.defineProperties(r.prototype,["id","type"]),e.exports=r},{underscore:144}],82:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./cursor"),s=i.define("SelectionError"),a=function(t,e){this.container=t,this.start=null,this.__cursor=new o(t,null,null),e&&this.set(e)};a.Prototype=function(){this.__node=function(t){return this.container.getNodeFromPosition(t)},this.copy=function(){var t=new a(this.container);return this.isNull()||t.set(this),t},this.set=function(t){var e=this.__cursor;t instanceof a?(this.start=n.clone(t.start),e.set(t.__cursor.nodePos,t.__cursor.charPos)):n.isArray(t)?(this.start=n.clone(t),e.set(t[0],t[1])):(this.start=n.clone(t.start),e.set(t.end[0],t.end[1]));var r=this.start,i=this.container.getLength();if(r[0]<0||r[0]>=i)throw new s("Invalid node position: "+r[0]);var o=this.__node(r[0]).getLength();if(r[1]<0||r[1]>o)throw new s("Invalid char position: "+r[1]);return this.trigger("selection:changed",this.range()),this},this.clear=function(){this.start=null,this.__cursor.set(null,null),this.trigger("selection:changed",null)},this.range=function(){if(this.isNull())return null;var t=this.start,e=this.__cursor.position();return this.isReverse()?{start:e,end:t}:{start:t,end:e}},this.isReverse=function(){var t=this.__cursor;return t.nodePos<this.start[0]||t.nodePos===this.start[0]&&t.charPos<this.start[1]},this.setCursor=function(t){return this.__cursor.set(t[0],t[1]),this.start=t,this},this.getCursor=function(){return this.__cursor.copy()},this.getCursorPosition=function(){return[this.__cursor.nodePos,this.__cursor.charPos]},this.selectNode=function(t){var e=this.container.getPosition(t);if(0>e)throw new s("Node is not visible: "+t);var n=this.container.getNodeFromPosition(e);this.set({start:[e,0],end:[e,n.getLength()]})},this.getPredecessor=function(){var t=this.isReverse()?this.__cursor.nodePos:this.start[0];return 0===t?null:this.__node(t-1)},this.getSuccessor=function(){var t=this.isReverse()?this.start[0]:this.__cursor.nodePos;return this.__node(t+1)},this.hasPredecessor=function(t){return t>0},this.hasSuccessor=function(t){var e=this.container.getLength();return e-1>t},this.collapse=function(t){if("right"!==t&&"left"!==t&&"start"!==t&&"cursor"!==t)throw new s("Invalid direction: "+t);if(!this.isCollapsed()&&!this.isNull()){if("start"===t)this.__cursor.set(this.start[0],this.start[1]);else if("cursor"===t)this.start[0]=this.__cursor.nodePos,this.start[1]=this.__cursor.charPos;else{var e=this.range();this.isReverse()?"left"===t?this.start=e.start:this.__cursor.set(e.end[0],e.end[1]):"left"===t?this.__cursor.set(e.start[0],e.start[1]):this.start=e.end}this.trigger("selection:changed",this.range())}},this.move=function(t,e){this.isCollapsed()||"char"!==e?(this.__cursor.move(t,e),this.start=this.__cursor.position()):this.collapse(t),this.trigger("selection:changed",this.range())},this.expand=function(t,e){this.__cursor.move(t,e),this.trigger("selection:changed",this.range())},this.toJSON=function(){return this.range()},this.getNodes=function(){var t=this.container.getNodes();if(this.isNull())return[];var e=this.range();return t.slice(e.start[0],e.end[0]+1)},this.getRanges=function(){for(var t=[],e=this.range(),r=e.start[0];r<=e.end[0];r++){var i=0,o=null;if(r===e.start[0]&&(i=e.start[1]),r===e.end[0]&&(o=e.end[1]),!n.isNumber(o)){var s=this.__node(r);o=s.getLength()}t.push(new a.Range(this,r,i,o))}return t},this.startNode=function(){return this.isReverse()?this.__cursor.nodePos:this.start[0]},this.endNode=function(){return this.isReverse()?this.start[0]:this.__cursor.nodePos},this.startChar=function(){return this.isReverse()?this.__cursor.charPos:this.start[1]},this.endChar=function(){return this.isReverse()?this.start[1]:this.__cursor.charPos},this.isNull=function(){return null===this.start},this.isCollapsed=function(){return this.start[0]===this.__cursor.nodePos&&this.start[1]===this.__cursor.charPos},this.hasMultipleNodes=function(){return!this.isNull()&&this.startNode()!==this.endNode()}},a.Prototype.prototype=r.Events,a.prototype=new a.Prototype,Object.defineProperties(a.prototype,{cursor:{get:function(){return this.__cursor.copy()},set:function(){throw"immutable property"}}});var c=function(t,e,n,r){this.selection=t,this.nodePos=e,this.node=t.__node(e),this.start=n,this.end=r};c.Prototype=function(){this.isFirst=function(){return this.nodePos===this.selection.startNode()},this.isLast=function(){return this.nodePos===this.selection.endNode()},this.hasPredecessor=function(){return!this.isFirst()},this.hasSuccessor=function(){return!this.isLast()},this.isEnclosed=function(){return this.hasPredecessor()&&this.hasSuccessor()},this.isRightBound=function(){return this.end===this.node.getLength()},this.isLeftBound=function(){return 0===this.start},this.length=function(){return this.end-this.start},this.content=function(){return this.node.content.slice(this.start,this.end)},this.isFull=function(){return this.isLeftBound()&&this.isRightBound()},this.isPartial=function(){return!this.isFull()}},c.prototype=new c.Prototype,a.Range=c,a.SelectionError=s,e.exports=a},{"./cursor":79,"substance-util":139,underscore:144}],83:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-operator"),i=t("substance-regexp"),o=r.ObjectOperation,s=r.TextOperation,a=t("./node"),c=function(t,e){a.call(this,t,e)};c.type={id:"text",parent:"content",properties:{source_id:"Text element source id",content:"string"}},c.description={name:"Text",remarks:["A simple text fragement that can be annotated. Usually text nodes are combined in a paragraph."],properties:{content:"Content"}},c.example={type:"paragraph",id:"paragraph_1",content:"Lorem ipsum dolor sit amet, adipiscing elit."},c.Prototype=function(){this.getChangePosition=function(t){if("content"===t.path[1]){var e=r.Helpers.last(t.diff);if(e.isInsert())return e.pos+e.length();if(e.isDelete())return e.pos}return-1},this.getLength=function(){return this.properties.content.length},this.insertOperation=function(t,e){return o.Update([this.properties.id,"content"],s.Insert(t,e))},this.deleteOperation=function(t,e){var n=this.properties.content;return o.Update([this.properties.id,"content"],s.Delete(t,n.substring(t,e)),"string")},this.prevWord=function(t){var e=this.properties.content,r=new i(/\b\w/g).match(e),o=n.select(r,function(e){return e.index<t},this);return 0===o.length?0:n.last(o).index},this.nextWord=function(t){var e=this.properties.content,n=new i(/\w\b/g).match(e.substring(t));if(0===n.length)return e.length;var r=n[0];return t+r.index+1},this.canJoin=function(t){return t instanceof c},this.join=function(t,e){var r=this.properties.content.length,i=e.content;t.update([this.id,"content"],[r,i]);var o=t.indexes.annotations.get(e.id);n.each(o,function(e){t.set([e.id,"path"],[this.properties.id,"content"]),t.set([e.id,"range"],[e.range[0]+r,e.range[1]+r])},this)},this.isBreakable=function(){return!0},this.break=function(t,e){var r=this.properties.content.substring(e),i=this.toJSON();i.type=this.splitInto?this.splitInto:this.properties.type,i.id=t.uuid(this.properties.type),i.content=r,t.create(i);var o=t.indexes.annotations.get(this.properties.id);return n.each(o,function(n){n.range[0]>=e&&(t.set([n.id,"path"],[i.id,"content"]),t.set([n.id,"range"],[n.range[0]-e,n.range[1]-e]))}),t.update([this.properties.id,"content"],s.Delete(e,r)),i}},c.Prototype.prototype=a.prototype,c.prototype=new c.Prototype,c.prototype.constructor=c,a.defineProperties(c.prototype,["content"]),e.exports=c},{"./node":81,"substance-operator":152,"substance-regexp":133,underscore:144}],84:[function(t,e){"use strict";e.exports={node:t("./src/node"),composite:t("./src/composite"),text:t("./src/text"),paragraph:t("./src/paragraph"),heading:t("./src/heading"),list:t("./src/list"),codeblock:t("./src/codeblock"),webresource:t("./src/web_resource"),image:t("./src/image"),formula:t("./src/formula"),table:t("./src/table"),figure:t("./src/figure"),collaborator:t("./src/collaborator"),cover:t("./src/cover"),description:t("./src/description"),footnote:t("./src/footnote")}},{"./src/codeblock":87,"./src/collaborator":90,"./src/composite":93,"./src/cover":96,"./src/description":99,"./src/figure":102,"./src/footnote":105,"./src/formula":108,"./src/heading":111,"./src/image":114,"./src/list":115,"./src/node":118,"./src/paragraph":121,"./src/table":124,"./src/text":127,"./src/web_resource":130}],85:[function(t,e){"use strict";var n=t("../text/text_node"),r=function(t,e){n.call(this,t,e)};r.type={id:"codeblock",parent:"content",properties:{source_id:"string",content:"string"}},r.config={zoomable:!0},r.description={name:"Codeblock",remarks:["Text in a codeblock is displayed in a fixed-width font, and it preserves both spaces and line breaks"],properties:{content:"Content"}},r.example={type:"codeblock",id:"codeblock_1",content:'var text = "Sun";\nvar op1 = Operator.TextOperation.Delete(2, "n");\ntext = op2.apply(op1.apply(text));\nconsole.log(text);'},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../text/text_node":128}],86:[function(t,e){"use strict";var n=t("../text/text_view"),r=function(t){n.call(this,t),this.$el.addClass("content-node codeblock")};r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../text/text_view":129}],87:[function(t,e){"use strict";e.exports={Model:t("./codeblock"),View:t("./codeblock_view")}},{"./codeblock":85,"./codeblock_view":86}],88:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t,e){r.call(this,t,e)};i.type={id:"collaborator",parent:"content",properties:{source_id:"string",name:"string",role:"string",organization:"string",image:"string",email:"string",contribution:"string"}},i.description={name:"Collaborator",remarks:["Describes an article collaborator such as an author or editor."],properties:{name:"Full name."}},i.example={id:"collaborator_1",type:"collaborator",role:"author",name:"John Doe",image:"http://john.com/doe.png",email:"a@b.com",contribution:"Revising the article, data cleanup"},i.Prototype=function(){this.getAffiliations=function(){return n.map(this.properties.affiliations,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i;var o={},o={header:{get:function(){return this.properties.name}}};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],89:[function(t,e){"use strict";var n=(t("underscore"),t("substance-util")),r=(n.html,t("../node").View),i=t("substance-application").$$,o=function(t){r.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("content-node collaborator")};o.Prototype=function(){this.render=function(){return r.prototype.render.call(this),this.node.image&&this.content.appendChild(i(".image",{children:[i("img",{src:this.node.image})]})),this.node.organization&&this.content.appendChild(i(".organization",{text:this.node.organization})),this.node.contribution&&(this.content.appendChild(i(".label",{text:"Contribution"})),this.content.appendChild(i(".contribution",{text:this.node.contribution}))),this.node.email&&(this.content.appendChild(i(".label",{text:"Email"})),this.content.appendChild(i(".email",{children:[i("a",{href:"mailto:"+this.node.email,text:this.node.email})]}))),this}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node":118,"substance-application":62,"substance-util":139,underscore:144}],90:[function(t,e){"use strict";e.exports={Model:t("./collaborator"),View:t("./collaborator_view")}},{"./collaborator":88,"./collaborator_view":89}],91:[function(t,e){"use strict";var n=t("substance-document");e.exports=n.Composite},{"substance-document":73}],92:[function(t,e){"use strict";var n=t("../node").View,r=function(t,e){n.call(this,t,e),this.$el.addClass(t.type),this.$el.attr("id",this.node.id),this.childrenViews=[]};r.Prototype=function(){this.render=function(){this.content=document.createElement("DIV"),this.content.classList.add("content");var t;for(t=0;t<this.childrenViews.length;t++)this.childrenViews[t].dispose();var e=this.node.getNodes();for(t=0;t<e.length;t++){var n=this.node.document.get(e[t]),r=this.viewFactory.createView(n);this.content.appendChild(r.render().el),this.childrenViews.push(r)}return this.el.appendChild(this.content),this},this.dispose=function(){n.prototype.dispose.call(this);for(var t=0;t<this.childrenViews.length;t++)this.childrenViews[t].dispose()},this.delete=function(){},this.getCharPosition=function(){return 0},this.getDOMPosition=function(){var t=this.$(".content")[0],e=document.createRange();return e.setStartBefore(t.childNodes[0]),e}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node":118}],93:[function(t,e){"use strict";e.exports={Model:t("./composite"),View:t("./composite_view")}},{"./composite":91,"./composite_view":92}],94:[function(t,e){var n=t("underscore"),r=t("../node/node"),i=function(t,e){r.call(this,t,e)};i.type={id:"cover",parent:"content",properties:{source_id:"string",authors:["array","person_reference"],image:"string"}},i.description={name:"Cover",remarks:["Virtual view on the title and authors of the paper."],properties:{authors:"An array of references to collaborators"}},i.example={id:"cover",type:"cover",authors:["collaborator_reference_1","collaborator_reference_2"]},i.Prototype=function(){this.getAuthorRefs=function(){return n.map(this.properties.authors,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,Object.defineProperties(i.prototype,{title:{get:function(){return this.document.title}},authors:{get:function(){return this.properties.authors}},image:{get:function(){return this.properties.image}}}),e.exports=i},{"../node/node":119,underscore:144}],95:[function(t,e){"use strict";var n=(t("underscore"),t("../node/node_view")),r=t("substance-application").$$,i=function(t,e){n.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node cover")};i.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=this.node;this.node.document.published_on&&this.content.appendChild(r(".published-on",{html:new Date(this.node.document.published_on).toDateString()})),this.content.appendChild(r(".title",{text:t.title}));var e=this.node.getAuthorRefs();if(e){var i=document.createElement("DIV");i.classList.add("authors");for(var o,s=0;s<e.length;s++){var a=e[s],c=this.node.document.get(a.target);o=document.createElement("SPAN"),o.setAttribute("id",a.id),o.classList.add("annotation"),o.classList.add("person_reference"),o.innerHTML=c.name,i.appendChild(o)}this.content.appendChild(i)}return this.node.image&&(this.el.style.backgroundImage="url('"+this.node.image+"')"),this}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node_view":120,"substance-application":62,underscore:144}],96:[function(t,e,n){arguments[4][23][0].apply(n,arguments)},{"./cover":94,"./cover_view":95,"/Users/michael/projects/elife/lens/node_modules/lens-article/nodes/cover/index.js":23}],97:[function(t,e){"use strict";var n=(t("underscore"),t("substance-document")),r=n.Node,i=n.Composite,o=function(t,e){i.call(this,t,e)};o.type={id:"description",parent:"content",properties:{source_id:"string",topic:"text",body:"paragraph"}},o.description={name:"Description",remarks:["A Description consists of two components: a topic and its textual description."],properties:{topic:"The entity to be described",body:"A paragraph containing content which describe the topic"}},o.example={type:"description",id:"description_1",topic:"text_1",body:"paragraph_2"},o.Prototype=function(){this.getLength=function(){return 2},this.getNodes=function(){return[this.properties.topic,this.properties.body]},this.getTopic=function(){return this.document.get(this.properties.topic)},this.getBody=function(){return this.document.get(this.properties.body)}},o.Prototype.prototype=i.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,r.defineProperties(o.prototype,["topic","body"]),e.exports=o},{"substance-document":73,underscore:144}],98:[function(t,e){"use strict";var n=t("../node").View,r=function(t,e){n.call(this,t,e),this.$el.addClass("description"),this.$el.attr("id",this.node.id)};r.Prototype=function(){this.render=function(){var t=document.createElement("div");t.className="content";var e=document.createElement("div");e.className="topic";var n=this.viewFactory.createView(this.node.getTopic());e.appendChild(n.render().el),this._topicEl=e;var r=document.createElement("div");r.className="body";var i=this.viewFactory.createView(this.node.getBody());
-return r.appendChild(i.render().el),this._bodyEl=r,t.appendChild(e),t.appendChild(r),this.el.appendChild(t),this}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node":118}],99:[function(t,e){"use strict";e.exports={Model:t("./description"),View:t("./description_view")}},{"./description":97,"./description_view":98}],100:[function(t,e){"use strict";var n=t("substance-document"),r=function(t,e){n.Composite.call(this,t,e)};r.type={id:"figure",parent:"content",properties:{url:"string",label:"string",caption:"paragraph"}},r.description={name:"Figure",remarks:["A figure is a figure is figure."],properties:{label:"Figure label (e.g. Figure 1)",url:"Image url",caption:"A reference to a paragraph that describes the figure"}},r.example={id:"figure_1",label:"Figure 1",url:"http://example.com/fig1.png",caption:"paragraph_1"},r.config={zoomable:!0},r.Prototype=function(){this.insertOperation=function(){return null},this.deleteOperation=function(){return null},this.hasCaption=function(){return!!this.properties.caption},this.getNodes=function(){var t=[];return this.properties.caption&&t.push(this.properties.caption),t},this.getCaption=function(){return this.properties.caption?this.document.get(this.properties.caption):void 0}},r.Prototype.prototype=n.Composite.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.create=function(t){var e={},n=t.id,r={id:n,type:"figure",label:t.label,url:t.url};if(t.caption){var i="caption_"+t.id,o={id:i,type:"text",content:t.caption};e[i]=o,r.caption=i}return e[n]=r,e},n.Node.defineProperties(r.prototype,["url","caption"]),Object.defineProperties(r.prototype,{header:{get:function(){return this.properties.label}}}),e.exports=r},{"substance-document":73}],101:[function(t,e){"use strict";var n=t("../composite").View,r=t("substance-application").$$,i=function(t,e){n.call(this,t,e)};i.Prototype=function(){this.render=function(){this.el.innerHTML="",this.content=r("div.content");var t=r(".image-wrapper",{children:[r("img",{src:this.node.url})]});this.content.appendChild(t);var e;for(e=0;e<this.childrenViews.length;e++)this.childrenViews[e].dispose();var n=this.node.getCaption();if(n){var i=this.viewFactory.createView(n),o=i.render().el;this.content.appendChild(o),this.childrenViews.push(i)}return this.el.appendChild(this.content),this}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../composite":93,"substance-application":62}],102:[function(t,e,n){arguments[4][29][0].apply(n,arguments)},{"./figure":100,"./figure_view":101,"/Users/michael/projects/elife/lens/node_modules/lens-article/nodes/figure/index.js":29}],103:[function(t,e){"use strict";var n=t("substance-document"),r=n.Node,i=t("../paragraph/paragraph"),o=function(t,e){i.call(this,t,e)};o.type={id:"footnote",parent:"paragraph",properties:{label:"string"}},o.description={name:"Footnote",remarks:["A Footnote is basically a Paragraph with a label."],properties:{label:"A string used as label"}},o.example={type:"footnote",id:"footnote_1",label:"a","children ":["text_1","image_1","text_2"]},o.Prototype=function(){},o.Prototype.prototype=i.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,r.defineProperties(o.prototype,["label"]),e.exports=o},{"../paragraph/paragraph":122,"substance-document":73}],104:[function(t,e){"use strict";var n=t("../paragraph/paragraph_view"),r=function(t,e){n.call(this,t,e)};r.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=document.createElement("span");return t.classList.add("label"),t.innerHTML=this.node.label,this.el.insertBefore(t,this.content),this}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../paragraph/paragraph_view":123}],105:[function(t,e){"use strict";e.exports={Model:t("./footnote"),View:t("./footnote_view")}},{"./footnote":103,"./footnote_view":104}],106:[function(t,e){var n=t("underscore"),r=t("substance-document").Node,i=function(t){r.call(this,t)};i.type={id:"formula",parent:"content",properties:{source_id:"string",label:"string",data:"string",format:"string",inline:"boolean"}},i.description={name:"Formula",remarks:["Can either be expressed in MathML format or using an image url"],properties:{label:"Formula label (4)",data:"Formula data, either MathML or image url",format:"Can either be `mathml` or `image`"}},i.example={type:"formula",id:"formula_eqn1",label:"(1)",content:"<mml:mrow>...</mml:mrow>",format:"mathml"},i.Prototype=function(){this.inline=!1},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constuctor=new i;var o={};n.each(i.type.properties,function(t,e){o[e]={get:function(){return this.properties[e]}}}),Object.defineProperties(i.prototype,o),e.exports=i},{"substance-document":73,underscore:144}],107:[function(t,e){"use strict";var n=t("../node").View,r=function(t){n.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("content-node formula"),this.node.inline&&this.$el.addClass("inline")};r.Prototype=function(){this.render=function(){var t=this.node.format;switch(t){case"mathml":this.$el.html(this.node.data);break;case"image":this.$el.append('<img src="'+this.node.url+'"/>');break;case"latex":this.$el.html(this.node.inline?"\\("+this.node.data+"\\)":"\\["+this.node.data+"\\]");break;default:console.error("Unknown formula format:",t)}return this.node.label&&this.$el.append($('<div class="label">').html(this.node.label)),this}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node":118}],108:[function(t,e){"use strict";e.exports={Model:t("./formula"),View:t("./formula_view")}},{"./formula":106,"./formula_view":107}],109:[function(t,e){"use strict";var n=t("substance-document").Node,r=t("../text/text_node"),i=function(t,e){r.call(this,t,e)};i.type={id:"heading",parent:"content",properties:{source_id:"string",content:"string",level:"number"}},i.example={type:"heading",id:"heading_1",content:"Introduction",level:1},i.description={name:"Heading",remarks:["Denotes a section or sub section in your article."],properties:{content:"Heading content",level:"Heading level. Ranges from 1..4"}},i.Prototype=function(){this.splitInto="paragraph"},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,n.defineProperties(i.prototype,["level"]),e.exports=i},{"../text/text_node":128,"substance-document":73}],110:[function(t,e){"use strict";var n=t("../text/text_view"),r=function(t){n.call(this,t),this.$el.addClass("heading"),this.$el.addClass("level-"+this.node.level),this.$el.attr("title","Click to set anchor. Great for sharing!")};r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../text/text_view":129}],111:[function(t,e){"use strict";e.exports={Model:t("./heading"),View:t("./heading_view")}},{"./heading":109,"./heading_view":110}],112:[function(t,e){"use strict";var n=(t("substance-document").Node,t("../web_resource/web_resource")),r=function(t,e){n.call(this,t,e)};r.type={id:"image",parent:"webresource",properties:{source_id:"string"}},r.example={type:"image",id:"image_1",url:"http://substance.io/image_1.png"},r.description={name:"Image",remarks:["Represents a web-resource for an image."],properties:{}},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../web_resource/web_resource":131,"substance-document":73}],113:[function(t,e){"use strict";var n=t("../node").View,r=function(t,e){n.call(this,t,e),this.$el.addClass("image"),this.$el.attr("id",this.node.id)};r.Prototype=function(){var t=Array.prototype.indexOf;this.render=function(){var e=document.createElement("div");e.className="content";var n=document.createElement("div");n.className="image-char",this._imgChar=n;var r=document.createElement("img");return r.src=this.node.url,r.alt="alt text",r.title="alt text",n.appendChild(r),e.appendChild(n),this.el.appendChild(e),this._imgPos=t.call(n.childNodes,r),this},this.delete=function(t,e){for(var n=this.$(".content")[0],r=n.childNodes,i=e-1;i>=0;i--)n.removeChild(r[t+i])},this.getCharPosition=function(t,e){return t===this._imgChar?e>this._imgPos?1:0:void console.log("Errhhh..")},this.getDOMPosition=function(t){var e=this.$(".content")[0],n=document.createRange();return 0===t?n.setStartBefore(e.childNodes[0]):n.setStartAfter(e.childNodes[0]),n}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node":118}],114:[function(t,e){"use strict";e.exports={Model:t("./image"),View:t("./image_view")}},{"./image":112,"./image_view":113}],115:[function(t,e){"use strict";e.exports={Model:t("./list"),View:t("./list_view")}},{"./list":116,"./list_view":117}],116:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-document"),i=r.Node,o=r.Composite,s=function(t,e){o.call(this,t,e)};s.type={id:"list",parent:"content",properties:{source_id:"string",items:["array","paragraph"],ordered:"boolean"}},s.description={name:"List",remarks:["Lists can either be numbered or bullet lists"],properties:{ordered:"Specifies wheter the list is ordered or not",items:"An array of paragraph references"}},s.example={type:"list",id:"list_1","items ":["paragraph_listitem_1","paragraph_listitem_2"]},s.Prototype=function(){this.getLength=function(){return this.properties.items.length},this.getNodes=function(){return n.clone(this.items)},this.getItems=function(){return n.map(this.properties.items,function(t){return this.document.get(t)},this)},this.getChangePosition=function(t){if("items"===t.path[1])if("update"===t.type){var e=t.diff;if(e.isInsert())return t.diff.pos+1;if(e.isDelete())return t.diff.pos;if(e.isMove())return t.diff.target}else if("set"===t.type)return this.properties.items.length-1;return-1},this.isMutable=function(){return!0},this.insertChild=function(t,e,n){t.update([this.id,"items"],["+",e,n])},this.deleteChild=function(t,e){var n=this.items.indexOf(e);t.update([this.id,"items"],["-",n,e]),t.delete(e)},this.canJoin=function(t){return"list"===t.type},this.isBreakable=function(){return!0},this.break=function(t,e,n){var r=this.properties.items.indexOf(e);if(0>r)throw new Error("Unknown child "+e);var i=t.get(e),o=i.break(t,n);return t.update([this.id,"items"],["+",r+1,o.id]),o}},s.Prototype.prototype=o.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s,i.defineProperties(s.prototype,["items","ordered"]),e.exports=s},{"substance-document":73,underscore:144}],117:[function(t,e){"use strict";var n=t("../composite/composite_view"),r=t("./list"),i=function(t,e){n.call(this,t,e)};i.whoami="SubstanceListView",i.Prototype=function(){this.render=function(){this.el.innerHTML="";var t=this.node.ordered?"OL":"UL";this.content=document.createElement(t),this.content.classList.add("content");var e;for(e=0;e<this.childrenViews.length;e++)this.childrenViews[e].dispose();var n=this.node.getNodes();for(e=0;e<n.length;e++){var i,o=this.node.document.get(n[e]),s=this.viewFactory.createView(o);o instanceof r?i=s.render().el:(i=document.createElement("LI"),i.appendChild(s.render().el)),this.content.appendChild(i),this.childrenViews.push(s)}return this.el.appendChild(this.content),this},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&"items"===t.path[1]&&this.render()}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../composite/composite_view":92,"./list":116}],118:[function(t,e){"use strict";e.exports={Model:t("./node"),View:t("./node_view")}},{"./node":119,"./node_view":120}],119:[function(t,e){"use strict";var n=t("substance-document"),r=n.Node;r.description={name:"Node",remarks:["Abstract node type."],properties:{source_id:"Useful for document conversion where the original id of an element should be remembered."}},e.exports=r},{"substance-document":73}],120:[function(t,e){var n=t("substance-application").View,r=function(t,e){n.call(this),this.node=t,this.viewFactory=e,this.$el.addClass("content-node"),this.$el.attr("id",this.node.id)};r.Prototype=function(){this.render=function(){return this.content=document.createElement("DIV"),this.content.classList.add("content"),this.el.appendChild(this.content),this},this.dispose=function(){this.stopListening()},this.getCharPosition=function(){throw new Error("NodeView.getCharPosition() is abstract.")},this.getDOMPosition=function(){throw new Error("NodeView.getDOMPosition() is abstract.")},this.onGraphUpdate=function(t){t.path[0]!==this.node.id||"update"!==t.type&&"set"!==t.type||this.onNodeUpdate(t)},this.onNodeUpdate=function(){}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"substance-application":62}],121:[function(t,e){"use strict";e.exports={Model:t("./paragraph"),View:t("./paragraph_view")}},{"./paragraph":122,"./paragraph_view":123}],122:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-document"),i=r.Node,o=r.Composite,s=function(t,e){o.call(this,t,e)};s.type={id:"paragraph",parent:"content",properties:{children:["array","content"]}},s.description={name:"Paragraph",remarks:["A Paragraph can have inline elements such as images."],properties:{children:"An array of content node references"}},s.example={type:"paragraph",id:"paragraph_1","children ":["text_1","image_1","text_2"]},s.Prototype=function(){this.getLength=function(){return this.properties.children.length},this.getNodes=function(){return n.clone(this.properties.children)},this.getChildren=function(){return n.map(this.properties.children,function(t){return this.document.get(t)},this)},this.getChangePosition=function(t){if("children"===t.path[1])if("update"===t.type){var e=t.diff;if(e.isInsert())return t.diff.pos+1;if(e.isDelete())return t.diff.pos;if(e.isMove())return t.diff.target}else if("set"===t.type)return this.properties.children.length-1;return-1},this.isMutable=function(){return!0},this.insertChild=function(t,e,n){t.update([this.id,"children"],["+",e,n])},this.deleteChild=function(t,e){var n=this.children.indexOf(e);t.update([this.id,"children"],["-",n,e]),t.delete(e)},this.canJoin=function(t){return"paragraph"===t.type},this.isBreakable=function(){return!0},this.break=function(t,e,n){var r=this.properties.children.indexOf(e);if(0>r)throw new Error("Unknown child "+e);var i=t.get(e),o=i.break(t,n);return t.update([this.id,"children"],["+",r+1,o.id]),o}},s.Prototype.prototype=o.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s,i.defineProperties(s.prototype,["children"]),e.exports=s},{"substance-document":73,underscore:144}],123:[function(t,e){"use strict";var n=t("../composite/composite_view"),r=function(t,e){n.call(this,t,e)};r.Prototype=function(){this.onNodeUpdate=function(t){t.path[0]===this.node.id&&"children"===t.path[1]&&this.render()}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../composite/composite_view":92}],124:[function(t,e){"use strict";e.exports={Model:t("./table"),View:t("./table_view")}},{"./table":125,"./table_view":126}],125:[function(t,e){"use strict";var n=t("substance-document"),r=t("underscore"),i=n.Node,o=n.Composite,s=function(t,e){o.call(this,t,e)};s.type={id:"table",parent:"content",properties:{label:"string",source_id:"string",headers:["array","content"],cells:["array","array","content"],caption:"content"}},s.description={name:"Table",remarks:[],properties:{items:"An array of references which contain the content of each cell"}},s.example={type:"table",id:"table_1",headers:["text_1","text_2"],cells:[["cell_1_1","cell_1_2"],["cell_2_1","cell_2_2"]]},s.Prototype=function(){this.getLength=function(){var t=0;t+=this.properties.headers.length;for(var e=0;e<this.properties.cells.length;e++){var n=this.properties.cells[e];t+=n.length}return this.properties.caption&&(t+=1),t},this.getNodes=function(){for(var t=[],e=0;e<this.properties.headers.length;e++)t.push(this.properties.headers[e]);for(var n=0;n<this.properties.cells.length;n++){var r=this.properties.cells[n];t=t.concat(r)}return this.properties.caption&&t.push(this.properties.caption),t},this.getHeaders=function(){return r.map(this.properties.headers,function(t){return this.document.get(t)},this)},this.getCells=function(){for(var t=[],e=0;e<this.properties.cells.length;e++){for(var n=this.properties.cells[e],r=[],i=0;i<n.length;i++)r.push(this.document.get(n[i]));t.push(r)}return t},this.getCaption=function(){var t;return this.properties.caption&&(t=this.document.get(this.properties.caption)),t},this.getChangePosition=function(){return-1},this.isMutable=function(){return!1},this.canJoin=function(){return!1},this.isBreakable=function(){return!1}},s.Prototype.prototype=o.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s,s.create=function(t){var e,n,r={},i=t.id,o={id:i,type:"table",label:t.label,headers:[],cells:[]};if(t.headers)for(var s=0;s<t.headers.length;s++){var a=t.headers[s];e="th_"+s+"_"+i,n={id:e,type:"text",content:a},r[e]=n,o.headers.push(e)}for(var c=0;c<t.cells.length;c++){for(var u=t.cells[c],l=[],p=0;p<u.length;p++){var h=u[p];e="td__"+c+"_"+p+"_"+i,n={id:e,type:"text",content:h},r[e]=n,l.push(e)}o.cells.push(l)}return t.caption&&(e="caption_"+i,n={id:e,type:"text",content:t.caption},r[e]=n,o.caption=e),r[o.id]=o,r},i.defineProperties(s.prototype,["headers","cells","caption"]),Object.defineProperties(s.prototype,{header:{get:function(){return this.properties.label}}}),e.exports=s},{"substance-document":73,underscore:144}],126:[function(t,e){"use strict";var n=t("../composite/composite_view"),r=(t("underscore"),function(t,e){n.call(this,t,e)});r.Prototype=function(){this.render=function(){this.el.innerHTML="",this.content=document.createElement("div"),this.content.classList.add("content");for(var t=0;t<this.childrenViews.length;t++)this.childrenViews[t].dispose();var e,n,r=document.createElement("table"),i=this.node.getHeaders(),o=document.createElement("thead");if(i.length>0){for(var s=document.createElement("tr"),t=0;t<i.length;t++){e=i[t],n=this.viewFactory.createView(e);var a=document.createElement("th");a.appendChild(n.render().el),s.appendChild(a),this.childrenViews.push(n)}o.appendChild(s)}r.appendChild(o);for(var c=this.node.getCells(),u=document.createElement("tbody"),l=0;l<c.length;l++){for(var p=c[l],s=document.createElement("tr"),h=0;h<p.length;h++){e=p[h],n=this.viewFactory.createView(e);var a=document.createElement("td");a.appendChild(n.render().el),s.appendChild(a),this.childrenViews.push(n)}u.appendChild(s)}if(r.appendChild(u),this.content.appendChild(r),this.node.caption){var d=this.node.getCaption(),f=this.viewFactory.createView(d),g=f.render().el;g.classList.add("caption"),this.content.appendChild(g),this.childrenViews.push(f)}return this.el.appendChild(this.content),this},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&("headers"===t.path[1]||"cells"===t.path[1])&&this.render()}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../composite/composite_view":92,underscore:144}],127:[function(t,e){"use strict";e.exports={Model:t("./text_node"),View:t("./text_view")}},{"./text_node":128,"./text_view":129}],128:[function(t,e){"use strict";var n=t("substance-document");e.exports=n.TextNode},{"substance-document":73}],129:[function(t,e){var n=t("underscore"),r=t("../node/node_view"),i=t("substance-document"),o=i.Annotator,s=t("substance-application").$$,a=!1,c=function(t,e){r.call(this,t),e=e||{},this.path=e.path||[t.id,"content"],this.property=t.document.resolve(this.path),this.$el.addClass(e.classes?e.classes:"content-node text"),e.path||this.$el.attr("id",this.node.id),this._annotations={}};c.Prototype=function(){this.render=function(t){return r.prototype.render.call(this,t),this.renderContent(),this},this.dispose=function(){r.prototype.dispose.call(this),console.log("disposing paragraph view")},this.renderContent=function(){this.content.innerHTML="",this._annotations=this.node.document.getIndex("annotations").get(this.path),this.renderWithAnnotations(this._annotations)},this.insert=function(t,e){var n=this.getDOMPosition(t),r=n.startContainer,i=n.startOffset,o=r.textContent;o=o.substring(0,i)+e+o.substring(i),r.textContent=o},this.delete=function(t,e){var n=this.getDOMPosition(t),r=n.startContainer,i=n.startOffset,o=r.textContent;o=o.substring(0,i)+o.substring(i+e),r.textContent=o},this.onNodeUpdate=function(t){if("update"===t.type){var e=t.diff;e.isInsert()?this.insert(e.pos,e.str):e.isDelete()&&this.delete(e.pos,e.str.length)}else"set"===t.type&&this.renderContent()},this.onGraphUpdate=function(t){!n.isEqual(t.path,this.path)||"update"!==t.type&&"set"!==t.type||this.onNodeUpdate(t);var e,r=this.node.document,i=r.getSchema();if(e="delete"!==t.type?r.get(t.path[0]):t.val,i.isInstanceOf(e.type,"annotation")){var o=!1;e.path[0]===this.node.id?o=!0:"set"===t.type&&"path"===t.path[1]&&t.original[0]===this.node.id&&(o=!0),o&&(console.log("Rerendering TextView due to annotation update",t),this.renderContent())}},this.getCharPosition=function(t,e){var n=document.createRange();n.setStart(this.content.childNodes[0],0),n.setEnd(t,e);var r=n.toString(),i=Math.min(this.property.get().length,r.length);return i},this.getDOMPosition=function(t){if(void 0===this.content)throw new Error("Not rendered yet.");var e=document.createRange();if(0===this.property.get().length)return e.setStart(this.content.childNodes[0],0),e;for(var n=[this.content];n.length>0;){var r=n.pop();if(r.nodeType===Node.TEXT_NODE){var i=r;if(i.length>=t)return e.setStart(r,t),e;t-=i.length}else if(r.childNodes.length>0)for(var o=r.childNodes.length-1;o>=0;o--)n.push(r.childNodes[o])}console.log("Bug-Alarm: the model and the view are out of sync."),console.log("The model as "+t+" more characters"),console.log("Returning the last available position... but please fix me. Anyone?");var s=this.content.childNodes,a=s[s.length-1];return e.setStart(a,a.length),e},this.createAnnotationElement=function(t){var e;return e="link"===t.type?s("a.annotation."+t.type,{id:t.id,href:this.node.document.get(t.id).url}):s("span.annotation."+t.type,{id:t.id})},this.renderWithAnnotations=function(t){var e=this,n=this.property.get(),r=document.createDocumentFragment(),i=new o.Fragmenter({});i.onText=function(t,e){t.appendChild(document.createTextNode(e))},i.onEnter=function(t,n){var r=e.createAnnotationElement(t);return n.appendChild(r),r},i.start(r,n,t),a&&r.appendChild(document.createTextNode(" ")),this.content.innerHTML="",this.content.appendChild(r)},this.dispose=function(){this.stopListening()}},c.Prototype.prototype=r.prototype,c.prototype=new c.Prototype,e.exports=c},{"../node/node_view":120,"substance-application":62,"substance-document":73,underscore:144}],130:[function(t,e){"use strict";e.exports={Model:t("./web_resource"),View:t("./web_resource_view")}},{"./web_resource":131,"./web_resource_view":132}],131:[function(t,e){"use strict";var n=t("substance-document").Node,r=function(t,e){n.call(this,t,e)};r.type={id:"webresource",parent:"content",properties:{source_id:"string",url:"string"}},r.description={name:"WebResource",description:"A resource which can be accessed via URL",remarks:["This element is a parent for several other nodes such as Image."],properties:{url:"URL to a resource"}},r.example={type:"webresource",id:"webresource_3",url:"http://elife.elifesciences.org/content/elife/1/e00311/F3.medium.gif"},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,n.defineProperties(r.prototype,["url"]),e.exports=r},{"substance-document":73}],132:[function(t,e){"use strict";e.exports=t("../node").View},{"../node":118}],133:[function(t,e){"use strict";e.exports=t("./src/regexp")},{"./src/regexp":134}],134:[function(t,e){"use strict";var n=function(t){this.index=t.index,this.match=[];for(var e=0;e<t.length;e++)this.match.push(t[e])};n.Prototype=function(){this.captures=function(){return this.match.slice(1)},this.toString=function(){return this.match[0]}},n.prototype=new n.Prototype;var r=function(t){this.exp=t};r.Prototype=function(){this.match=function(t){if(void 0===t)throw new Error("No string given");if(this.exp.global){var e,r=[];for(this.exp.compile(this.exp);null!==(e=this.exp.exec(t));)r.push(new n(e));return r}return this.exp.exec(t)}},r.prototype=new r.Prototype,r.Match=n,e.exports=r},{}],135:[function(t,e){"use strict";var n=t("./src/surface");e.exports=n},{"./src/surface":136}],136:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-application").View,i=t("substance-util"),o=t("substance-commander"),s=function(t,e){e=n.extend({editable:!0},e),r.call(this);var i=this;if(this.options=e,this.renderer=this.options.renderer?this.options.renderer:new t.__document.constructor.Renderer(t),this.doc=t,this.nodeTypes=t.__document.nodeTypes,this.listenTo(this.doc.selection,"selection:changed",this.renderSelection),this.listenTo(this.doc.__document,"property:updated",this.onUpdateView),this.listenTo(this.doc.__document,"graph:reset",this.reset),this.build(),this.$el.addClass("surface"),this.$el.addClass(this.doc.view),e.editable){this.el.setAttribute("contenteditable","true"),this.el.spellcheck=!1,this.$el.mouseup(function(t){this.ignoreNextSelection=!0,this.updateSelection(t)}.bind(this)),this.$el.delegate("img","click",function(t){var e=$(t.currentTarget).parent().parent().parent(),n=e.attr("id");return i.doc.selection.selectNode(n),!1}),this._dirt=[],this._onKeyDown=function(){this._dirtPossible=!0}.bind(this),this._onTextInput=function(t){for(this._dirtPossible=!1;this._dirt.length>0;){var e=this._dirt.shift();e[0].textContent=e[1]}this.doc.write(t.data),t.preventDefault()}.bind(this);var s=function(t,e){return function(n){i._dirtPossible=!1,setTimeout(t,0),e!==!0&&n.preventDefault()}};this.keyboard=new o.Mousetrap,this.keyboard.bind(["up","down","left","right","shift+up","shift+down","shift+left","shift+right","ctrl+up","ctrl+down","ctrl+left","ctrl+right","ctrl+shift+up","ctrl+shift+down","ctrl+shift+left","ctrl+shift+right","alt+up","alt+down","alt+left","alt+right"],function(){setTimeout(function(){i.ignoreNextSelection=!0,i.updateSelection()},0)},"keydown"),this.keyboard.bind(["backspace"],s(function(){i.doc.delete("left")}),"keydown"),this.keyboard.bind(["del"],s(function(){i.doc.delete("right")}),"keydown"),this.keyboard.bind(["enter"],s(function(){i.doc.modifyNode()}),"keydown"),this.keyboard.bind(["shift+enter"],s(function(){i.doc.write("\n")}),"keydown"),this.keyboard.bind(["space"],s(function(){i.doc.write(" ")}),"keydown"),this.keyboard.bind(["tab"],s(function(){i.doc.write("  ")}),"keydown"),this.keyboard.bind(["ctrl+z"],s(function(){i.doc.undo()}),"keydown"),this.keyboard.bind(["ctrl+shift+z"],s(function(){i.doc.redo()}),"keydown"),this.makeEditable(this.el)}};s.Prototype=function(){function t(t,e,n){var r=t.childNodes;if(e<r.length){var i=r[e];t.insertBefore(n,i)}else t.appendChild(n)}var e=function(t){for(var e=t;void 0!==e;){if($(e).is(".content-node"))return e;e=e.parentElement}return null};this.makeEditable=function(t){var e=this;t.addEventListener("keydown",this._onKeyDown),t.addEventListener("textInput",this._onTextInput,!0),t.addEventListener("input",this._onTextInput,!0),this._dirt=[],this._observer=new MutationObserver(function(t){t.forEach(function(t){e._dirtPossible&&e._dirt.push([t.target,t.oldValue])})});var n={subtree:!0,characterData:!0,characterDataOldValue:!0};this._observer.observe(t,n),this.keyboard.connect(t)},this.updateSelection=function(){var t=window.getSelection();if(null!==t.anchorNode){if($(t.anchorNode.parentElement).is(".cursor"))return void this.doc.selection.collapse("cursor");var n,r,i=t.getRangeAt(0);if(n=[i.startContainer,i.startOffset],r=[i.endContainer,i.endOffset],i.endContainer===t.anchorNode&&i.endOffset===t.anchorOffset){var o=n;n=r,r=o}var s=e.call(this,n[0]),a=e.call(this,r[0]),c=s.getAttribute("id"),u=this.doc.getPosition(c),l=this.nodes[c].getCharPosition(n[0],n[1]),p=a.getAttribute("id"),h=this.doc.getPosition(p),d=this.nodes[p].getCharPosition(r[0],r[1]),f=[u,l],g=[h,d];this.doc.selection.set({start:f,end:g})}},this.renderSelection=function(){if(this.ignoreNextSelection===!0)return void(this.ignoreNextSelection=!1);if(this.doc.selection.isNull())return void this.$cursor.hide();var t=window.getSelection(),e=this.doc.selection.range(),n=this.doc.getNodeFromPosition(e.start[0]),r=this.renderer.nodes[n.id],i=r.getDOMPosition(e.start[1]),o=this.doc.getNodeFromPosition(e.end[0]),s=this.renderer.nodes[o.id],a=s.getDOMPosition(e.end[1]),c=document.createRange();c.setStart(i.startContainer,i.startOffset),c.setEnd(a.endContainer,a.endOffset),t.removeAllRanges(),t.addRange(c)},this.build=function(){this.nodes=this.renderer.nodes},this.render=function(){var t=document.createElement("input");t.className="image-files",t.setAttribute("type","file"),t.setAttribute("name","files[]");var e=document.createElement("div");e.className="controls";var n=document.createElement("div");n.className="nodes";var r=document.createElement("div");return r.className="cursor",this.el.appendChild(t),this.el.appendChild(e),this.el.appendChild(n),this.el.appendChild(r),n.appendChild(this.renderer.render()),this.$("input.image-files").hide(),this.$cursor=this.$(".cursor"),this.$cursor.hide(),this._nodesEl=n,this},this.reset=function(){n.each(this.nodes,function(t){t.dispose()}),this.build(),this.render()},this.dispose=function(){this.stopListening(),n.each(this.nodes,function(t){t.dispose()},this)},this.onUpdateView=function(e,n){if(2===e.length&&"content"===e[0]&&"nodes"===e[1]){var r,i,o,s,a=this._nodesEl;if(n.isInsert()){if(r=n.val,i=this.doc.get(r),this.nodeTypes[i.type]){var c=this.renderer.createView(i);this.nodes[r]=c,s=c.render().el,t(a,n.pos,s)}}else if(n.isDelete())r=n.val,this.nodes[r]&&this.nodes[r].dispose(),delete this.nodes[r],o=a.children,a.removeChild(o[n.pos]);else if(n.isMove())o=a.children,s=o[n.pos],a.removeChild(s),t(a,n.target,s);else if("NOP"!==n.type)throw new Error("Illegal state.")}}},n.extend(s.Prototype,i.Events.Listener),s.Prototype.prototype=r.prototype,s.prototype=new s.Prototype,e.exports=s},{"substance-application":62,"substance-commander":152,"substance-util":139,underscore:144}],137:[function(t,e){"use strict";var n=t("./toc_view");e.exports=n},{"./toc_view":138}],138:[function(t,e){"use strict";var n=t("substance-application").View,r=t("substance-application").$$,i=t("substance-data"),o=(i.Graph.Index,t("underscore")),s=function(t){n.call(this),this.doc=t,this.$el.addClass("toc")};s.Prototype=function(){this.render=function(){return this.doc.getHeadings().length<2?this:(o.each(this.doc.getHeadings(),function(t){this.el.appendChild(r("a.heading-ref.level-"+t.level,{id:"toc_"+t.id,text:t.content,"sbs-click":"jumpToNode("+t.id+")"}))},this),this)},this.setActiveNode=function(t){this.$(".heading-ref.active").removeClass("active"),this.$("#toc_"+t).addClass("active")}},s.Prototype.prototype=n.prototype,s.prototype=new s.Prototype,e.exports=s},{"substance-application":62,"substance-data":68,underscore:144}],139:[function(t,e){"use strict";var n=t("./src/util");n.errors=t("./src/errors"),n.html=t("./src/html"),n.dom=t("./src/dom"),e.exports=n},{"./src/dom":140,"./src/errors":141,"./src/html":142,"./src/util":143}],140:[function(t,e){"use strict";var n=t("underscore"),r={};r.ChildNodeIterator=function(t){this.nodes=n.isArray(t)?t:t.childNodes,this.length=this.nodes.length,this.pos=-1},r.ChildNodeIterator.prototype={hasNext:function(){return this.pos<this.length-1},next:function(){return this.pos+=1,this.nodes[this.pos]},back:function(){return this.pos>=0&&(this.pos-=1),this}},r.getChildren=function(t){if(void 0!==t.children)return t.children;for(var e=[],n=t.firstElementChild;n;)e.push(n),n=n.nextElementSibling;return e},r.getNodeType=function(t){if(t.nodeType===Node.TEXT_NODE)return"text";if(t.nodeType===Node.COMMENT_NODE)return"comment";if(t.tagName)return t.tagName.toLowerCase();throw new Error("Unknown node type")},e.exports=r},{underscore:144}],141:[function(t,e){"use strict";var n=(t("underscore"),t("./util")),r={};r.SubstanceError=function(t,e,r){1==arguments.length&&(r=t,t="SubstanceError",e=-1),this.message=r,this.name=t,this.code=e,this.__stack=n.callstack(1)
-},r.SubstanceError.Prototype=function(){this.toString=function(){return this.name+":"+this.message},this.toJSON=function(){return{name:this.name,message:this.message,code:this.code,stack:this.stack}},this.printStackTrace=function(){n.printStackTrace(this)}},r.SubstanceError.prototype=new r.SubstanceError.Prototype,Object.defineProperty(r.SubstanceError.prototype,"stack",{get:function(){for(var t=[],e=0;e<this.__stack.length;e++){var n=this.__stack[e];t.push(n.file+":"+n.line+":"+n.col+" ("+n.func+")")}return t.join("\n")},set:function(){throw new Error("immutable.")}}),r.define=function(t,e){return void 0===e&&(e=-1),r[t]=r.SubstanceError.bind(null,t,e),r[t].prototype=r.SubstanceError.prototype,r[t]},e.exports=r},{"./util":143,underscore:144}],142:[function(t,e){"use strict";var n={},r=t("underscore");n.templates={},n.renderTemplate=function(t,e){return n.templates[t](e)},"undefined"!=typeof window&&(window.console||(window.console={log:function(){}})),n.tpl=function(t,e){e=e||{};var n=$("script[name="+t+"]").html();return r.template(n,e)},e.exports=n},{underscore:144}],143:[function(t,e,n){"use strict";function r(t,e){function n(t){var e=a[c];if(!e)return l.length>0?r(new Error("Multiple errors occurred.",t)):r(null,t);var i=p(function(t,e){if(t){if(u)return r(t,null);l.push(t)}c+=1,n(e)});try{1===e.length?e(i):e(t,i)}catch(o){console.log("util.async caught error:",o),s.printStackTrace(o),r(o)}}var r=t.finally||function(t,n){e(t,n)};r=p(r);var i=t.data||{},a=t.functions;if(!o.isFunction(e))return e("Illegal arguments: a callback function must be provided");var c=0,u=void 0===t.stopOnError?!0:t.stopOnError,l=[];n(i)}function i(t){return function(e,n){function i(t,e){return function(n,r){2===p.length?p(t,r):3===p.length?p(t,e,r):p(t,e,n,r)}}function s(t,e){return function(n,r){2===p.length?p(t,r):3===p.length?p(t,e,r):p(t,e,n,r)}}var a=t.selector?t.selector(e):t.items,c=t.finally||function(t,e){n(t,e)};if(!a)return c(null,e);var u=o.isArray(a);t.before&&t.before(e);var l=[],p=t.iterator;if(u)for(var h=0;h<a.length;h++)l.push(i(a[h],h));else for(var d in a)l.push(s(a[d],d));var f={functions:l,data:e,"finally":c,stopOnError:t.stopOnError};r(f,n)}}var o=t("underscore"),s={};s.uuid=function(t,e){var n,r="0123456789abcdefghijklmnopqrstuvwxyz".split(""),i=[],o=16;if(e=e||32)for(n=0;e>n;n++)i[n]=r[0|Math.random()*o];else{var s;for(i[8]=i[13]=i[18]=i[23]="-",i[14]="4",n=0;36>n;n++)i[n]||(s=0|16*Math.random(),i[n]=r[19==n?3&s|8:s])}return(t?t:"")+i.join("")},s.uuidGen=function(t){var e=1;return t=void 0!==t?t:"uuid_",function(n){return n=n||t,n+e++}};var a=function(t,e){var n,r=-1,i=t.length,o=e[0],s=e[1],a=e[2];switch(e.length){case 0:for(;++r<i;)(n=t[r]).callback.call(n.ctx);return;case 1:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o);return;case 2:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o,s);return;case 3:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o,s,a);return;default:for(;++r<i;)(n=t[r]).callback.apply(n.ctx,e)}},c=/\s+/,u=function(t,e,n,r){if(!n)return!0;if("object"==typeof n){for(var i in n)t[e].apply(t,[i,n[i]].concat(r));return!1}if(c.test(n)){for(var o=n.split(c),s=0,a=o.length;a>s;s++)t[e].apply(t,[o[s]].concat(r));return!1}return!0};s.Events={on:function(t,e,n){if(!u(this,"on",t,[e,n])||!e)return this;this._events=this._events||{};var r=this._events[t]||(this._events[t]=[]);return r.push({callback:e,context:n,ctx:n||this}),this},once:function(t,e,n){if(!u(this,"once",t,[e,n])||!e)return this;var r=this,i=o.once(function(){r.off(t,i),e.apply(this,arguments)});return i._callback=e,this.on(t,i,n)},off:function(t,e,n){var r,i,s,a,c,l,p,h;if(!this._events||!u(this,"off",t,[e,n]))return this;if(!t&&!e&&!n)return this._events={},this;for(a=t?[t]:o.keys(this._events),c=0,l=a.length;l>c;c++)if(t=a[c],s=this._events[t]){if(this._events[t]=r=[],e||n)for(p=0,h=s.length;h>p;p++)i=s[p],(e&&e!==i.callback&&e!==i.callback._callback||n&&n!==i.context)&&r.push(i);r.length||delete this._events[t]}return this},trigger:function(t){if(!this._events)return this;var e=Array.prototype.slice.call(arguments,1);if(!u(this,"trigger",t,e))return this;var n=this._events[t],r=this._events.all;return n&&a(n,e),r&&a(r,arguments),this},triggerLater:function(){var t=this,e=arguments;setTimeout(function(){t.trigger.apply(t,e)},0)},stopListening:function(t,e,n){var r=this._listeners;if(!r)return this;var i=!e&&!n;"object"==typeof e&&(n=this),t&&((r={})[t._listenerId]=t);for(var o in r)r[o].off(e,n,this),i&&delete this._listeners[o];return this}};var l={listenTo:"on",listenToOnce:"once"};o.each(l,function(t,e){s.Events[e]=function(e,n,r){var i=this._listeners||(this._listeners={}),s=e._listenerId||(e._listenerId=o.uniqueId("l"));return i[s]=e,"object"==typeof n&&(r=this),e[t](n,r,this),this}}),s.Events.bind=s.Events.on,s.Events.unbind=s.Events.off,s.Events.Listener={listenTo:function(t,e,n){if(!o.isFunction(n))throw new Error("Illegal argument: expecting function as callback, was: "+n);return this._handlers=this._handlers||[],t.on(e,n,this),this._handlers.push({unbind:function(){t.off(e,n)}}),this},stopListening:function(){if(this._handlers)for(var t=0;t<this._handlers.length;t++)this._handlers[t].unbind()}};var p=o.once;s.async={},s.async.sequential=function(t,e){o.isArray(t)&&(t={functions:t}),r(t,e)},s.async.iterator=function(t,e){var n;return n=1==arguments.length?t:{items:t,iterator:e},i(n)},s.async.each=function(t,e){var n=i(t);n(null,e)},s.propagate=function(t,e){if(!o.isFunction(e))throw"Illegal argument: provided callback is not a function";return function(n){return n?e(n):void e(null,t)}};var h=function(){};s.inherits=function(t,e,n){var r;return r=e&&e.hasOwnProperty("constructor")?e.constructor:function(){t.apply(this,arguments)},o.extend(r,t),h.prototype=t.prototype,r.prototype=new h,e&&o.extend(r.prototype,e),n&&o.extend(r,n),r.prototype.constructor=r,r.__super__=t.prototype,r},s.getJSON=function(e,r){if("undefined"!=typeof n){var i=t("fs"),o=JSON.parse(i.readFileSync(e,"utf8"));r(null,o)}else $.getJSON(e).done(function(t){r(null,t)}).error(function(t){r(t,null)})},s.prototype=function(t){return Object.getPrototypeOf?Object.getPrototypeOf(t):t.__proto__},s.inherit=function(t,e){var n,r=o.isFunction(t)?new t:t;if(o.isFunction(e))e.prototype=r,n=new e;else{var i=function(){};i.prototype=r,n=o.extend(new i,e)}return n},s.pimpl=function(t){var e=function(t){this.self=t};return e.prototype=t,function(t){return t=t||this,new e(t)}},s.parseStackTrace=function(t){var e,n=/([^@]*)@(.*):(\d+)/,r=/\s*at ([^(]*)[(](.*):(\d+):(\d+)[)]/,i=t.stack.split("\n"),o=[];for(e=0;e<i.length;e++){var s=n.exec(i[e]);if(s||(s=r.exec(i[e])),s){var a={func:s[1],file:s[2],line:s[3],col:s[4]||0};""===a.func&&(a.func="<anonymous>"),o.push(a)}}return o},s.callstack=function(t){var e;try{throw new Error}catch(n){e=n}var r=s.parseStackTrace(e);return t=t||0,r.splice(t+1)},s.stacktrace=function(t){var e=0===arguments.length?s.callstack().splice(1):s.parseStackTrace(t),n=[];return o.each(e,function(t){n.push(t.file+":"+t.line+":"+t.col+" ("+t.func+")")}),n.join("\n")},s.printStackTrace=function(t,e){if(t.stack){var n;if(void 0!==t.__stack)n=t.__stack;else{if(!o.isString(t.stack))return;n=s.parseStackTrace(t)}e=e||n.length,e=Math.min(e,n.length);for(var r=0;e>r;r++){var i=n[r];console.log(i.file+":"+i.line+":"+i.col,"("+i.func+")")}}},s.diff=function(t,e){var n;return o.isArray(t)&&o.isArray(e)?(n=o.difference(e,t),0===n.length?null:n):o.isObject(t)&&o.isObject(e)?(n={},o.each(Object.keys(e),function(r){var i=s.diff(t[r],e[r]);i&&(n[r]=i)}),o.isEmpty(n)?null:n):t!==e?e:void 0},s.deepclone=function(t){return JSON.parse(JSON.stringify(t))},s.clone=function(t){return null===t||void 0===t?t:o.isFunction(t.clone)?t.clone():s.deepclone(t)},s.freeze=function(t){var e;if(o.isObject(t)){if(Object.isFrozen(t))return t;var n=Object.keys(t);for(e=0;e<n.length;e++){var r=n[e];t[r]=s.freeze(t[r])}return Object.freeze(t)}if(o.isArray(t)){var i=t;for(e=0;e<i.length;e++)i[e]=s.freeze(i[e]);return Object.freeze(i)}return t},s.later=function(t,e){return function(){var n=arguments;setTimeout(function(){t.apply(e,n)},0)}},s.isEmpty=function(t){return!t.match(/\w/)},e.exports=s},{fs:152,underscore:144}],144:[function(t,e,n){(function(){var t=this,r=t._,i={},o=Array.prototype,s=Object.prototype,a=Function.prototype,c=o.push,u=o.slice,l=o.concat,p=s.toString,h=s.hasOwnProperty,d=o.forEach,f=o.map,g=o.reduce,m=o.reduceRight,y=o.filter,v=o.every,b=o.some,w=o.indexOf,x=o.lastIndexOf,_=Array.isArray,C=Object.keys,P=a.bind,S=function(t){return t instanceof S?t:this instanceof S?void(this._wrapped=t):new S(t)};"undefined"!=typeof n?("undefined"!=typeof e&&e.exports&&(n=e.exports=S),n._=S):t._=S,S.VERSION="1.5.2";var N=S.each=S.forEach=function(t,e,n){if(null!=t)if(d&&t.forEach===d)t.forEach(e,n);else if(t.length===+t.length){for(var r=0,o=t.length;o>r;r++)if(e.call(n,t[r],r,t)===i)return}else for(var s=S.keys(t),r=0,o=s.length;o>r;r++)if(e.call(n,t[s[r]],s[r],t)===i)return};S.map=S.collect=function(t,e,n){var r=[];return null==t?r:f&&t.map===f?t.map(e,n):(N(t,function(t,i,o){r.push(e.call(n,t,i,o))}),r)};var k="Reduce of empty array with no initial value";S.reduce=S.foldl=S.inject=function(t,e,n,r){var i=arguments.length>2;if(null==t&&(t=[]),g&&t.reduce===g)return r&&(e=S.bind(e,r)),i?t.reduce(e,n):t.reduce(e);if(N(t,function(t,o,s){i?n=e.call(r,n,t,o,s):(n=t,i=!0)}),!i)throw new TypeError(k);return n},S.reduceRight=S.foldr=function(t,e,n,r){var i=arguments.length>2;if(null==t&&(t=[]),m&&t.reduceRight===m)return r&&(e=S.bind(e,r)),i?t.reduceRight(e,n):t.reduceRight(e);var o=t.length;if(o!==+o){var s=S.keys(t);o=s.length}if(N(t,function(a,c,u){c=s?s[--o]:--o,i?n=e.call(r,n,t[c],c,u):(n=t[c],i=!0)}),!i)throw new TypeError(k);return n},S.find=S.detect=function(t,e,n){var r;return A(t,function(t,i,o){return e.call(n,t,i,o)?(r=t,!0):void 0}),r},S.filter=S.select=function(t,e,n){var r=[];return null==t?r:y&&t.filter===y?t.filter(e,n):(N(t,function(t,i,o){e.call(n,t,i,o)&&r.push(t)}),r)},S.reject=function(t,e,n){return S.filter(t,function(t,r,i){return!e.call(n,t,r,i)},n)},S.every=S.all=function(t,e,n){e||(e=S.identity);var r=!0;return null==t?r:v&&t.every===v?t.every(e,n):(N(t,function(t,o,s){return(r=r&&e.call(n,t,o,s))?void 0:i}),!!r)};var A=S.some=S.any=function(t,e,n){e||(e=S.identity);var r=!1;return null==t?r:b&&t.some===b?t.some(e,n):(N(t,function(t,o,s){return r||(r=e.call(n,t,o,s))?i:void 0}),!!r)};S.contains=S.include=function(t,e){return null==t?!1:w&&t.indexOf===w?-1!=t.indexOf(e):A(t,function(t){return t===e})},S.invoke=function(t,e){var n=u.call(arguments,2),r=S.isFunction(e);return S.map(t,function(t){return(r?e:t[e]).apply(t,n)})},S.pluck=function(t,e){return S.map(t,function(t){return t[e]})},S.where=function(t,e,n){return S.isEmpty(e)?n?void 0:[]:S[n?"find":"filter"](t,function(t){for(var n in e)if(e[n]!==t[n])return!1;return!0})},S.findWhere=function(t,e){return S.where(t,e,!0)},S.max=function(t,e,n){if(!e&&S.isArray(t)&&t[0]===+t[0]&&t.length<65535)return Math.max.apply(Math,t);if(!e&&S.isEmpty(t))return-1/0;var r={computed:-1/0,value:-1/0};return N(t,function(t,i,o){var s=e?e.call(n,t,i,o):t;s>r.computed&&(r={value:t,computed:s})}),r.value},S.min=function(t,e,n){if(!e&&S.isArray(t)&&t[0]===+t[0]&&t.length<65535)return Math.min.apply(Math,t);if(!e&&S.isEmpty(t))return 1/0;var r={computed:1/0,value:1/0};return N(t,function(t,i,o){var s=e?e.call(n,t,i,o):t;s<r.computed&&(r={value:t,computed:s})}),r.value},S.shuffle=function(t){var e,n=0,r=[];return N(t,function(t){e=S.random(n++),r[n-1]=r[e],r[e]=t}),r},S.sample=function(t,e,n){return arguments.length<2||n?t[S.random(t.length-1)]:S.shuffle(t).slice(0,Math.max(0,e))};var E=function(t){return S.isFunction(t)?t:function(e){return e[t]}};S.sortBy=function(t,e,n){var r=E(e);return S.pluck(S.map(t,function(t,e,i){return{value:t,index:e,criteria:r.call(n,t,e,i)}}).sort(function(t,e){var n=t.criteria,r=e.criteria;if(n!==r){if(n>r||void 0===n)return 1;if(r>n||void 0===r)return-1}return t.index-e.index}),"value")};var T=function(t){return function(e,n,r){var i={},o=null==n?S.identity:E(n);return N(e,function(n,s){var a=o.call(r,n,s,e);t(i,a,n)}),i}};S.groupBy=T(function(t,e,n){(S.has(t,e)?t[e]:t[e]=[]).push(n)}),S.indexBy=T(function(t,e,n){t[e]=n}),S.countBy=T(function(t,e){S.has(t,e)?t[e]++:t[e]=1}),S.sortedIndex=function(t,e,n,r){n=null==n?S.identity:E(n);for(var i=n.call(r,e),o=0,s=t.length;s>o;){var a=o+s>>>1;n.call(r,t[a])<i?o=a+1:s=a}return o},S.toArray=function(t){return t?S.isArray(t)?u.call(t):t.length===+t.length?S.map(t,S.identity):S.values(t):[]},S.size=function(t){return null==t?0:t.length===+t.length?t.length:S.keys(t).length},S.first=S.head=S.take=function(t,e,n){return null==t?void 0:null==e||n?t[0]:u.call(t,0,e)},S.initial=function(t,e,n){return u.call(t,0,t.length-(null==e||n?1:e))},S.last=function(t,e,n){return null==t?void 0:null==e||n?t[t.length-1]:u.call(t,Math.max(t.length-e,0))},S.rest=S.tail=S.drop=function(t,e,n){return u.call(t,null==e||n?1:e)},S.compact=function(t){return S.filter(t,S.identity)};var $=function(t,e,n){return e&&S.every(t,S.isArray)?l.apply(n,t):(N(t,function(t){S.isArray(t)||S.isArguments(t)?e?c.apply(n,t):$(t,e,n):n.push(t)}),n)};S.flatten=function(t,e){return $(t,e,[])},S.without=function(t){return S.difference(t,u.call(arguments,1))},S.uniq=S.unique=function(t,e,n,r){S.isFunction(e)&&(r=n,n=e,e=!1);var i=n?S.map(t,n,r):t,o=[],s=[];return N(i,function(n,r){(e?r&&s[s.length-1]===n:S.contains(s,n))||(s.push(n),o.push(t[r]))}),o},S.union=function(){return S.uniq(S.flatten(arguments,!0))},S.intersection=function(t){var e=u.call(arguments,1);return S.filter(S.uniq(t),function(t){return S.every(e,function(e){return S.indexOf(e,t)>=0})})},S.difference=function(t){var e=l.apply(o,u.call(arguments,1));return S.filter(t,function(t){return!S.contains(e,t)})},S.zip=function(){for(var t=S.max(S.pluck(arguments,"length").concat(0)),e=new Array(t),n=0;t>n;n++)e[n]=S.pluck(arguments,""+n);return e},S.object=function(t,e){if(null==t)return{};for(var n={},r=0,i=t.length;i>r;r++)e?n[t[r]]=e[r]:n[t[r][0]]=t[r][1];return n},S.indexOf=function(t,e,n){if(null==t)return-1;var r=0,i=t.length;if(n){if("number"!=typeof n)return r=S.sortedIndex(t,e),t[r]===e?r:-1;r=0>n?Math.max(0,i+n):n}if(w&&t.indexOf===w)return t.indexOf(e,n);for(;i>r;r++)if(t[r]===e)return r;return-1},S.lastIndexOf=function(t,e,n){if(null==t)return-1;var r=null!=n;if(x&&t.lastIndexOf===x)return r?t.lastIndexOf(e,n):t.lastIndexOf(e);for(var i=r?n:t.length;i--;)if(t[i]===e)return i;return-1},S.range=function(t,e,n){arguments.length<=1&&(e=t||0,t=0),n=arguments[2]||1;for(var r=Math.max(Math.ceil((e-t)/n),0),i=0,o=new Array(r);r>i;)o[i++]=t,t+=n;return o};var V=function(){};S.bind=function(t,e){var n,r;if(P&&t.bind===P)return P.apply(t,u.call(arguments,1));if(!S.isFunction(t))throw new TypeError;return n=u.call(arguments,2),r=function(){if(!(this instanceof r))return t.apply(e,n.concat(u.call(arguments)));V.prototype=t.prototype;var i=new V;V.prototype=null;var o=t.apply(i,n.concat(u.call(arguments)));return Object(o)===o?o:i}},S.partial=function(t){var e=u.call(arguments,1);return function(){return t.apply(this,e.concat(u.call(arguments)))}},S.bindAll=function(t){var e=u.call(arguments,1);if(0===e.length)throw new Error("bindAll must be passed function names");return N(e,function(e){t[e]=S.bind(t[e],t)}),t},S.memoize=function(t,e){var n={};return e||(e=S.identity),function(){var r=e.apply(this,arguments);return S.has(n,r)?n[r]:n[r]=t.apply(this,arguments)}},S.delay=function(t,e){var n=u.call(arguments,2);return setTimeout(function(){return t.apply(null,n)},e)},S.defer=function(t){return S.delay.apply(S,[t,1].concat(u.call(arguments,1)))},S.throttle=function(t,e,n){var r,i,o,s=null,a=0;n||(n={});var c=function(){a=n.leading===!1?0:new Date,s=null,o=t.apply(r,i)};return function(){var u=new Date;a||n.leading!==!1||(a=u);var l=e-(u-a);return r=this,i=arguments,0>=l?(clearTimeout(s),s=null,a=u,o=t.apply(r,i)):s||n.trailing===!1||(s=setTimeout(c,l)),o}},S.debounce=function(t,e,n){var r,i,o,s,a;return function(){o=this,i=arguments,s=new Date;var c=function(){var u=new Date-s;e>u?r=setTimeout(c,e-u):(r=null,n||(a=t.apply(o,i)))},u=n&&!r;return r||(r=setTimeout(c,e)),u&&(a=t.apply(o,i)),a}},S.once=function(t){var e,n=!1;return function(){return n?e:(n=!0,e=t.apply(this,arguments),t=null,e)}},S.wrap=function(t,e){return function(){var n=[t];return c.apply(n,arguments),e.apply(this,n)}},S.compose=function(){var t=arguments;return function(){for(var e=arguments,n=t.length-1;n>=0;n--)e=[t[n].apply(this,e)];return e[0]}},S.after=function(t,e){return function(){return--t<1?e.apply(this,arguments):void 0}},S.keys=C||function(t){if(t!==Object(t))throw new TypeError("Invalid object");var e=[];for(var n in t)S.has(t,n)&&e.push(n);return e},S.values=function(t){for(var e=S.keys(t),n=e.length,r=new Array(n),i=0;n>i;i++)r[i]=t[e[i]];return r},S.pairs=function(t){for(var e=S.keys(t),n=e.length,r=new Array(n),i=0;n>i;i++)r[i]=[e[i],t[e[i]]];return r},S.invert=function(t){for(var e={},n=S.keys(t),r=0,i=n.length;i>r;r++)e[t[n[r]]]=n[r];return e},S.functions=S.methods=function(t){var e=[];for(var n in t)S.isFunction(t[n])&&e.push(n);return e.sort()},S.extend=function(t){return N(u.call(arguments,1),function(e){if(e)for(var n in e)t[n]=e[n]}),t},S.pick=function(t){var e={},n=l.apply(o,u.call(arguments,1));return N(n,function(n){n in t&&(e[n]=t[n])}),e},S.omit=function(t){var e={},n=l.apply(o,u.call(arguments,1));for(var r in t)S.contains(n,r)||(e[r]=t[r]);return e},S.defaults=function(t){return N(u.call(arguments,1),function(e){if(e)for(var n in e)void 0===t[n]&&(t[n]=e[n])}),t},S.clone=function(t){return S.isObject(t)?S.isArray(t)?t.slice():S.extend({},t):t},S.tap=function(t,e){return e(t),t};var I=function(t,e,n,r){if(t===e)return 0!==t||1/t==1/e;if(null==t||null==e)return t===e;t instanceof S&&(t=t._wrapped),e instanceof S&&(e=e._wrapped);var i=p.call(t);if(i!=p.call(e))return!1;switch(i){case"[object String]":return t==String(e);case"[object Number]":return t!=+t?e!=+e:0==t?1/t==1/e:t==+e;case"[object Date]":case"[object Boolean]":return+t==+e;case"[object RegExp]":return t.source==e.source&&t.global==e.global&&t.multiline==e.multiline&&t.ignoreCase==e.ignoreCase}if("object"!=typeof t||"object"!=typeof e)return!1;for(var o=n.length;o--;)if(n[o]==t)return r[o]==e;var s=t.constructor,a=e.constructor;if(s!==a&&!(S.isFunction(s)&&s instanceof s&&S.isFunction(a)&&a instanceof a))return!1;n.push(t),r.push(e);var c=0,u=!0;if("[object Array]"==i){if(c=t.length,u=c==e.length)for(;c--&&(u=I(t[c],e[c],n,r)););}else{for(var l in t)if(S.has(t,l)&&(c++,!(u=S.has(e,l)&&I(t[l],e[l],n,r))))break;if(u){for(l in e)if(S.has(e,l)&&!c--)break;u=!c}}return n.pop(),r.pop(),u};S.isEqual=function(t,e){return I(t,e,[],[])},S.isEmpty=function(t){if(null==t)return!0;if(S.isArray(t)||S.isString(t))return 0===t.length;for(var e in t)if(S.has(t,e))return!1;return!0},S.isElement=function(t){return!(!t||1!==t.nodeType)},S.isArray=_||function(t){return"[object Array]"==p.call(t)},S.isObject=function(t){return t===Object(t)},N(["Arguments","Function","String","Number","Date","RegExp"],function(t){S["is"+t]=function(e){return p.call(e)=="[object "+t+"]"}}),S.isArguments(arguments)||(S.isArguments=function(t){return!(!t||!S.has(t,"callee"))}),"function"!=typeof/./&&(S.isFunction=function(t){return"function"==typeof t}),S.isFinite=function(t){return isFinite(t)&&!isNaN(parseFloat(t))},S.isNaN=function(t){return S.isNumber(t)&&t!=+t},S.isBoolean=function(t){return t===!0||t===!1||"[object Boolean]"==p.call(t)},S.isNull=function(t){return null===t},S.isUndefined=function(t){return void 0===t},S.has=function(t,e){return h.call(t,e)},S.noConflict=function(){return t._=r,this},S.identity=function(t){return t},S.times=function(t,e,n){for(var r=Array(Math.max(0,t)),i=0;t>i;i++)r[i]=e.call(n,i);return r},S.random=function(t,e){return null==e&&(e=t,t=0),t+Math.floor(Math.random()*(e-t+1))};var O={escape:{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#x27;"}};O.unescape=S.invert(O.escape);var j={escape:new RegExp("["+S.keys(O.escape).join("")+"]","g"),unescape:new RegExp("("+S.keys(O.unescape).join("|")+")","g")};S.each(["escape","unescape"],function(t){S[t]=function(e){return null==e?"":(""+e).replace(j[t],function(e){return O[t][e]})}}),S.result=function(t,e){if(null==t)return void 0;var n=t[e];return S.isFunction(n)?n.call(t):n},S.mixin=function(t){N(S.functions(t),function(e){var n=S[e]=t[e];S.prototype[e]=function(){var t=[this._wrapped];return c.apply(t,arguments),F.call(this,n.apply(S,t))}})};var L=0;S.uniqueId=function(t){var e=++L+"";return t?t+e:e},S.templateSettings={evaluate:/<%([\s\S]+?)%>/g,interpolate:/<%=([\s\S]+?)%>/g,escape:/<%-([\s\S]+?)%>/g};var R=/(.)^/,q={"'":"'","\\":"\\","\r":"r","\n":"n","	":"t","\u2028":"u2028","\u2029":"u2029"},M=/\\|'|\r|\n|\t|\u2028|\u2029/g;S.template=function(t,e,n){var r;n=S.defaults({},n,S.templateSettings);var i=new RegExp([(n.escape||R).source,(n.interpolate||R).source,(n.evaluate||R).source].join("|")+"|$","g"),o=0,s="__p+='";t.replace(i,function(e,n,r,i,a){return s+=t.slice(o,a).replace(M,function(t){return"\\"+q[t]}),n&&(s+="'+\n((__t=("+n+"))==null?'':_.escape(__t))+\n'"),r&&(s+="'+\n((__t=("+r+"))==null?'':__t)+\n'"),i&&(s+="';\n"+i+"\n__p+='"),o=a+e.length,e}),s+="';\n",n.variable||(s="with(obj||{}){\n"+s+"}\n"),s="var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};\n"+s+"return __p;\n";try{r=new Function(n.variable||"obj","_",s)}catch(a){throw a.source=s,a}if(e)return r(e,S);var c=function(t){return r.call(this,t,S)};return c.source="function("+(n.variable||"obj")+"){\n"+s+"}",c},S.chain=function(t){return S(t).chain()};var F=function(t){return this._chain?S(t).chain():t};S.mixin(S),N(["pop","push","reverse","shift","sort","splice","unshift"],function(t){var e=o[t];S.prototype[t]=function(){var n=this._wrapped;return e.apply(n,arguments),"shift"!=t&&"splice"!=t||0!==n.length||delete n[0],F.call(this,n)}}),N(["concat","join","slice"],function(t){var e=o[t];S.prototype[t]=function(){return F.call(this,e.apply(this._wrapped,arguments))}}),S.extend(S.prototype,{chain:function(){return this._chain=!0,this},value:function(){return this._wrapped}})}).call(this)},{}],145:[function(t,e){"use strict";var n=t("substance-application"),r=t("./lens_controller"),i=t("lens-converter"),o=[{route:":context/:node/:resource/:fullscreen",name:"document-resource",command:"openReader"},{route:":context/:node/:resource",name:"document-resource",command:"openReader"},{route:":context/:node/:resource",name:"document-resource",command:"openReader"},{route:":context/:node",name:"document-node",command:"openReader"},{route:":context",name:"document-context",command:"openReader"},{route:"url/:url",name:"document-context",command:"openReader"},{route:"",name:"document",command:"openReader"}],s=function(e){e=e||{},e.routes=o,n.call(this,e);var a=t("./panel_specification"),c=new s.Reader.PanelFactory(a);e.panelFactory=c,e.converter=new i.Importer,this.controller=new r(e)};s.Article=t("lens-article"),s.Reader={Controller:t("./reader_controller"),View:t("./reader_view"),PanelFactory:t("./panel_factory")},s.Outline=t("lens-outline"),s.Prototype=function(){this.render=function(){this.view=this.controller.createView(),this.$el.html(this.view.render().el)}},s.Prototype.prototype=n.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s;var a={util:t("substance-util"),Application:t("substance-application"),Document:t("substance-document"),Operator:t("substance-operator"),Chronicle:t("substance-chronicle"),Data:t("substance-data"),Surface:t("substance-surface")};s.Substance=a,e.exports=s},{"./lens_controller":146,"./panel_factory":148,"./panel_specification":149,"./reader_controller":150,"./reader_view":151,"lens-article":4,"lens-converter":53,"lens-outline":60,"substance-application":62,"substance-chronicle":152,"substance-data":68,"substance-document":73,"substance-operator":152,"substance-surface":135,"substance-util":139}],146:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=t("substance-application").Controller,o=t("./lens_view"),s=t("./reader_controller"),a=t("lens-article"),c=function(t){i.call(this),this.config=t,this.converter=t.converter,this.on("open:reader",this.openReader)},u={TRIM_WHITESPACES:!0,REMOVE_INNER_WS:!0};c.Prototype=function(){this.createView=function(){var t=new o(this);return this.view=t,t},this.importXML=function(t){var e=this.converter.import(t,u);this.createReader(e,{context:"toc"})},this.updatePath=function(t){var e=[];e.push(t.context),e.push(t.node?t.node:"all"),t.resource&&e.push(t.resource),t.fullscreen&&e.push("fullscreen"),window.app.router.navigate(e.join("/"),{trigger:!1,replace:!1})},this.createReader=function(t,e){var n=this;this.reader=new s(t,e,this.config),this.reader.on("state-changed",function(){n.updatePath(n.reader.state)}),this.modifyState({context:"reader"})},this.openReader=function(t,e,n,r){var i=this,o={context:t||"toc",node:e,resource:n,fullscreen:!!r};if(this.reader)this.reader.modifyState(o),o.resource&&this.reader.view.jumpToResource(o.resource);else if("lens_article.xml"===this.config.document_url){var s=a.describe();i.createReader(s,o)}else this.trigger("loading:started","Loading article"),$.get(this.config.document_url).done(function(t){var e,n=$.isXMLDoc(t);n?e=i.converter.import(t,u):("string"==typeof t&&(t=$.parseJSON(t)),e=a.fromSnapshot(t)),"toc"===o.context&&e.getHeadings().length<=2&&(o.context="info"),i.createReader(e,o)}).fail(function(t){i.view.startLoading("Error during loading. Please try again."),console.error(t)})},this.getActiveControllers=function(){var t=[["lens",this]];return t.push(["reader",this.reader]),t}},c.Prototype.prototype=i.prototype,c.prototype=new c.Prototype,n.extend(c.prototype,r.Events),e.exports=c},{"./lens_view":147,"./reader_controller":150,"lens-article":4,"substance-application":62,"substance-util":139,underscore:144}],147:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-application").View,i=t("substance-application").$$,o=function(t){r.call(this),this.controller=t,this.$el.attr({id:"container"}),this.listenTo(this.controller,"state-changed",this.onStateChanged),this.listenTo(this.controller,"loading:started",this.startLoading),$(document).on("dragover",function(){return!1}),$(document).on("ondragend",function(){return!1}),$(document).on("drop",this.handleDroppedFile.bind(this))};o.Prototype=function(){this.handleDroppedFile=function(){var t=this.controller,e=event.dataTransfer.files,n=e[0],r=new FileReader;return r.onload=function(e){t.importXML(e.target.result)},r.readAsText(n),!1},this.onStateChanged=function(){var t=this.controller.state;"reader"===t.context?this.openReader():console.log("Unknown application state: "+t)},this.startLoading=function(t){t||(t="Loading article"),$(".spinner-wrapper .message").html(t),$("body").addClass("loading")},this.stopLoading=function(){$("body").removeClass("loading")},this.openReader=function(){var t=this.controller.reader.createView(),e=this;e.replaceMainView("reader",t),e.startLoading("Typesetting"),this.$("#main").css({opacity:0}),n.delay(function(){e.stopLoading(),e.$("#main").css({opacity:1})},1e3)},this.replaceMainView=function(t,e){$("body").removeClass().addClass("current-view "+t),this.mainView&&this.mainView!==e&&this.mainView.dispose(),this.mainView=e,this.$("#main").html(e.render().el)},this.render=function(){return this.el.innerHTML="",this.el.appendChild(i(".browser-not-supported",{text:"Sorry, your browser is not supported.",style:"display: none;"})),this.el.appendChild(i(".spinner-wrapper",{children:[i(".spinner"),i(".message",{html:"Loading article"})]})),this.el.appendChild(i("#main")),this},this.dispose=function(){this.stopListening(),this.mainView&&this.mainView.dispose()}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,e.exports=o},{"substance-application":62,underscore:144}],148:[function(t,e){function n(t){this.panelSpecs={},r.each(t,function(t,e){this.addPanel(e,t)},this)}var r=t("underscore"),i=t("substance-document"),o=t("substance-surface"),s=t("substance-toc");n.Prototype=function(){var t=function(t,e){var n=e.get(t);return!!n&&0!==n.nodes.length};this.addPanel=function(e,n){n.name=e,n.shouldBeVisible=n.shouldBeVisible||t,this.panelSpecs[n.name]=n},this.getSpec=function(t){return this.panelSpecs[t]},this.getNames=function(){return Object.keys(this.panelSpecs)},this.createPanelController=function(t,e){return new i.Controller(t,{view:e})},this.createPanelView=function(t,e){var n,r,i=this.getSpec(t),a=e.__document;if(i.createRenderer)n=i.createRenderer(t,e);else{var c=a.constructor.Renderer;n=new c(e)}return r="toc"===t?new s(a):new o(e,{editable:!1,renderer:n}),r.$el.addClass("resource-view"),r}},n.prototype=new n.Prototype,e.exports=n},{"substance-document":73,"substance-surface":135,"substance-toc":137,underscore:144}],149:[function(t,e){var n=t("substance-application").$$,r=t("lens-article"),i=function(t,e){var r=e.node;if("info"!==t.view||"contributor"===r.type||"collaborator"===r.type){var i=[n("a.name",{href:"#",text:r.header,"sbs-click":"toggleResource("+r.id+")"})],o=r.constructor.config;o&&o.zoomable&&i.push(n("a.toggle-fullscreen",{href:"#",html:'<i class="icon-resize-full"></i><i class="icon-resize-small"></i>',"sbs-click":"toggleFullscreen("+r.id+")"})),i.push(n("a.toggle-res",{href:"#","sbs-click":"toggleResource("+r.id+")",html:'<i class="icon-eye-open"></i><i class="icon-eye-close"></i>'}));var s=n(".resource-header",{children:i});e.el.insertBefore(s,e.content)}},o=function(t,e){return new r.Renderer(e,{afterRender:i})},s={content:{type:"content",label:"Text",title:"Content",icon:"icon-align-left",createRenderer:function(t,e){return new r.Renderer(e)}},toc:{type:"toc",label:"Content",title:"Content",icon:"icon-align-left",shouldBeVisible:function(){return!0}},figures:{type:"resource",label:"Figures",title:"Figures",icon:"icon-picture",references:["figure_reference"],createRenderer:o},citations:{type:"resource",label:"References",title:"References",icon:"icon-link",references:["citation_reference"],createRenderer:o},definitions:{type:"resource",label:"Glossary",title:"Glossary",icon:"icon-book",references:["definition_reference"],createRenderer:o},info:{type:"resource",label:"Info",title:"Article Info",icon:"icon-info-sign",references:["contributor_reference"],createRenderer:o}};e.exports=s},{"lens-article":4,"substance-application":62}],150:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-application").Controller,i=t("./reader_view"),o=t("./panel_factory"),s=function(t,e,r){this.__document=t,this.options=r||{},this.panelFactory=r.panelFactory||new o,this.panelCtrls={},this.contentCtrl=this.panelFactory.createPanelController(t,"content"),n.each(this.panelFactory.getNames(),function(e){"content"!==e&&"toc"!==e&&(this.panelCtrls[e]=this.panelFactory.createPanelController(t,e))},this),this.state=e,this.currentContext="toc"};s.Prototype=function(){this.createView=function(){return this.view||(this.view=new i(this)),this.view},this.switchContext=function(t){this.currentContext=t,this.modifyState({context:t,node:null,resource:null})},this.modifyState=function(t){r.prototype.modifyState.call(this,t)},this.getActiveControllers=function(){var t=[];return t.push(["article",this]),t.push(["reader",this.panelCtrls[this.context]]),t}},s.Prototype.prototype=r.prototype,s.prototype=new s.Prototype,e.exports=s},{"./panel_factory":148,"./reader_view":151,"substance-application":62,underscore:144}],151:[function(t,e){"use strict";var n=t("underscore"),r=t("lens-outline"),i=t("substance-application").View,o=t("substance-data"),s=o.Graph.Index,a=t("substance-application").$$,c=0,u=function(t){var e=document.createDocumentFragment(),r=a(".document");r.appendChild(t.contentView.render().el);var i=[],o=t.panelFactory;n.each(o.getNames(),function(e){if("content"!==e&&t.panelViews[e]){var n=o.getSpec(e);if("toc"===e&&t.doc.getHeadings().length<=2)return;
-i.push(a("a.context-toggle."+e,{href:"#","sbs-click":"switchContext("+e+")",title:n.title,html:'<i class="'+n.icon+'"></i><span> '+n.label+'</span><div class="label">'+n.label+"</div>"}))}});var s=a(".context-toggles",{children:i}),c=a(".medial-strip"),u=t.readerCtrl.options.collection;u&&c.appendChild(a("a.back-nav",{href:u.url,title:"Go back",html:'<i class=" icon-chevron-up"></i>'})),c.appendChild(a(".separator-line")),c.appendChild(s),e.appendChild(c);var l=a(".resources");return n.each(o.getNames(),function(e){"content"!==e&&t.panelViews[e]&&l.appendChild(t.panelViews[e].render().el)}),e.appendChild(r),e.appendChild(l),e},l=function(t){i.call(this),this.readerCtrl=t,this.panelFactory=t.panelFactory;var e=this.readerCtrl.contentCtrl.__document;this.doc=e,this.$el.addClass("article"),this.$el.addClass(e.schema.id),this.bodyScroll={};var o=t.panelFactory;this.contentView=o.createPanelView("content",t.contentCtrl),this.panelViews={},n.each(o.getNames(),function(n){if("content"!==n){var r=o.getSpec(n);if(r.shouldBeVisible(n,e)){var i;"toc"===n?i=o.createPanelView("toc",t.contentCtrl):t.panelCtrls[n]&&(i=o.createPanelView(n,t.panelCtrls[n])),i&&(this.panelViews[n]=i)}}},this),this.tocView=this.panelViews.toc,this.listenTo(this.readerCtrl,"state-changed",this.updateState),this.resources=new s(this.readerCtrl.__document,{types:["resource_reference"],property:"target"}),this.outline=new r(this.contentView),this.resourcesOutline=new r(this.figuresView),this.contentView.$el.on("scroll",n.bind(this.onContentScroll,this)),n.each(this.panelFactory.getNames(),function(t){if(this.panelViews[t]){var e=this.panelFactory.getSpec(t),r=this.panelViews[t];r.$el.on("scroll",n.bind(this.onResourceContentScroll,this)),n.each(e.references,function(t){this.$el.on("click",".annotation."+t,n.bind(this.toggleResourceReference,this,e.name))},this)}},this),this.$el.on("click",".annotation.cross_reference",n.bind(this.followCrossReference,this)),this.$el.on("click",".document .content-node.heading .top",n.bind(this.gotoTop,this)),this.outline.$el.on("click",".node",n.bind(this._jumpToNode,this))};l.Prototype=function(){this.setAnchor=function(t){this.toggleNode("toc",$(t.currentTarget).attr("id"))},this.gotoTop=function(){return this.jumpToNode("cover"),$(document).scrollTop(0),!1},this.toggleFullscreen=function(t){var e=this.readerCtrl.state;this.readerCtrl.modifyState({resource:t,fullscreen:!e.fullscreen})},this._jumpToNode=function(t){var e=$(t.currentTarget).attr("id").replace("outline_","");return this.jumpToNode(e),!1},this.toggleResourceReference=function(t,e){var n=this.readerCtrl.state,r=$(e.currentTarget).attr("id"),i=this.readerCtrl.__document.get(r),o=this.readerCtrl.contentCtrl.container.getRoot(i.path[0]),s=i.target;s===n.resource?this.readerCtrl.modifyState({context:this.readerCtrl.currentContext,node:null,resource:null}):(this.saveScroll(),this.readerCtrl.modifyState({context:t,node:o,resource:s}),this.jumpToResource(s)),e.preventDefault()},this.followCrossReference=function(t){var e=$(t.currentTarget).attr("id"),n=this.readerCtrl.__document.get(e);this.jumpToNode(n.target)},this.onContentScroll=function(){var t=this.contentView.$el.scrollTop();this.outline.updateVisibleArea(t),this.markActiveHeading(t)},this.onResourceContentScroll=function(){if(this.resourcesOutline.surface){var t=this.resourcesOutline.surface.$el.scrollTop();this.resourcesOutline.updateVisibleArea(t)}},this.markActiveHeading=function(t){var e=$(".nodes").height(),r=this.doc.getHeadings();if(0!==r.length){var i=n.first(r).id;this.contentView.$(".content-node.heading").each(function(){t>=$(this).position().top+c&&(i=this.id)}),t+this.contentView.$el.height()>=e&&(i=n.last(r).id),this.tocView.setActiveNode(i)}},this.toggleResource=function(t){var e=this.readerCtrl.state,n=e.node;e.resource===t&&(t=null,n=null),this.readerCtrl.modifyState({fullscreen:!1,resource:t,node:n})},this.jumpToNode=function(t){var e=$("#"+t);if(e.length>0){var n=e.position().top+c;this.contentView.$el.scrollTop(n)}},this.jumpToResource=function(t){var e=$("#"+t);if(e.length>0){var n=e.position().top,r=this.panelViews[this.readerCtrl.state.context];r&&r.$el.scrollTop(n),$(document).scrollTop(n)}},this.toggleNode=function(t,e){var n=this.readerCtrl.state;this.readerCtrl.modifyState(n.node===e&&n.context===t?{context:this.readerCtrl.currentContext,node:null,resource:null}:{context:t,node:e,resource:null})},this.getScroll=function(){return $(document).scrollTop()},this.recoverScroll=function(){var t=this.bodyScroll[this.readerCtrl.state.context];t&&$(document).scrollTop(t)},this.saveScroll=function(){this.bodyScroll[this.readerCtrl.state.context]=this.getScroll()},this.switchContext=function(t){this.saveScroll(),this.readerCtrl.switchContext(t),this.recoverScroll()},this.updateState=function(t){t=t||{};var e=this.readerCtrl.state;this.$el.removeClass("toc figures citations info definitions"),this.contentView.$(".content-node.active").removeClass("active"),this.$el.addClass(e.context),e.node&&this.contentView.$("#"+e.node).addClass("active"),this.updateResource()},this.updateResource=function(){var t=this.readerCtrl.state;if(this.$(".resources .content-node.active").removeClass("active fullscreen"),this.contentView.$(".annotation.active").removeClass("active"),t.resource){var e=this.$("#"+t.resource);e.addClass("active"),t.fullscreen&&e.addClass("fullscreen");var r=this.resources.get(t.resource);n.each(r,function(t){this.contentView.$("#"+t.id).addClass("active")},this)}else this.recoverScroll();this.updateOutline()},this.isMobile=function(){},this.updateOutline=function(){var t=this,e=this.readerCtrl.state,n=this.getResourceReferenceContainers();return t.outline.update({context:e.context,selectedNode:e.node,highlightedNodes:n}),"toc"===e.context?void $(t.resourcesOutline.el).addClass("hidden"):(t.resourcesOutline.surface=this.panelViews[e.context]?this.panelViews[e.context]:this.panelViews.info,$(t.resourcesOutline.el).removeClass("hidden"),void t.resourcesOutline.update({context:e.context,selectedNode:e.node,highlightedNodes:[e.resource]}))},this.getResourceReferenceContainers=function(){var t=this.readerCtrl.state;if(!t.resource)return[];var e=this.resources.get(t.resource),r=this.readerCtrl.contentCtrl.container,i=n.uniq(n.map(e,function(t){var e=r.getRoot(t.path[0]);return e}));return i},this.render=function(){var t=this,e=this.readerCtrl.state;this.el.appendChild(new u(this)),this.$(".document").append(t.outline.el),this.$(".resources").append(t.resourcesOutline.el),n.delay(function(){t.updateState(),window.MathJax.Hub.Queue(["Typeset",window.MathJax.Hub])},1),n.delay(function(){t.updateOutline()},2e3);var r=n.debounce(function(){t.updateOutline()},1);return e.node&&n.delay(function(){t.jumpToNode(e.node),e.resource&&t.jumpToResource(e.resource)},100),$(window).resize(r),this},this.dispose=function(){this.contentView.dispose(),this.figuresView&&this.figuresView.dispose(),this.citationsView&&this.citationsView.dispose(),this.infoView&&this.infoView.dispose(),this.resources.dispose(),this.stopListening()}},l.Prototype.prototype=i.prototype,l.prototype=new l.Prototype,l.prototype.constructor=l,e.exports=l},{"lens-outline":60,"substance-application":62,"substance-data":68,underscore:144}],152:[function(){},{}]},{},[1]);
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+window.Lens = require("./src/app");
+
+},{"./src/app":176}],2:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Document = require("substance-document");
+
+// Lens.Article
+// -----------------
+
+var Article = function(options) {
+  options = Article.prepareOptions(options);
+
+  Document.call(this, options);
+
+  // Index for easy mapping from NLM sourceIds to generated nodeIds
+  // Needed for resolving figrefs / citationrefs etc.
+  this.bySourceId = this.addIndex("by_source_id", {
+    property: "source_id"
+  });
+
+  this.nodeTypes = options.nodeTypes;
+
+  // Seed the doc
+  // --------
+
+  if (options.seed === undefined) {
+    this.create({
+      id: "document",
+      type: "document",
+      guid: options.id, // external global document id
+      creator: options.creator,
+      created_at: options.created_at,
+      views: Article.views, // is views really needed on the instance level
+      title: "",
+      abstract: "",
+      authors: []
+    });
+
+    // Create views on the doc
+    _.each(Article.views, function(view) {
+      this.create({
+        id: view,
+        "type": "view",
+        nodes: []
+      });
+    }, this);
+  }
+};
+
+Article.Prototype = function() {
+
+  this.fromSnapshot = function(data, options) {
+    return Article.fromSnapshot(data, options);
+  };
+
+  // For a given NLM source id, returns the corresponding node in the document graph
+  // --------
+
+  this.getNodeBySourceId = function(sourceId) {
+    var nodes = this.bySourceId.get(sourceId);
+    var nodeId = Object.keys(nodes)[0];
+    var node = nodes[nodeId];
+    return node;
+  };
+
+  // Get all headings of the content view
+  // --------
+
+  this.getHeadings = function() {
+    var headings = _.filter(this.get('content').getNodes(), function(node) {
+      return node.type === "heading";
+    });
+    return headings;
+  };
+
+  this.getTocNodes = function() {
+    var nodes = _.filter(this.get('content').getNodes(), function(node) {
+      return node.includeInToc();
+    });
+    return nodes;
+  };
+
+};
+
+Article.prepareOptions = function(options) {
+  // prepare configuration for
+  options = options || {};
+  options.nodeTypes = _.extend(Article.nodeTypes, options.nodeTypes);
+  options.schema = Article.getSchema(options.nodeTypes);
+  return options;
+};
+
+Article.getSchema = function(nodeTypes) {
+  var schema = util.deepclone(Document.schema);
+  schema.id = "lens-article";
+  schema.version = "0.3.0";
+  _.each(nodeTypes, function(nodeSpec, key) {
+    schema.types[key] = nodeSpec.Model.type;
+  });
+  return schema;
+};
+
+// Factory method
+// --------
+//
+// TODO: Ensure the snapshot doesn't get chronicled
+
+Article.fromSnapshot = function(data, options) {
+  options = options || {};
+  options.seed = data;
+  return new Article(options);
+};
+
+
+// Define available views
+// --------
+
+Article.views = ["content", "figures", "citations", "definitions", "info"];
+
+// Register node types
+// --------
+
+Article.nodeTypes = require("./nodes");
+
+Article.ViewFactory = require('./view_factory');
+
+// HACK: ResourceView is only used as a mixin for resource view implementations
+// There is no specific model for it, thus can not be registered in nodeTypes
+Article.ResourceView = require('./resource_view');
+
+// From article definitions generate a nice reference document
+// --------
+//
+
+var ARTICLE_DOC_SEED = {
+  "id": "lens_article",
+  "nodes": {
+    "document": {
+      "type": "document",
+      "id": "document",
+      "views": [
+        "content"
+      ],
+      "title": "The Anatomy of a Lens Article",
+      "authors": ["contributor_1", "contributor_2", "contributor_3"],
+      "guid": "lens_article"
+    },
+
+
+    "content": {
+      "type": "view",
+      "id": "content",
+      "nodes": [
+        "cover",
+      ]
+    },
+
+    "cover": {
+      "id": "cover",
+      "type": "cover"
+    },
+
+    "contributor_1": {
+      "id": "contributor_1",
+      "type": "contributor",
+      "name": "Michael Aufreiter"
+    },
+
+    "contributor_2": {
+      "id": "contributor_2",
+      "type": "contributor",
+      "name": "Ivan Grubisic"
+    },
+
+    "contributor_3": {
+      "id": "contributor_3",
+      "type": "contributor",
+      "name": "Rebecca Close"
+    }
+  }
+};
+
+Article.describe = function() {
+  var doc = new Article({seed: ARTICLE_DOC_SEED});
+
+  var id = 0;
+
+  _.each(Article.nodeTypes, function(nodeType) {
+    nodeType = nodeType.Model;
+
+    // Create a heading for each node type
+    var headingId = "heading_"+nodeType.type.id;
+
+    doc.create({
+      id: headingId,
+      type: "heading",
+      content: nodeType.description.name,
+      level: 1
+    });
+
+    // Turn remarks and description into an introduction paragraph
+    var introText = nodeType.description.remarks.join(' ');
+    var introId = "text_"+nodeType.type.id+"_intro";
+
+    doc.create({
+      id: introId,
+      type: "text",
+      content: introText,
+    });
+
+
+    // Show it in the content view
+    doc.show("content", [headingId, introId], -1);
+
+    // Include property description
+    // --------
+    //
+
+    doc.create({
+      id: headingId+"_properties",
+      type: "text",
+      content: nodeType.description.name+ " uses the following properties:"
+    });
+
+    doc.show("content", [headingId+"_properties"], -1);
+
+    var items = [];
+
+    _.each(nodeType.description.properties, function(propertyDescr, key) {
+
+      var listItemId = "text_" + (++id);
+      doc.create({
+        id: listItemId,
+        type: "text",
+        content: key +": " + propertyDescr
+      });
+
+      // Create code annotation for the propertyName
+      doc.create({
+        "id": id+"_annotation",
+        "type": "code",
+        "path": [listItemId, "content"],
+        "range":[0, key.length]
+      });
+
+      items.push(listItemId);
+    });
+
+    // Create list
+    doc.create({
+      id: headingId+"_property_list",
+      type: "list",
+      items: items,
+      ordered: false
+    });
+
+    // And show it
+    doc.show("content", [headingId+"_property_list"], -1);
+
+    // Include example
+    // --------
+    //
+
+    doc.create({
+      id: headingId+"_example",
+      type: "text",
+      content: "Here's an example:"
+    });
+
+    doc.create({
+      id: headingId+"_example_codeblock",
+      type: "codeblock",
+      content: JSON.stringify(nodeType.example, null, '  '),
+    });
+
+    doc.show("content", [headingId+"_example", headingId+"_example_codeblock"], -1);
+  });
+
+  return doc;
+};
+
+
+Article.Prototype.prototype = Document.prototype;
+Article.prototype = new Article.Prototype();
+Article.prototype.constructor = Article;
+
+
+// Add convenience accessors for builtin document attributes
+Object.defineProperties(Article.prototype, {
+  id: {
+    get: function () {
+      return this.get("document").guid;
+    },
+    set: function(id) {
+      this.get("document").guid = id;
+    }
+  },
+  creator: {
+    get: function () {
+      return this.get("document").creator;
+    },
+    set: function(creator) {
+      this.get("document").creator = creator;
+    }
+  },
+  created_at: {
+    get: function () {
+      return this.get("document").created_at;
+    },
+    set: function(created_at) {
+      this.get("document").created_at = created_at;
+    }
+  },
+  title: {
+    get: function () {
+
+      return this.get("document").title;
+    },
+    set: function(title) {
+      this.get("document").title = title;
+    }
+  },
+  abstract: {
+    get: function () {
+      return this.get("document").abstract;
+    },
+    set: function(abstract) {
+      this.get("document").abstract = abstract;
+    }
+  },
+  on_behalf_of: {
+    get: function () {
+      return this.get("document").on_behalf_of;
+    },
+    set: function(on_behalf_of) {
+      this.get("document").on_behalf_of = on_behalf_of;
+    }
+  },
+  authors: {
+    get: function () {
+      var docNode = this.get("document");
+      if (docNode.authors) {
+        return _.map(docNode.authors, function(contributorId) {
+          return this.get(contributorId);
+        }, this);
+      } else {
+        return "";
+      }
+    },
+    set: function(val) {
+      var docNode = this.get("document");
+      docNode.authors = _.clone(val);
+    }
+  },
+  views: {
+    get: function () {
+      // Note: returing a copy to avoid inadvertent changes
+      return this.get("document").views.slice(0);
+    }
+  },
+});
+
+module.exports = Article;
+
+},{"./nodes":73,"./resource_view":117,"./view_factory":118,"substance-document":160,"substance-util":167,"underscore":175}],3:[function(require,module,exports){
+var MONTH_MAPPING = {
+  "1": "January",
+  "2": "February",
+  "3": "March",
+  "4": "April",
+  "5": "May",
+  "6": "June",
+  "7": "July",
+  "8": "August",
+  "9": "September",
+  "10": "October",
+  "11": "November",
+  "12": "December"
+};
+
+var util = {};
+
+util.formatDate = function (pubDate) {
+  var parts = pubDate.split("-");
+  if (parts.length >= 3) {
+    // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+    // Note: months are 0-based
+    var localDate = new Date(parts[0], parts[1]-1, parts[2]);
+    return localDate.toUTCString().slice(0, 16);
+  } else if (parts.length === 2) {
+    var month = parts[1].replace(/^0/, "");
+    var year = parts[0];
+    return MONTH_MAPPING[month]+" "+year;
+  } else {
+    return year;
+  }
+};
+
+module.exports = util;
+
+},{}],4:[function(require,module,exports){
+"use strict";
+
+var Article = require("./article");
+
+module.exports = Article;
+},{"./article":2}],5:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var Affiliation = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+Affiliation.type = {
+  "id": "affiliation",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "city": "string",
+    "country": "string",
+    "department": "string",
+    "institution": "string",
+    "label": "string"
+  }
+};
+
+
+Affiliation.description = {
+  "name": "Affiliation",
+  "description": "Person affiliation",
+  "remarks": [
+    "Name of a institution or organization, such as a university or corporation, that is the affiliation for a contributor such as an author or an editor."
+  ],
+  "properties": {
+    "institution": "Name of institution",
+    "department": "Department name",
+    "country": "Country where institution is located",
+    "city": "City of institution",
+    "label": "Affilation label. Usually a number counting up"
+  }
+};
+
+
+Affiliation.example = {
+  "id": "affiliation_1",
+  "source_id": "aff1",
+  "city": "Jena",
+  "country": "Germany",
+  "department": "Department of Molecular Ecology",
+  "institution": "Max Planck Institute for Chemical Ecology",
+  "label": "1",
+  "type": "affiliation"
+};
+
+Affiliation.Prototype = function() {};
+
+Affiliation.Prototype.prototype = Document.Node.prototype;
+Affiliation.prototype = new Affiliation.Prototype();
+Affiliation.prototype.constructor = Affiliation;
+
+Document.Node.defineProperties(Affiliation);
+
+module.exports = Affiliation;
+
+},{"substance-document":160}],6:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./affiliation')
+};
+
+},{"./affiliation":5}],7:[function(require,module,exports){
+
+var Document = require('substance-document');
+
+var Annotation = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+Annotation.type = {
+  id: 'annotation',
+  properties: {
+    path: ["array", "string"], // -> e.g. ["text_1", "content"]
+    range: ['array', 'number']
+  }
+};
+
+Annotation.Prototype = function() {
+  this.getLevel = function() {
+    return this.constructor.fragmentation;
+  };
+};
+
+Annotation.Prototype.prototype = Document.Node.prototype;
+Annotation.prototype = new Annotation.Prototype();
+Annotation.prototype.constructor = Annotation;
+
+Annotation.NEVER = 1;
+Annotation.OK = 2;
+Annotation.DONT_CARE = 3;
+
+// This is used to control fragmentation where annotations overlap.
+Annotation.fragmentation = Annotation.DONT_CARE;
+
+Document.Node.defineProperties(Annotation);
+
+module.exports = Annotation;
+
+},{"substance-document":160}],8:[function(require,module,exports){
+"use strict";
+
+var AnnotationView = function(node, viewFactory) {
+  this.node = node;
+  this.viewFactory = viewFactory;
+  this.el = this.createElement();
+  this.el.dataset.id = node.id;
+  this.$el = $(this.el);
+  this.setClasses();
+};
+
+AnnotationView.Prototype = function() {
+
+  this.createElement = function() {
+    return document.createElement('span');
+  };
+
+  this.setClasses = function() {
+    this.$el.addClass('annotation').addClass(this.node.type);
+  };
+
+  this.render = function() {
+    return this;
+  };
+
+};
+AnnotationView.prototype = new AnnotationView.Prototype();
+
+module.exports = AnnotationView;
+
+},{}],9:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./annotation.js'),
+  View: require('./annotation_view.js')
+};
+
+},{"./annotation.js":7,"./annotation_view.js":8}],10:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var AuthorCallout = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+AuthorCallout.type = {
+  id: "emphasis",
+  parent: "annotation",
+  properties: {
+    "style": "string"
+  }
+};
+
+AuthorCallout.Prototype = function() {};
+AuthorCallout.Prototype.prototype = Annotation.prototype;
+AuthorCallout.prototype = new AuthorCallout.Prototype();
+AuthorCallout.prototype.constructor = AuthorCallout;
+
+AuthorCallout.fragmentation = Annotation.DONT_CARE;
+
+Document.Node.defineProperties(AuthorCallout);
+
+module.exports = AuthorCallout;
+
+},{"../annotation/annotation":7,"substance-document":160}],11:[function(require,module,exports){
+var AnnotationView = require('../annotation').View;
+
+var AuthorCalloutView = function(node) {
+  AnnotationView.call(this, node);
+};
+
+AuthorCalloutView.Prototype = function() {
+
+  this.setClasses = function() {
+    AnnotationView.prototype.setClasses.call(this);
+    this.$el.addClass(this.node.style);
+  };
+
+};
+AuthorCalloutView.Prototype.prototype = AnnotationView.prototype;
+AuthorCalloutView.prototype = new AuthorCalloutView.Prototype();
+
+module.exports = AuthorCalloutView;
+
+},{"../annotation":9}],12:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./author_callout.js'),
+  View: require('./author_callout_view.js')
+};
+
+},{"./author_callout.js":10,"./author_callout_view.js":11}],13:[function(require,module,exports){
+"use strict";
+
+var Document = require('substance-document');
+var Composite = Document.Composite;
+
+// Lens.Box
+// -----------------
+//
+
+var Box = function(node, doc) {
+  Composite.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Box.type = {
+  "id": "box",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "children": ["array", "paragraph"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Box.description = {
+  "name": "Box",
+  "remarks": [
+    "A box type.",
+  ],
+  "properties": {
+    "label": "string",
+    "children": "0..n Paragraph nodes",
+  }
+};
+
+
+// Example Box
+// -----------------
+//
+
+Box.example = {
+  "id": "box_1",
+  "type": "box",
+  "label": "Box 1",
+  "children": ["paragraph_1", "paragraph_2"]
+};
+
+Box.Prototype = function() {
+
+  this.getChildrenIds = function() {
+    return this.properties.children;
+  };
+
+};
+
+Box.Prototype.prototype = Composite.prototype;
+Box.prototype = new Box.Prototype();
+Box.prototype.constructor = Box;
+
+Document.Node.defineProperties(Box);
+
+module.exports = Box;
+
+},{"substance-document":160}],14:[function(require,module,exports){
+"use strict";
+
+var NodeView = require('../node').View;
+var CompositeView = require("../composite").View;
+var $$ = require("substance-application").$$;
+
+
+// Lens.Box.View
+// ==========================================================================
+
+var BoxView = function(node, viewFactory) {
+  CompositeView.call(this, node, viewFactory);
+};
+
+BoxView.Prototype = function() {
+
+  // Render it
+  // --------
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    if (this.node.label) {
+      var labelEl = $$('.label', {
+        text: this.node.label
+      });
+      this.content.appendChild(labelEl);
+    }
+
+    this.renderChildren();
+
+    this.el.appendChild(this.content);
+
+    return this;
+  };
+};
+
+BoxView.Prototype.prototype = CompositeView.prototype;
+BoxView.prototype = new BoxView.Prototype();
+
+module.exports = BoxView;
+
+},{"../composite":30,"../node":85,"substance-application":149}],15:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./box'),
+  View: require('./box_view')
+};
+
+},{"./box":13,"./box_view":14}],16:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var Caption = function(node, document) {
+  Document.Composite.call(this, node, document);
+};
+
+Caption.type = {
+  "id": "caption",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "title": "paragraph",
+    "children": ["array", "paragraph"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Caption.description = {
+  "name": "Caption",
+  "remarks": [
+    "Container element for the textual description that is associated with a Figure, Table, Video node etc.",
+    "This is the title for the figure or the description of the figure that prints or displays with the figure."
+  ],
+  "properties": {
+    "title": "Caption title (optional)",
+    "children": "0..n Paragraph nodes",
+  }
+};
+
+
+// Example File
+// -----------------
+//
+
+Caption.example = {
+  "id": "caption_1",
+  "children": [
+    "paragraph_1",
+    "paragraph_2"
+  ]
+};
+
+Caption.Prototype = function() {
+
+  this.getChildrenIds = function() {
+    return this.properties.children || [];
+  };
+
+  this.hasTitle = function() {
+    return (!!this.properties.title);
+  };
+
+  this.getTitle = function() {
+    if (this.properties.title) return this.document.get(this.properties.title);
+  };
+
+};
+
+Caption.Prototype.prototype = Document.Composite.prototype;
+Caption.prototype = new Caption.Prototype();
+Caption.prototype.constructor = Caption;
+
+Document.Node.defineProperties(Caption);
+
+module.exports = Caption;
+
+},{"substance-document":160}],17:[function(require,module,exports){
+"use strict";
+
+var CompositeView = require("../composite").View;
+var $$ = require("substance-application").$$;
+
+// Lens.Caption.View
+// ==========================================================================
+
+var CaptionView = function(node, viewFactory) {
+  CompositeView.call(this, node, viewFactory);
+};
+
+CaptionView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    this.content = $$('div.content');
+
+    // Add title paragraph
+    var titleNode = this.node.getTitle();
+    if (titleNode) {
+      var titleView = this.createChildView(this.node.title);
+      var titleEl = titleView.render().el;
+      titleEl.classList.add('caption-title');
+      this.content.appendChild(titleEl);
+    }
+
+    this.renderChildren();
+
+    this.el.appendChild(this.content);
+    return this;
+  };
+
+};
+
+CaptionView.Prototype.prototype = CompositeView.prototype;
+CaptionView.prototype = new CaptionView.Prototype();
+
+module.exports = CaptionView;
+
+},{"../composite":30,"substance-application":149}],18:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./caption"),
+  View: require("./caption_view")
+};
+
+},{"./caption":16,"./caption_view":17}],19:[function(require,module,exports){
+var _ = require('underscore');
+var Document = require('substance-document');
+
+// Lens.Citation
+// -----------------
+//
+
+var Citation = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Citation.type = {
+  "id": "article_citation", // type name
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "title": "string",
+    "label": "string",
+    "authors": ["array", "string"],
+    "doi": "string",
+    "source": "string",
+    "volume": "string",
+    "citation_type": "string",
+    "publisher_name": "string",
+    "publisher_location": "string",
+    "fpage": "string",
+    "lpage": "string",
+    "year": "string",
+    "comment": "string",
+    "citation_urls": ["array", "object"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Citation.description = {
+  "name": "Citation",
+  "remarks": [
+    "A journal citation.",
+    "This element can be used to describe all kinds of citations."
+  ],
+  "properties": {
+    "title": "The article's title",
+    "label": "Optional label (could be a number for instance)",
+    "doi": "DOI reference",
+    "source": "Usually the journal name",
+    "volume": "Issue number",
+    "citation_type": "Citation Type",
+    "publisher_name": "Publisher Name",
+    "publisher_location": "Publisher Location",
+    "fpage": "First page",
+    "lpage": "Last page",
+    "year": "The year of publication",
+    "comment": "Author comment.",
+    "citation_urls": "A list of links for accessing the article on the web"
+  }
+};
+
+
+
+// Example Citation
+// -----------------
+//
+
+Citation.example = {
+  "id": "article_nature08160",
+  "type": "article_citation",
+  "label": "5",
+  "title": "The genome of the blood fluke Schistosoma mansoni",
+  "authors": [
+    "M Berriman",
+    "BJ Haas",
+    "PT LoVerde"
+  ],
+  "citation_type": "Journal Article",
+  "doi": "http://dx.doi.org/10.1038/nature08160",
+  "source": "Nature",
+  "volume": "460",
+  "fpage": "352",
+  "lpage": "8",
+  "year": "1984",
+  "comment": "This is a comment.",
+  "citation_urls": [
+    {
+      "name": "PubMed",
+      "url": "http://www.ncbi.nlm.nih.gov/pubmed/19606141"
+    }
+  ]
+};
+
+
+Citation.Prototype = function() {
+
+  // Returns the citation URLs if available
+  // Falls back to the DOI url
+  // Always returns an array;
+  this.urls = function() {
+    return this.properties.citation_urls.length > 0 ? this.properties.citation_urls
+                                                    : [this.properties.doi];
+  };
+
+  this.getHeader = function() {
+    return _.compact([this.properties.label, this.properties.citation_type || "Citation"]).join(' - ');
+  };
+};
+
+Citation.Prototype.prototype = Document.Node.prototype;
+Citation.prototype = new Citation.Prototype();
+Citation.prototype.constructor = Citation;
+
+Document.Node.defineProperties(Citation);
+
+module.exports = Citation;
+
+},{"substance-document":160,"underscore":175}],20:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var $$ = require("substance-application").$$;
+var NodeView = require("../node").View;
+var ResourceView = require('../../resource_view');
+
+// Lens.Citation.View
+// ==========================================================================
+
+
+var CitationView = function(node, viewFactory, options) {
+  NodeView.apply(this, arguments);
+
+  // Mix-in
+  ResourceView.call(this, options);
+
+};
+
+
+CitationView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.renderBody = function() {
+    var frag = document.createDocumentFragment();
+    var node = this.node;
+
+    // Add title
+    // -------
+
+    var titleView = this.createTextPropertyView([node.id, 'title'], { classes: 'title' });
+    frag.appendChild(titleView.render().el);
+
+    // Add Authors
+    // -------
+
+    frag.appendChild($$('.authors', {
+      html: node.authors.join(', ')
+    }));
+
+    // Add Source
+    // -------
+
+    var sourceText = "",
+        sourceFrag = "",
+        pagesFrag = "",
+        publisherFrag = "";
+
+    // Hack for handling unstructured citation types and render prettier
+    if (node.source && node.volume === '') {
+      sourceFrag = node.source;
+    } else if (node.source && node.volume) {
+      sourceFrag = [node.source, node.volume].join(', ');
+    }
+
+    if (node.fpage && node.lpage) {
+      pagesFrag = [node.fpage, node.lpage].join('-');
+    }
+
+    // Publisher Frag
+
+    var elems = [];
+
+    if (node.publisher_name && node.publisher_location) {
+      elems.push(node.publisher_name);
+      elems.push(node.publisher_location);
+    }
+
+    if (node.year) {
+      elems.push(node.year);
+    }
+
+    publisherFrag = elems.join(', ');
+
+    // Put them together
+    sourceText = sourceFrag;
+
+    // Add separator only if there's content already, and more to display
+    if (sourceFrag && (pagesFrag || publisherFrag)) {
+      sourceText += ": ";
+    }
+
+    if (pagesFrag && publisherFrag) {
+      sourceText += [pagesFrag, publisherFrag].join(", ");
+    } else {
+      // One of them without a separator char
+      sourceText += pagesFrag;
+      sourceText += publisherFrag;
+    }
+
+    frag.appendChild($$('.source', {
+      html: sourceText
+    }));
+
+    if (node.comment) {
+      var commentView = this.createTextView({ path: [node.id, 'comment'], classes: 'comment' });
+      frag.appendChild(commentView.render().el);
+    }
+
+    // Add DOI (if available)
+    // -------
+
+    if (node.doi) {
+      frag.appendChild($$('.doi', {
+        children: [
+          $$('b', {text: "DOI: "}),
+          $$('a', {
+            href: node.doi,
+            target: "_new",
+            text: node.doi
+          })
+        ]
+      }));
+    }
+
+    // TODO: Add display citations urls
+    // -------
+
+    var citationUrlsEl = $$('.citation-urls');
+
+    _.each(node.citation_urls, function(url) {
+      citationUrlsEl.appendChild($$('a.url', {
+        href: url.url,
+        text: url.name,
+        target: "_blank"
+      }));
+    });
+
+    frag.appendChild(citationUrlsEl);
+
+    this.content.appendChild(frag);
+  };
+
+};
+
+CitationView.Prototype.prototype = NodeView.prototype;
+CitationView.prototype = new CitationView.Prototype();
+CitationView.prototype.constructor = CitationView;
+
+module.exports = CitationView;
+
+},{"../../resource_view":117,"../node":85,"substance-application":149,"underscore":175}],21:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./citation'),
+  View: require('./citation_view')
+};
+
+},{"./citation":19,"./citation_view":20}],22:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+var ResourceReference = require('../resource_reference/resource_reference');
+
+var CitationReference = function(node, doc) {
+  ResourceReference.call(this, node, doc);
+};
+
+CitationReference.type = {
+  id: "citation_reference",
+  parent: "resource_reference",
+  properties: {
+    "target": "citation"
+  }
+};
+
+CitationReference.Prototype = function() {};
+CitationReference.Prototype.prototype = ResourceReference.prototype;
+CitationReference.prototype = new CitationReference.Prototype();
+CitationReference.prototype.constructor = CitationReference;
+
+// Do not fragment this annotation
+CitationReference.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(CitationReference);
+
+module.exports = CitationReference;
+
+},{"../annotation/annotation":7,"../resource_reference/resource_reference":95,"substance-document":160}],23:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./citation_reference.js'),
+  View: require('../resource_reference/resource_reference_view.js')
+};
+
+},{"../resource_reference/resource_reference_view.js":96,"./citation_reference.js":22}],24:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Code = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Code.type = {
+  id: "underline",
+  parent: "annotation",
+  properties: {}
+};
+
+Code.Prototype = function() {};
+Code.Prototype.prototype = Annotation.prototype;
+Code.prototype = new Code.Prototype();
+Code.prototype.constructor = Code;
+
+Code.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Code;
+
+},{"../annotation/annotation":7}],25:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./code.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./code.js":24}],26:[function(require,module,exports){
+"use strict";
+
+var Text = require("../text").Model;
+
+var Codeblock = function(node, document) {
+  Text.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Codeblock.type = {
+  "id": "codeblock",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "content": "string"
+  }
+};
+
+Codeblock.config = {
+  "zoomable": true
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Codeblock.description = {
+  "name": "Codeblock",
+  "remarks": [
+    "Text in a codeblock is displayed in a fixed-width font, and it preserves both spaces and line breaks"
+  ],
+  "properties": {
+    "content": "Content",
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+Codeblock.example = {
+  "type": "codeblock",
+  "id": "codeblock_1",
+  "content": "var text = \"Sun\";\nvar op1 = null;\ntext = op2.apply(op1.apply(text));\nconsole.log(text);",
+};
+
+Codeblock.Prototype = function() {};
+
+Codeblock.Prototype.prototype = Text.prototype;
+Codeblock.prototype = new Codeblock.Prototype();
+Codeblock.prototype.constructor = Codeblock;
+
+module.exports = Codeblock;
+
+
+},{"../text":106}],27:[function(require,module,exports){
+"use strict";
+
+var TextView = require('../text/text_view');
+
+// Substance.Codeblock.View
+// ==========================================================================
+
+var CodeblockView = function(node) {
+  TextView.call(this, node);
+};
+
+CodeblockView.Prototype = function() {};
+
+CodeblockView.Prototype.prototype = TextView.prototype;
+CodeblockView.prototype = new CodeblockView.Prototype();
+
+module.exports = CodeblockView;
+
+},{"../text/text_view":109}],28:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./codeblock"),
+  View: require("./codeblock_view")
+};
+
+},{"./codeblock":26,"./codeblock_view":27}],29:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+
+// Substance.Image.View
+// ==========================================================================
+
+var CompositeView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+  this.childrenViews = [];
+};
+
+CompositeView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  // Render Markup
+  // --------
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    this.renderChildren();
+    return this;
+  };
+
+  this.renderChildren = function() {
+    var children = this.node.getChildrenIds();
+    // create children views
+    for (var i = 0; i < children.length; i++) {
+      var childView = this.createChildView(children[i]);
+      var childViewEl = childView.render().el;
+      this.content.appendChild(childViewEl);
+    }
+  };
+
+  this.dispose = function() {
+    NodeView.prototype.dispose.call(this);
+
+    for (var i = 0; i < this.childrenViews.length; i++) {
+      this.childrenViews[i].dispose();
+    }
+  };
+
+  this.delete = function() {
+  };
+
+  this.getCharPosition = function(/*el, offset*/) {
+    return 0;
+  };
+
+  this.getDOMPosition = function() {
+    var content = this.$('.content')[0];
+    var range = document.createRange();
+    range.setStartBefore(content.childNodes[0]);
+    return range;
+  };
+
+  this.createChildView = function(nodeId) {
+    var view = this.createView(nodeId);
+    this.childrenViews.push(view);
+    return view;
+  };
+
+};
+
+CompositeView.Prototype.prototype = NodeView.prototype;
+CompositeView.prototype = new CompositeView.Prototype();
+
+module.exports = CompositeView;
+
+},{"../node":85}],30:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+module.exports = {
+  Model: Document.Composite,
+  View: require("./composite_view")
+};
+
+},{"./composite_view":29,"substance-document":160}],31:[function(require,module,exports){
+var _ = require('underscore');
+var Document = require('substance-document');
+
+// Lens.Contributor
+// -----------------
+//
+
+var Contributor = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Contributor.type = {
+  "id": "contributor",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "name": "string", // full name
+    "role": "string",
+    "contributor_type": "string",
+    "affiliations": ["array", "affiliation"],
+    "present_address": ["string"],
+    "fundings": ["array", "string"],
+    "image": "string", // optional
+    "emails": ["array", "string"],
+    "contribution": "string",
+    "bio": ["array", "paragraph"],
+    "deceased": "boolean",
+    "members": ["array", "string"],
+    "orcid": "string",
+    "equal_contrib": ["array", "string"],
+    "competing_interests": ["array", "string"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Contributor.description = {
+  "name": "Contributor",
+  "remarks": [
+    "A contributor entity.",
+  ],
+  "properties": {
+    "name": "Full name",
+    "affiliations": "A list of affiliation ids",
+    "present_address": "Present address of the contributor",
+    "role": "Role of contributor (e.g. Author, Editor)",
+    "fundings": "A list of funding descriptions",
+    "deceased": false,
+    "emails": "A list of emails",
+    "orcid": "ORCID",
+    "contribution": "Description of contribution",
+    "equal_contrib": "A list of people who contributed equally",
+    "competing_interests": "A list of conflicts",
+    "members": "a list of group members"
+  }
+};
+
+
+// Example Video
+// -----------------
+//
+
+Contributor.example = {
+  "id": "person_1",
+  "type": "contributor",
+  "name": "John Doe",
+  "affiliations": ["affiliation_1", "affiliation_2"],
+  "role": "Author",
+  "fundings": ["Funding Organisation 1"],
+  "emails": ["a@b.com"],
+  "contribution": "Revising the article, data cleanup",
+  "equal_contrib": ["John Doe", "Jane Doe"]
+};
+
+
+Contributor.Prototype = function() {
+
+  this.getAffiliations = function() {
+    return _.map(this.properties.affiliations, function(affId) {
+      return this.document.get(affId);
+    }, this);
+  };
+
+  this.getHeader = function() {
+    return this.properties.contributor_type || 'Author';
+  };
+
+};
+
+Contributor.Prototype.prototype = Document.Node.prototype;
+Contributor.prototype = new Contributor.Prototype();
+Contributor.prototype.constructor = Contributor;
+
+Document.Node.defineProperties(Contributor);
+
+module.exports = Contributor;
+
+},{"substance-document":160,"underscore":175}],32:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var ResourceView = require('../../resource_view');
+
+// Lens.Contributor.View
+// ==========================================================================
+
+var ContributorView = function(node, viewFactory, options) {
+  NodeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+};
+
+ContributorView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  // Render it
+  // --------
+  //
+
+  this.renderBody = function() {
+
+    // Contributor Name
+    // -------
+
+    this.content.appendChild($$('.contributor-name', {text: this.node.name}));
+
+    // Contributor Role
+    // -------
+
+    if (this.node.role) {
+      this.content.appendChild($$('.role', {text: this.node.role}));  
+    }
+    
+
+    // Add Affiliations
+    // -------
+
+    this.content.appendChild($$('.affiliations', {
+      children: _.map(this.node.getAffiliations(), function(aff) {
+
+        var affText = _.compact([
+          aff.department,
+          aff.institution,
+          aff.city,
+          aff.country
+        ]).join(', ');
+
+        return $$('.affiliation', {text: affText});
+      })
+    }));
+
+
+
+    // Present Address
+    // -------
+
+    if (this.node.present_address) {
+      this.content.appendChild($$('.label', {text: 'Present address'}));
+      this.content.appendChild($$('.contribution', {text: this.node.present_address}));
+    }
+
+    // Contribution
+    // -------
+
+    if (this.node.contribution) {
+      this.content.appendChild($$('.label', {text: 'Contribution'}));
+      this.content.appendChild($$('.contribution', {text: this.node.contribution}));
+    }
+
+    // Equal contribution
+    // -------
+
+    if (this.node.equal_contrib && this.node.equal_contrib.length > 0) {
+      this.content.appendChild($$('.label', {text: 'Contributed equally with'}));
+      this.content.appendChild($$('.equal-contribution', {text: this.node.equal_contrib}));
+    }
+
+
+    // Emails
+    // -------
+
+    if (this.node.emails.length > 0) {
+      this.content.appendChild($$('.label', {text: 'For correspondence'}));
+      this.content.appendChild($$('.emails', {
+        children: _.map(this.node.emails, function(email) {
+          return $$('a', {href: "mailto:"+email, text: email});
+        })
+      }));
+    }
+
+
+    // Funding
+    // -------
+
+    if (this.node.fundings.length > 0) {
+      this.content.appendChild($$('.label', {text: 'Funding'}));
+      this.content.appendChild($$('.fundings', {
+        children: _.map(this.node.fundings, function(funding) {
+          return $$('.funding', {text: funding});
+        })
+      }));
+    }
+
+
+    // Competing interests
+    // -------
+
+    if (this.node.competing_interests.length > 0) {
+      this.content.appendChild($$('.label', {text: 'Competing Interests'}));
+      this.content.appendChild($$('.competing-interests', {
+        children: _.map(this.node.competing_interests, function(ci) {
+          return $$('.conflict', {text: ci});
+        })
+      }));
+    }
+
+
+    // ORCID if available
+    // -------
+
+    if (this.node.orcid) {
+      this.content.appendChild($$('.label', { text: 'ORCID' }));
+      this.content.appendChild($$('a.orcid', { href: this.node.orcid, text: this.node.orcid }));
+    }
+
+
+    // Group member (in case contributor is a person group)
+    // -------
+
+    if (this.node.members.length > 0) {
+      this.content.appendChild($$('.label', {text: 'Group Members'}));
+      this.content.appendChild($$('.members', {
+        children: _.map(this.node.members, function(member) {
+          return $$('.member', {text: member});
+        })
+      }));
+    }
+
+
+    // Contributor Bio
+    // -------
+
+    if (this.node.image || (this.node.bio && this.node.bio.length > 0) ) {
+      var bio = $$('.bio');
+      var childs = [$$('img', {src: this.node.image}), bio];
+
+      _.each(this.node.bio, function(par) {
+        bio.appendChild(this.createView(par).render().el);
+      }, this);
+
+      this.content.appendChild($$('.contributor-bio.container', {
+        children: childs
+      }));
+    }
+
+    // Deceased?
+    // -------
+
+    if (this.node.deceased) {
+      // this.content.appendChild($$('.label', {text: 'Present address'}));
+      this.content.appendChild($$('.label', {text: "* Deceased"}));
+    }
+
+  };
+
+};
+
+ContributorView.Prototype.prototype = NodeView.prototype;
+ContributorView.prototype = new ContributorView.Prototype();
+
+module.exports = ContributorView;
+
+},{"../../resource_view":117,"../node":85,"substance-application":149,"underscore":175}],33:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./contributor'),
+  View: require('./contributor_view')
+};
+
+},{"./contributor":31,"./contributor_view":32}],34:[function(require,module,exports){
+
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+var ResourceReference = require('../resource_reference/resource_reference');
+
+var ContributorReference = function(node, doc) {
+  ResourceReference.call(this, node, doc);
+};
+
+ContributorReference.type = {
+  id: "contributor_reference",
+  parent: "resource_reference",
+  properties: {
+    "target": "contributor"
+  }
+};
+
+ContributorReference.Prototype = function() {};
+ContributorReference.Prototype.prototype = ResourceReference.prototype;
+ContributorReference.prototype = new ContributorReference.Prototype();
+ContributorReference.prototype.constructor = ContributorReference;
+
+// Do not fragment this annotation
+ContributorReference.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(ContributorReference);
+
+module.exports = ContributorReference;
+
+},{"../annotation/annotation":7,"../resource_reference/resource_reference":95,"substance-document":160}],35:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./contributor_reference.js'),
+  View: require('../resource_reference/resource_reference_view.js')
+};
+
+},{"../resource_reference/resource_reference_view.js":96,"./contributor_reference.js":34}],36:[function(require,module,exports){
+var _ = require('underscore');
+var Document = require('substance-document');
+
+// Lens.Cover
+// -----------------
+//
+
+var Cover = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Cover.type = {
+  "id": "cover",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "authors": ["array", "paragraph"],
+    "breadcrumbs": "object"
+    // No properties as they are all derived from the document node
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Cover.description = {
+  "name": "Cover",
+  "remarks": [
+    "Virtual view on the title and authors of the paper."
+  ],
+  "properties": {
+    "authors": "A paragraph that has the authors names plus references to the person cards"
+  }
+};
+
+// Example Cover
+// -----------------
+//
+
+Cover.example = {
+  "id": "cover",
+  "type": "cover"
+};
+
+Cover.Prototype = function() {
+
+  this.getAuthors = function() {
+    return _.map(this.properties.authors, function(paragraphId) {
+      return this.document.get(paragraphId);
+    }, this);
+  };
+
+  this.getTitle = function() {
+    return this.document.title;
+  };
+
+};
+
+Cover.Prototype.prototype = Document.Node.prototype;
+Cover.prototype = new Cover.Prototype();
+Cover.prototype.constructor = Cover;
+
+Document.Node.defineProperties(Cover);
+
+module.exports = Cover;
+
+},{"substance-document":160,"underscore":175}],37:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var articleUtil = require("../../article_util");
+
+// Lens.Cover.View
+// ==========================================================================
+
+var CoverView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+};
+
+CoverView.Prototype = function() {
+
+  // Render it
+  // --------
+  //
+  // .content
+  //   video
+  //     source
+  //   .title
+  //   .caption
+  //   .doi
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var node = this.node;
+    var pubInfo = this.node.document.get('publication_info');
+
+    if (node.breadcrumbs && node.breadcrumbs.length > 0) {
+      var breadcrumbs = $$('.breadcrumbs', {
+        children: _.map(node.breadcrumbs, function(bc) {
+          var html;
+          if (bc.image) {
+            html = '<img src="'+bc.image+'" title="'+bc.name+'"/>';
+          } else {
+            html = bc.name;
+          }
+          return $$('a', {href: bc.url, html: html});
+        })
+      });
+      this.content.appendChild(breadcrumbs);
+    }
+
+
+    if (pubInfo) {
+      var pubDate = pubInfo.published_on;
+      if (pubDate) {
+        var items = [articleUtil.formatDate(pubDate)];
+        if (pubInfo.journal && !node.breadcrumbs) {
+          items.push(' in <i>'+pubInfo.journal+'</i>');
+        }
+
+        this.content.appendChild($$('.published-on', {
+          html: items.join('')
+        }));
+      }
+    }
+
+    // Title View
+    // --------------
+    //
+
+    var titleView = this.createTextPropertyView(['document', 'title'], { classes: 'title' });
+    this.content.appendChild(titleView.render().el);
+
+    // Render Authors
+    // --------------
+    //
+
+    var authors = $$('.authors', {
+      children: _.map(node.getAuthors(), function(authorPara) {
+        var paraView = this.viewFactory.createView(authorPara);
+        var paraEl = paraView.render().el;
+        this.content.appendChild(paraEl);
+        return paraEl;
+      }, this)
+    });
+
+    authors.appendChild($$('.content-node.text.plain', {
+      children: [
+        $$('.content', {text: this.node.document.on_behalf_of})
+      ]
+    }));
+
+    this.content.appendChild(authors);
+
+    // Render Links
+    // --------------
+    //
+
+    if (pubInfo && pubInfo.links.length > 0) {
+      var linksEl = $$('.links');
+      _.each(pubInfo.links, function(link) {
+        if (link.type === "json" && link.url === "") {
+          // Make downloadable JSON
+          var json = JSON.stringify(this.node.document.toJSON(), null, '  ');
+          var bb = new Blob([json], {type: "application/json"});
+
+          linksEl.appendChild($$('a.json', {
+            href: window.URL ? window.URL.createObjectURL(bb) : "#",
+            html: '<i class="fa fa-external-link-square"></i> '+link.name,
+            target: '_blank'
+          }));
+
+        } else {
+          linksEl.appendChild($$('a.'+link.type, {
+            href: link.url,
+            html: '<i class="fa fa-external-link-square"></i> '+ link.name,
+            target: '_blank'
+          }));
+        }
+      }, this);
+
+      this.content.appendChild(linksEl);
+    }
+
+    if (pubInfo) {
+      var doi = pubInfo.doi;
+      if (doi) {
+        this.content.appendChild($$('.doi', {
+          html: 'DOI: <a href="http://dx.doi.org/'+doi+'">'+doi+'</a>'
+        }));
+      }
+    }
+
+    return this;
+  };
+};
+
+CoverView.Prototype.prototype = NodeView.prototype;
+CoverView.prototype = new CoverView.Prototype();
+
+module.exports = CoverView;
+
+},{"../../article_util":3,"../node":85,"substance-application":149,"underscore":175}],38:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./cover'),
+  View: require('./cover_view')
+};
+
+},{"./cover":36,"./cover_view":37}],39:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var CrossReference = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+CrossReference.type = {
+  id: "cross_reference",
+  parent: "annotation",
+  properties: {
+    "target": "node"
+  }
+};
+
+CrossReference.Prototype = function() {};
+CrossReference.Prototype.prototype = Annotation.prototype;
+CrossReference.prototype = new CrossReference.Prototype();
+CrossReference.prototype.constructor = CrossReference;
+
+// Do not fragment this annotation
+CrossReference.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(CrossReference);
+
+module.exports = CrossReference;
+
+},{"../annotation/annotation":7,"substance-document":160}],40:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./cross_reference.js'),
+  View: require('../resource_reference/resource_reference_view.js')
+};
+
+},{"../resource_reference/resource_reference_view.js":96,"./cross_reference.js":39}],41:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var Custom = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Custom.type = {
+  id: "custom_annotation",
+  parent: "annotation",
+  properties: {
+    name: 'string'
+  }
+};
+
+Custom.Prototype = function() {};
+Custom.Prototype.prototype = Annotation.prototype;
+Custom.prototype = new Custom.Prototype();
+Custom.prototype.constructor = Custom;
+
+Custom.fragmentation = Annotation.DONT_CARE;
+
+Document.Node.defineProperties(Custom);
+
+module.exports = Custom;
+
+},{"../annotation/annotation":7,"substance-document":160}],42:[function(require,module,exports){
+var AnnotationView = require('../annotation').View;
+
+var CustomAnnotationView = function(node) {
+  AnnotationView.call(this, node);
+};
+
+CustomAnnotationView.Prototype = function() {
+
+  this.setClasses = function() {
+    AnnotationView.prototype.setClasses.call(this);
+    this.$el.addClass(this.node.name);
+  };
+
+};
+CustomAnnotationView.Prototype.prototype = AnnotationView.prototype;
+CustomAnnotationView.prototype = new CustomAnnotationView.Prototype();
+
+module.exports = CustomAnnotationView;
+
+},{"../annotation":9}],43:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./custom_annotation.js'),
+  View: require('./custom_annotation_view.js')
+};
+
+},{"./custom_annotation.js":41,"./custom_annotation_view.js":42}],44:[function(require,module,exports){
+
+var Document = require('substance-document');
+
+// Lens.Definition
+// -----------------
+//
+
+var Definition = function(node) {
+  Document.Node.call(this, node);
+};
+
+// Type definition
+// -----------------
+//
+
+Definition.type = {
+  "id": "definition", // type name
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "title": "string",
+    "description": "string"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Definition.description = {
+  "name": "Definition",
+  "remarks": [
+    "A journal citation.",
+    "This element can be used to describe all kinds of citations."
+  ],
+  "properties": {
+    "title": "The article's title",
+    "description": "Definition description",
+  }
+};
+
+
+// Example Definition
+// -----------------
+//
+
+Definition.example = {
+  "id": "definition_def1",
+  "type": "Definition",
+  "title": "IAP",
+  "description": "Integrated Analysis Platform",
+};
+
+
+Definition.Prototype = function() {
+  // Returns the citation URLs if available
+  // Falls back to the DOI url
+  // Always returns an array;
+  this.urls = function() {
+    return this.properties.citation_urls.length > 0 ? this.properties.citation_urls
+                                                    : [this.properties.doi];
+  };
+
+  this.getHeader = function() {
+    if (this.properties.label) {
+      return [this.properties.label,this.properties.title].join(". ");
+    }
+    else {
+      return this.properties.title;
+    }
+  };
+
+};
+
+Definition.Prototype.prototype = Document.Node.prototype;
+Definition.prototype = new Definition.Prototype();
+Definition.prototype.constructor = Definition;
+
+Document.Node.defineProperties(Definition);
+
+module.exports = Definition;
+
+},{"substance-document":160}],45:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var ResourceView = require('../../resource_view');
+
+// Lens.Definition.View
+// ==========================================================================
+
+var DefinitionView = function(node, viewFactory, options) {
+  NodeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+
+};
+
+
+DefinitionView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.renderBody = function() {
+    this.content.appendChild($$('.description', {text: this.node.description }));
+  };
+
+};
+
+DefinitionView.Prototype.prototype = NodeView.prototype;
+DefinitionView.prototype = new DefinitionView.Prototype();
+DefinitionView.prototype.constructor = DefinitionView;
+
+module.exports = DefinitionView;
+
+},{"../../resource_view":117,"../node":85,"substance-application":149,"underscore":175}],46:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./definition'),
+  View: require('./definition_view')
+};
+
+},{"./definition":44,"./definition_view":45}],47:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+var ResourceReference = require('../resource_reference/resource_reference');
+
+var DefinitionReference = function(node, doc) {
+  ResourceReference.call(this, node, doc);
+};
+
+DefinitionReference.type = {
+  id: "definition_reference",
+  parent: "resource_reference",
+  properties: {
+    "target": "definition"
+  }
+};
+
+DefinitionReference.Prototype = function() {};
+DefinitionReference.Prototype.prototype = ResourceReference.prototype;
+DefinitionReference.prototype = new DefinitionReference.Prototype();
+DefinitionReference.prototype.constructor = DefinitionReference;
+
+// Do not fragment this annotation
+DefinitionReference.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(DefinitionReference);
+
+module.exports = DefinitionReference;
+
+},{"../annotation/annotation":7,"../resource_reference/resource_reference":95,"substance-document":160}],48:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./definition_reference.js'),
+  View: require('../resource_reference/resource_reference_view.js')
+};
+
+},{"../resource_reference/resource_reference_view.js":96,"./definition_reference.js":47}],49:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var DocumentNode = function(node, document) {
+  Document.Node.call(this, node, document);
+};
+
+DocumentNode.type = {
+  "id": "document",
+  "parent": "content",
+  "properties": {
+    "views": ["array", "view"],
+    "guid": "string",
+    "creator": "string",
+    "title": "string",
+    "authors": ["array", "contributor"],
+    "on_behalf_of": "string",
+    "abstract": "string"
+  }
+};
+
+DocumentNode.Prototype = function() {
+};
+
+DocumentNode.Prototype.prototype = Document.Node.prototype;
+DocumentNode.prototype = new DocumentNode.Prototype();
+DocumentNode.prototype.constructor = DocumentNode;
+
+Document.Node.defineProperties(DocumentNode);
+
+module.exports = DocumentNode;
+
+},{"substance-document":160}],50:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./document_node"),
+};
+
+},{"./document_node":49}],51:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Emphasis = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Emphasis.type = {
+  id: "emphasis",
+  parent: "annotation",
+  properties: {}
+};
+
+Emphasis.Prototype = function() {};
+Emphasis.Prototype.prototype = Annotation.prototype;
+Emphasis.prototype = new Emphasis.Prototype();
+Emphasis.prototype.constructor = Emphasis;
+
+Emphasis.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Emphasis;
+
+},{"../annotation/annotation":7}],52:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./emphasis.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./emphasis.js":51}],53:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var Figure = function(node, document) {
+  Document.Composite.call(this, node, document);
+};
+
+
+Figure.type = {
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "url": "string",
+    "caption": "caption",
+    "attrib": "string"
+  }
+};
+
+Figure.config = {
+  "zoomable": true
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Figure.description = {
+  "name": "Figure",
+  "remarks": [
+    "A figure is a figure is figure.",
+  ],
+  "properties": {
+    "label": "Label used as header for the figure cards",
+    "url": "Image url",
+    "caption": "A reference to a caption node that describes the figure",
+    "attrib": "Figure attribution"
+  }
+};
+
+// Example File
+// -----------------
+//
+
+Figure.example = {
+  "id": "figure_1",
+  "label": "Figure 1",
+  "url": "http://example.com/fig1.png",
+  "caption": "caption_1"
+};
+
+Figure.Prototype = function() {
+
+  this.hasCaption = function() {
+    return (!!this.properties.caption);
+  };
+
+  this.getChildrenIds = function() {
+    var nodes = [];
+    if (this.properties.caption) {
+      nodes.push(this.properties.caption);
+    }
+    return nodes;
+  };
+
+  this.getCaption = function() {
+    if (this.properties.caption) return this.document.get(this.properties.caption);
+  };
+
+  this.getHeader = function() {
+    return this.properties.label;
+  };
+};
+
+Figure.Prototype.prototype = Document.Composite.prototype;
+Figure.prototype = new Figure.Prototype();
+Figure.prototype.constructor = Figure;
+
+Document.Node.defineProperties(Figure.prototype, Object.keys(Figure.type.properties));
+
+module.exports = Figure;
+
+},{"substance-document":160}],54:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var CompositeView = require("../composite").View;
+var $$ = require ("substance-application").$$;
+var ResourceView = require('../../resource_view');
+
+// Substance.Figure.View
+// ==========================================================================
+
+var FigureView = function(node, viewFactory, options) {
+  CompositeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+};
+
+FigureView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.isZoomable = true;
+
+  // Rendering
+  // =============================
+  //
+
+  this.renderBody = function() {
+    if (this.node.url) {
+      // Add graphic (img element)
+      var imgEl = $$('.image-wrapper', {
+        children: [
+          $$("a", {
+            href: this.node.url,
+            target: "_blank",
+            children: [$$("img", {src: this.node.url})]
+          })
+        ]
+      });
+      this.content.appendChild(imgEl);
+    }
+    this.renderChildren();
+    // Attrib
+    if (this.node.attrib) {
+      this.content.appendChild($$('.figure-attribution', {text: this.node.attrib}));
+    }
+  };
+
+  this.renderLabel = function() {
+    var labelEl = $$('a.name.action-toggle-resource', {
+      href: "#"
+    })
+    this.renderAnnotatedText([this.node.id, 'label'], labelEl);
+    return labelEl;
+  };
+
+};
+
+FigureView.Prototype.prototype = CompositeView.prototype;
+FigureView.prototype = new FigureView.Prototype();
+
+module.exports = FigureView;
+
+},{"../../resource_view":117,"../composite":30,"substance-application":149,"underscore":175}],55:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./figure'),
+  View: require('./figure_view')
+};
+
+},{"./figure":53,"./figure_view":54}],56:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+var ResourceReference = require('../resource_reference/resource_reference');
+
+var FigureReference = function(node, doc) {
+  ResourceReference.call(this, node, doc);
+};
+
+FigureReference.type = {
+  id: "figure_reference",
+  parent: "resource_reference",
+  properties: {
+    "target": "figure"
+  }
+};
+
+FigureReference.Prototype = function() {};
+FigureReference.Prototype.prototype = ResourceReference.prototype;
+FigureReference.prototype = new FigureReference.Prototype();
+FigureReference.prototype.constructor = FigureReference;
+
+// Do not fragment this annotation
+FigureReference.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(FigureReference);
+
+module.exports = FigureReference;
+
+},{"../annotation/annotation":7,"../resource_reference/resource_reference":95,"substance-document":160}],57:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./figure_reference.js'),
+  View: require('../resource_reference/resource_reference_view.js')
+};
+
+},{"../resource_reference/resource_reference_view.js":96,"./figure_reference.js":56}],58:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+var DocumentNode = Document.Node;
+var Paragraph = require('../paragraph').Model;
+
+
+var Footnote = function(node, document) {
+  Paragraph.call(this, node, document);
+};
+
+Footnote.type = {
+  "id": "footnote",
+  "parent": "paragraph",
+  "properties": {
+    "label": "string"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Footnote.description = {
+  "name": "Footnote",
+  "remarks": [
+    "A Footnote is basically a Paragraph with a label."
+  ],
+  "properties": {
+    "label": "A string used as label",
+  }
+};
+
+// Example
+// -------
+//
+
+Footnote.example = {
+  "type": "footnote",
+  "id": "footnote_1",
+  "label": "a",
+  "children ": [
+    "text_1",
+    "image_1",
+    "text_2"
+  ]
+};
+
+Footnote.Prototype = function() {
+
+};
+
+Footnote.Prototype.prototype = Paragraph.prototype;
+Footnote.prototype = new Footnote.Prototype();
+Footnote.prototype.constructor = Footnote;
+
+DocumentNode.defineProperties(Footnote);
+
+module.exports = Footnote;
+
+},{"../paragraph":88,"substance-document":160}],59:[function(require,module,exports){
+"use strict";
+
+var ParagraphView = require("../paragraph").View;
+
+// Substance.Image.View
+// ==========================================================================
+
+var FootnoteView = function(node, viewFactory) {
+  ParagraphView.call(this, node, viewFactory);
+};
+
+FootnoteView.Prototype = function() {
+
+  this.render = function() {
+    ParagraphView.prototype.render.call(this);
+
+    var labelEl = document.createElement('span');
+    labelEl.classList.add('label');
+    labelEl.innerHTML = this.node.label;
+
+    this.el.insertBefore(labelEl, this.content);
+
+    return this;
+  };
+
+};
+
+FootnoteView.Prototype.prototype = ParagraphView.prototype;
+FootnoteView.prototype = new FootnoteView.Prototype();
+
+module.exports = FootnoteView;
+
+},{"../paragraph":88}],60:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./footnote"),
+  View: require("./footnote_view")
+};
+
+},{"./footnote":58,"./footnote_view":59}],61:[function(require,module,exports){
+
+var Document = require('substance-document');
+
+// Formula
+// -----------------
+//
+
+var Formula = function(node) {
+  Document.Node.call(this, node);
+};
+
+// Type definition
+// -----------------
+//
+
+Formula.type = {
+  "id": "formula",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "inline": "boolean",
+    // a reference label as typically used in display formulas
+    "label": "string",
+    // we support multiple representations of the formula
+    "format": ["array", "string"],
+    "data": ["array", "string"],
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Formula.description = {
+  "name": "Formula",
+  "remarks": [
+    "Can either be expressed in MathML format or using an image url"
+  ],
+  "properties": {
+    "label": "Formula label (4)",
+    "data": "Formula data, either MathML or image url",
+    "format": "Can either be `mathml` or `image`"
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+Formula.example = {
+  "type": "formula",
+  "id": "formula_eqn1",
+  "label": "(1)",
+  "content": "<mml:mrow>...</mml:mrow>",
+  "format": "mathml"
+};
+
+Formula.Prototype = function() {
+  this.inline = false;
+};
+
+Formula.Prototype.prototype = Document.Node.prototype;
+Formula.prototype = new Formula.Prototype();
+Formula.prototype.constuctor = Formula;
+
+Document.Node.defineProperties(Formula);
+
+module.exports = Formula;
+
+},{"substance-document":160}],62:[function(require,module,exports){
+"use strict";
+
+var NodeView = require('../node').View;
+
+// FormulaView
+// ===========
+
+var FormulaView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+};
+
+FormulaView.Prototype = function() {
+
+  var _types = {
+    "latex": "math/tex",
+    "mathml": "math/mml"
+  };
+
+  var _precedence = {
+    "image": 0,
+    "mathml": 1,
+    "latex": 2
+  };
+
+  // Render the formula
+  // --------
+
+  this.render = function() {
+    if (this.node.inline) {
+      this.$el.addClass('inline');
+    }
+
+    var inputs = [], i;
+    for (i=0; i<this.node.data.length; i++) {
+      inputs.push({
+        format: this.node.format[i],
+        data: this.node.data[i]
+      });
+    }
+    inputs.sort(function(a, b) {
+      return _precedence[a.format] - _precedence[b.format];
+    });
+
+    if (inputs.length > 0) {
+      // TODO: we should allow to make it configurable
+      // which math source format should be used in first place
+      // For now, we take the first available format which is not image
+      // and use the image to configure MathJax's preview.
+      var hasPreview = false;
+      var hasSource = false;
+      for (i=0; i<inputs.length; i++) {
+        var format = inputs[i].format;
+        var data = inputs[i].data;
+        switch (format) {
+          // HACK: ATM, in certain cases there are MJ issues
+          // until then we just put the mml into root, and do not render the preview
+          case "mathml":
+            if (!hasSource) {
+              this.$el.append($(data));
+              hasSource = true;
+              // prevent preview for the time being (HACK), as otherwise there will be two presentations
+              if (hasPreview) {
+                this.$preview.hide();
+                hasPreview = true;
+              }
+            }
+            break;
+          case "latex":
+            if (!hasSource) {
+              var type = _types[format];
+              if (!this.node.inline) type += "; mode=display";
+              var $scriptEl = $('<script>')
+                .attr('type', type)
+                .html(data);
+              this.$el.append($scriptEl);
+              hasSource = true;
+            }
+            break;
+          case "image":
+            if (!hasPreview) {
+              var $preview = $('<div>').addClass('MathJax_Preview');
+              $preview.append($('<img>').attr('src', data));
+              this.$el.append($preview);
+              this.$preview = $preview;
+              hasPreview = true;
+            }
+            break;
+          default:
+            console.error("Unknown formula format:", format);
+        }
+      }
+    }
+    // Add label to block formula
+    // --------
+    if (this.node.label) {
+      this.$el.append($('<div class="label">').html(this.node.label));
+    }
+    return this;
+  };
+};
+
+FormulaView.Prototype.prototype = NodeView.prototype;
+FormulaView.prototype = new FormulaView.Prototype();
+
+module.exports = FormulaView;
+
+},{"../node":85}],63:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./formula'),
+  View: require('./formula_view')
+};
+
+},{"./formula":61,"./formula_view":62}],64:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require("substance-document").Node;
+var Text = require("../text/text_node");
+
+var Heading = function(node, document) {
+  Text.call(this, node, document);
+};
+
+// Type definition
+// -----------------
+//
+
+Heading.type = {
+  "id": "heading",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "content": "string",
+    "label": "string",
+    "level": "number"
+  }
+};
+
+// Example Heading
+// -----------------
+//
+
+Heading.example = {
+  "type": "heading",
+  "id": "heading_1",
+  "content": "Introduction",
+  "level": 1
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+
+Heading.description = {
+  "name": "Heading",
+  "remarks": [
+    "Denotes a section or sub section in your article."
+  ],
+  "properties": {
+    "content": "Heading title",
+    "label": "Heading label",
+    "level": "Heading level. Ranges from 1..4"
+  }
+};
+
+Heading.Prototype = function() {
+
+  this.splitInto = 'paragraph';
+
+  // TOC API
+
+  this.includeInToc = function() {
+    return true;
+  };
+
+  this.getLevel = function() {
+    return this.level;
+  }
+
+};
+
+Heading.Prototype.prototype = Text.prototype;
+Heading.prototype = new Heading.Prototype();
+Heading.prototype.constructor = Heading;
+
+DocumentNode.defineProperties(Heading);
+
+module.exports = Heading;
+
+},{"../text/text_node":107,"substance-document":160}],65:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+
+
+// Substance.Heading.View
+// ==========================================================================
+
+var HeadingView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.$el.addClass('level-'+this.node.level);
+};
+
+HeadingView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    // Heading title
+    var titleView = this.createTextPropertyView([this.node.id, 'content'], {
+      classes: 'title'
+    });
+
+    if (this.node.label) {
+      var labelEl = $$('.label', {text: this.node.label});
+      this.content.appendChild(labelEl);
+    }
+
+    this.content.appendChild(titleView.render().el);
+    return this;
+  };
+
+  this.renderTocItem = function() {
+    var el = $$('div');
+    if (this.node.label) {
+      var labelEl = $$('.label', {text: this.node.label});
+      el.appendChild(labelEl);
+    }
+    var titleEl = $$('span');
+    this.renderAnnotatedText([this.node.id, 'content'], titleEl);
+    el.appendChild(titleEl);
+    return el;
+  };
+
+};
+
+HeadingView.Prototype.prototype = NodeView.prototype;
+HeadingView.prototype = new HeadingView.Prototype();
+
+module.exports = HeadingView;
+
+},{"../node":85,"substance-application":149}],66:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./heading"),
+  View: require("./heading_view")
+};
+
+},{"./heading":64,"./heading_view":65}],67:[function(require,module,exports){
+var _ = require('underscore');
+var Document = require('substance-document');
+
+// Lens.HTMLTable
+// -----------------
+//
+
+var HTMLTable = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+HTMLTable.type = {
+  "id": "html_table",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "content": "string",
+    "footers": ["array", "string"],
+    "caption": "caption"
+  }
+};
+
+HTMLTable.config = {
+  "zoomable": true
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+HTMLTable.description = {
+  "name": "HTMLTable",
+  "remarks": [
+    "A table figure which is expressed in HTML notation"
+  ],
+  "properties": {
+    "source_id": "string",
+    "label": "Label shown in the resource header.",
+    "title": "Full table title",
+    "content": "HTML data",
+    "footers": "HTMLTable footers expressed as an array strings",
+    "caption": "References a caption node, that has all the content"
+  }
+};
+
+
+// Example HTMLTable
+// -----------------
+//
+
+HTMLTable.example = {
+  "id": "html_table_1",
+  "type": "html_table",
+  "label": "HTMLTable 1.",
+  "title": "Lorem ipsum table",
+  "content": "<table>...</table>",
+  "footers": [],
+  "caption": "caption_1"
+};
+
+HTMLTable.Prototype = function() {
+
+  this.getCaption = function() {
+    if (this.properties.caption) return this.document.get(this.properties.caption);
+  };
+
+  this.getHeader = function() {
+    return this.properties.label;
+  };
+};
+
+HTMLTable.Prototype.prototype = Document.Node.prototype;
+HTMLTable.prototype = new HTMLTable.Prototype();
+HTMLTable.prototype.constructor = HTMLTable;
+
+Document.Node.defineProperties(HTMLTable);
+
+module.exports = HTMLTable;
+
+},{"substance-document":160,"underscore":175}],68:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var ResourceView = require('../../resource_view');
+
+// Substance.Paragraph.View
+// ==========================================================================
+
+var HTMLTableView = function(node, viewFactory, options) {
+  NodeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+
+};
+
+HTMLTableView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.isZoomable = true;
+
+  this.renderBody = function() {
+
+    // The actual content
+    // --------
+    //
+
+    var tableWrapper = $$('.table-wrapper', {
+      html: this.node.content // HTML table content
+    });
+
+    this.content.appendChild(tableWrapper);
+
+    // Display footers (optional)
+    // --------
+    //
+
+    var footers = $$('.footers', {
+      children: _.map(this.node.footers, function(footer) {
+        return $$('.footer', { html: "<b>"+footer.label+"</b> " + footer.content });
+      })
+    });
+
+    // Display caption
+
+
+    if (this.node.caption) {
+      var captionView = this.createView(this.node.caption);
+      this.content.appendChild(captionView.render().el);
+    }
+
+    this.content.appendChild(footers);
+  };
+
+};
+
+HTMLTableView.Prototype.prototype = NodeView.prototype;
+HTMLTableView.prototype = new HTMLTableView.Prototype();
+
+module.exports = HTMLTableView;
+
+},{"../../resource_view":117,"../node":85,"substance-application":149,"underscore":175}],69:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./html_table'),
+  View: require('./html_table_view')
+};
+
+},{"./html_table":67,"./html_table_view":68}],70:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require("substance-document").Node;
+var WebResource = require("../web_resource").Model;
+
+var ImageNode = function(node, document) {
+  WebResource.call(this, node, document);
+};
+
+// Type definition
+// -----------------
+//
+
+ImageNode.type = {
+  "id": "image",
+  "parent": "webresource",
+  "properties": {
+    "source_id": "string"
+  }
+};
+
+// Example Image
+// -----------------
+//
+
+ImageNode.example = {
+  "type": "image",
+  "id": "image_1",
+  "url": "http://substance.io/image_1.png"
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+
+ImageNode.description = {
+  "name": "Image",
+  "remarks": [
+    "Represents a web-resource for an image."
+  ],
+  "properties": {}
+};
+
+ImageNode.Prototype = function() {};
+
+ImageNode.Prototype.prototype = WebResource.prototype;
+ImageNode.prototype = new ImageNode.Prototype();
+ImageNode.prototype.constructor = ImageNode;
+
+module.exports = ImageNode;
+
+},{"../web_resource":115,"substance-document":160}],71:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+
+// Substance.Image.View
+// ==========================================================================
+
+var ImageView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+};
+
+ImageView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  var _indexOf = Array.prototype.indexOf;
+
+  // Render Markup
+  // --------
+  //
+  // div.content
+  //   div.img-char
+  //     .img
+
+  this.render = function() {
+
+    var content = document.createElement('div');
+    content.className = 'content';
+
+    var imgChar = document.createElement('div');
+    imgChar.className = 'image-char';
+    this._imgChar = imgChar;
+
+    var img = document.createElement('img');
+    img.src = this.node.url;
+    img.alt = "alt text";
+    img.title = "alt text";
+    imgChar.appendChild(img);
+
+    content.appendChild(imgChar);
+
+    // Add content
+    this.el.appendChild(content);
+
+    this._imgPos = _indexOf.call(imgChar.childNodes, img);
+
+    return this;
+  };
+
+  this.delete = function(pos, length) {
+    var content = this.$('.content')[0];
+    var spans = content.childNodes;
+    for (var i = length - 1; i >= 0; i--) {
+      content.removeChild(spans[pos+i]);
+    }
+  };
+
+  this.getCharPosition = function(el, offset) {
+    // TODO: is there a more general approach? this is kind of manually coded.
+
+    if (el === this._imgChar) {
+      return (offset > this._imgPos) ? 1 : 0;
+    }
+
+    console.log("Errhhh..");
+
+  };
+
+  this.getDOMPosition = function(charPos) {
+    var content = this.$('.content')[0];
+    var range = document.createRange();
+    if (charPos === 0) {
+      range.setStartBefore(content.childNodes[0]);
+    } else {
+      range.setStartAfter(content.childNodes[0]);
+    }
+    return range;
+  };
+};
+
+ImageView.Prototype.prototype = NodeView.prototype;
+ImageView.prototype = new ImageView.Prototype();
+
+module.exports = ImageView;
+
+},{"../node":85}],72:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./image"),
+  View: require("./image_view")
+};
+
+},{"./image":70,"./image_view":71}],73:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  /* basic/abstract node types */
+  "node": require("./node"),
+  "composite": require("./composite"),
+  "annotation": require("./annotation"),
+  /* Annotation types */
+  "emphasis": require("./emphasis"),
+  "strong": require("./strong"),
+  "subscript": require("./subscript"),
+  "superscript": require("./superscript"),
+  "underline": require("./underline"),
+  "code": require("./code"),
+  "author_callout": require("./author_callout"),
+  "custom_annotation": require("./custom_annotation"),
+  "inline-formula": require("./inline_formula"),
+  /* Reference types */
+  "resource_reference": require("./resource_reference"),
+  "contributor_reference": require("./contributor_reference"),
+  "figure_reference": require("./figure_reference"),
+  "citation_reference": require("./citation_reference"),
+  "definition_reference": require("./definition_reference"),
+  "cross_reference": require("./cross_reference"),
+  "publication_info": require("./publication_info"),
+  /* Annotation'ish content types */
+  "link": require("./link"),
+  "inline_image": require("./inline_image"),
+  /* Content types */
+  "document": require("./document"),
+  "text": require("./text"),
+  "paragraph": require("./paragraph"),
+  "heading": require("./heading"),
+  "box": require("./box"),
+  "cover": require("./cover"),
+  "figure": require("./figure"),
+  "caption": require("./caption"),
+  "image": require("./image"),
+  "webresource": require("./web_resource"),
+  "html_table": require("./html_table"),
+  "supplement": require("./supplement"),
+  "video": require("./video"),
+  "contributor": require("./contributor"),
+  "definition": require("./definition"),
+  "citation": require("./citation"),
+  "formula": require('./formula'),
+  "list": require("./list"),
+  "codeblock": require("./codeblock"),
+  "affiliation": require("./_affiliation"),
+  "footnote": require("./footnote")
+};
+
+},{"./_affiliation":6,"./annotation":9,"./author_callout":12,"./box":15,"./caption":18,"./citation":21,"./citation_reference":23,"./code":25,"./codeblock":28,"./composite":30,"./contributor":33,"./contributor_reference":35,"./cover":38,"./cross_reference":40,"./custom_annotation":43,"./definition":46,"./definition_reference":48,"./document":50,"./emphasis":52,"./figure":55,"./figure_reference":57,"./footnote":60,"./formula":63,"./heading":66,"./html_table":69,"./image":72,"./inline_formula":74,"./inline_image":77,"./link":79,"./list":82,"./node":85,"./paragraph":88,"./publication_info":91,"./resource_reference":94,"./strong":97,"./subscript":99,"./superscript":101,"./supplement":103,"./text":106,"./underline":110,"./video":112,"./web_resource":115}],74:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./inline_formula.js'),
+  View: require('./inline_formula_view.js')
+};
+
+},{"./inline_formula.js":75,"./inline_formula_view.js":76}],75:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var InlineFormula = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+InlineFormula.type = {
+  id: "inline-formula",
+  parent: "annotation",
+  properties: {
+    target: "formula"
+  }
+};
+
+InlineFormula.Prototype = function() {};
+InlineFormula.Prototype.prototype = Annotation.prototype;
+InlineFormula.prototype = new InlineFormula.Prototype();
+InlineFormula.prototype.constructor = InlineFormula;
+
+InlineFormula.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(InlineFormula);
+
+module.exports = InlineFormula;
+
+},{"../annotation/annotation":7,"substance-document":160}],76:[function(require,module,exports){
+"use strict";
+
+var ResourceReferenceView = require('../resource_reference').View;
+
+var InlineFormulaView = function(node, viewFactory) {
+  ResourceReferenceView.call(this, node, viewFactory);
+  $(this.el).removeClass('resource-reference');
+};
+
+InlineFormulaView.Prototype = function() {
+
+  this.createElement = function() {
+    var el = document.createElement('span');
+    return el;
+  };
+
+  this.render = function() {
+    var formula = this.node.document.get(this.node.target);
+    var formulaView = this.viewFactory.createView(formula);
+    this.el.innerHTML = formulaView.render().el.innerHTML;
+    return this;
+  };
+
+};
+InlineFormulaView.Prototype.prototype = ResourceReferenceView.prototype;
+InlineFormulaView.prototype = new InlineFormulaView.Prototype();
+
+module.exports = InlineFormulaView;
+
+},{"../resource_reference":94}],77:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./inline_image.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./inline_image.js":78}],78:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var InlineImage = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+InlineImage.type = {
+  id: "inline-image",
+  parent: "annotation",
+  properties: {
+    "target": "image"
+  }
+};
+
+InlineImage.Prototype = function() {};
+InlineImage.Prototype.prototype = Annotation.prototype;
+InlineImage.prototype = new InlineImage.Prototype();
+InlineImage.prototype.constructor = InlineImage;
+
+// Do not fragment this annotation
+InlineImage.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(InlineImage);
+
+module.exports = InlineImage;
+
+},{"../annotation/annotation":7,"substance-document":160}],79:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./link.js'),
+  View: require('./link_view.js')
+};
+
+},{"./link.js":80,"./link_view.js":81}],80:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var Link = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Link.type = {
+  id: "link",
+  parent: "annotation",
+  properties: {
+    "url": "string"
+  }
+};
+
+Link.Prototype = function() {};
+Link.Prototype.prototype = Annotation.prototype;
+Link.prototype = new Link.Prototype();
+Link.prototype.constructor = Link;
+
+// Do not fragment this annotation
+Link.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(Link);
+
+module.exports = Link;
+
+},{"../annotation/annotation":7,"substance-document":160}],81:[function(require,module,exports){
+var AnnotationView = require('../annotation').View;
+
+var LinkView = function(node) {
+  AnnotationView.call(this, node);
+};
+
+LinkView.Prototype = function() {
+
+  this.createElement = function() {
+    var el = document.createElement('a');
+    el.setAttribute('href', this.node.url);
+    return el;
+  };
+
+  this.setClasses = function() {
+    this.$el.addClass('link');
+  };
+
+};
+LinkView.Prototype.prototype = AnnotationView.prototype;
+LinkView.prototype = new LinkView.Prototype();
+
+module.exports = LinkView;
+
+},{"../annotation":9}],82:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./list"),
+  View: require("./list_view")
+};
+
+},{"./list":83,"./list_view":84}],83:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Document = require("substance-document");
+var DocumentNode = Document.Node;
+var Composite = Document.Composite;
+
+var List = function(node, document) {
+  Composite.call(this, node, document);
+};
+
+List.type = {
+  "id": "list",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "items": ["array", "paragraph"],
+    "ordered": "boolean"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+List.description = {
+  "name": "List",
+  "remarks": [
+    "Lists can either be numbered or bullet lists"
+  ],
+  "properties": {
+    "ordered": "Specifies wheter the list is ordered or not",
+    "items": "An array of paragraph references",
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+List.example = {
+  "type": "list",
+  "id": "list_1",
+  "items ": [
+    "paragraph_listitem_1",
+    "paragraph_listitem_2",
+  ]
+};
+
+List.Prototype = function() {
+
+  this.getLength = function() {
+    return this.properties.items.length;
+  };
+
+  this.getChildrenIds = function() {
+    return _.clone(this.items);
+  };
+
+  this.getItems = function() {
+    return _.map(this.properties.items, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+  this.getChangePosition = function(op) {
+    if (op.path[1] === "items") {
+
+      if (op.type === "update") {
+        var diff = op.diff;
+        if (diff.isInsert()) {
+          return op.diff.pos+1;
+        }
+        else if (diff.isDelete()) {
+          return op.diff.pos;
+        }
+        else if (diff.isMove()) {
+          return op.diff.target;
+        }
+      }
+      else if (op.type === "set") {
+        return this.properties.items.length-1;
+      }
+    }
+
+    return -1;
+  };
+
+  this.isMutable = function() {
+    return true;
+  };
+
+  this.insertChild = function(doc, pos, nodeId) {
+    doc.update([this.id, "items"], ["+", pos, nodeId]);
+  };
+
+  this.deleteChild = function(doc, nodeId) {
+    var pos = this.items.indexOf(nodeId);
+    doc.update([this.id, "items"], ["-", pos, nodeId]);
+    doc.delete(nodeId);
+  };
+
+  this.canJoin = function(other) {
+    return (other.type === "list");
+  };
+
+  this.isBreakable = function() {
+    return true;
+  };
+
+  this.break = function(doc, childId, charPos) {
+    var childPos = this.properties.items.indexOf(childId);
+    if (childPos < 0) {
+      throw new Error("Unknown child " + childId);
+    }
+    var child = doc.get(childId);
+    var newNode = child.break(doc, charPos);
+    doc.update([this.id, "items"], ["+", childPos+1, newNode.id]);
+    return newNode;
+  };
+
+};
+
+List.Prototype.prototype = Composite.prototype;
+List.prototype = new List.Prototype();
+List.prototype.constructor = List;
+
+DocumentNode.defineProperties(List.prototype, ["items", "ordered"]);
+
+module.exports = List;
+
+},{"substance-document":160,"underscore":175}],84:[function(require,module,exports){
+"use strict";
+
+var CompositeView = require("../composite/composite_view");
+var List = require("./list");
+
+// Substance.Image.View
+// ==========================================================================
+
+var ListView = function(node, viewFactory) {
+  CompositeView.call(this, node, viewFactory);
+};
+
+ListView.whoami = "SubstanceListView";
+
+
+ListView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    this.el.innerHTML = "";
+
+    var ltype = (this.node.ordered) ? "OL" : "UL";
+    this.content = document.createElement(ltype);
+    this.content.classList.add("content");
+
+    var i;
+
+    // dispose existing children views if called multiple times
+    for (i = 0; i < this.childrenViews.length; i++) {
+      this.childrenViews[i].dispose();
+    }
+
+    // create children views
+    var children = this.node.getNodes();
+    for (i = 0; i < children.length; i++) {
+      var child = this.node.document.get(children[i]);
+      var childView = this.viewFactory.createView(child);
+
+      var listEl;
+      if (child instanceof List) {
+        listEl = childView.render().el;
+      } else {
+        listEl = document.createElement("LI");
+        listEl.appendChild(childView.render().el);
+      }
+      this.content.appendChild(listEl);
+      this.childrenViews.push(childView);
+    }
+
+    this.el.appendChild(this.content);
+    return this;
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[0] === this.node.id && op.path[1] === "items") {
+      this.render();
+    }
+  };
+};
+
+ListView.Prototype.prototype = CompositeView.prototype;
+ListView.prototype = new ListView.Prototype();
+
+module.exports = ListView;
+
+},{"../composite/composite_view":29,"./list":83}],85:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./node"),
+  View: require("./node_view")
+};
+
+},{"./node":86,"./node_view":87}],86:[function(require,module,exports){
+"use strict";
+
+// Note: we leave the Node in `substance-document` as it is an essential part of the API.
+var Document = require("substance-document");
+
+var Node = Document.Node;
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Node.description = {
+  "name": "Node",
+  "remarks": [
+    "Abstract node type."
+  ],
+  "properties": {
+    "source_id": "Useful for document conversion where the original id of an element should be remembered.",
+  }
+};
+
+// Example
+// -------
+//
+
+module.exports = Node;
+
+},{"substance-document":160}],87:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var TextPropertyView = require("../text/text_property_view");
+
+// Substance.Node.View
+// -----------------
+
+var NodeView = function(node, viewFactory, options) {
+  View.call(this, options);
+  this.node = node;
+  this.viewFactory = viewFactory;
+  if (!viewFactory) {
+    throw new Error('Illegal argument. Argument "viewFactory" is mandatory.');
+  }
+  this.$el.addClass('content-node').addClass(node.type.replace('_', '-'));
+  this.el.dataset.id = this.node.id;
+};
+
+NodeView.Prototype = function() {
+
+  // Rendering
+  // --------
+  //
+
+  this.render = function() {
+    this.content = document.createElement("DIV");
+    this.content.classList.add("content");
+
+    this.focusHandle = document.createElement("DIV");
+    this.focusHandle.classList.add('focus-handle');
+
+    this.el.appendChild(this.content);
+    this.el.appendChild(this.focusHandle);
+    return this;
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+
+  this.createView = function(nodeId) {
+    var childNode = this.node.document.get(nodeId);
+    var view = this.viewFactory.createView(childNode);
+    return view;
+  };
+
+
+  this.createTextView = function(options) {
+    console.error('FIXME: NodeView.createTextView() is deprecated. Use NodeView.createTextPropertyView() instead.');
+    var view = this.viewFactory.createView(this.node, options, 'text');
+    return view;
+  };
+
+  this.createTextPropertyView = function(path, options) {
+    var view = new TextPropertyView(this.node.document, path, this.viewFactory, options);
+    return view;
+  };
+
+  this.renderAnnotatedText = function(path, el) {
+    var property = this.node.document.resolve(path);
+    var view = TextPropertyView.renderAnnotatedText(this.node.document, property, el, this.viewFactory);
+    return view;
+  };
+
+};
+
+NodeView.Prototype.prototype = View.prototype;
+NodeView.prototype = new NodeView.Prototype();
+
+module.exports = NodeView;
+
+},{"../text/text_property_view":108,"substance-application":149}],88:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./paragraph"),
+  View: require("./paragraph_view")
+};
+
+},{"./paragraph":89,"./paragraph_view":90}],89:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Document = require("substance-document");
+var DocumentNode = Document.Node;
+var Composite = Document.Composite;
+
+var Paragraph = function(node, document) {
+  Composite.call(this, node, document);
+};
+
+Paragraph.type = {
+  "id": "paragraph",
+  "parent": "content",
+  "properties": {
+    "children": ["array", "content"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Paragraph.description = {
+  "name": "Paragraph",
+  "remarks": [
+    "A Paragraph can have inline elements such as images."
+  ],
+  "properties": {
+    "children": "An array of content node references",
+  }
+};
+
+// Example
+// -------
+//
+
+Paragraph.example = {
+  "type": "paragraph",
+  "id": "paragraph_1",
+  "children ": [
+    "text_1",
+    "image_1",
+    "text_2"
+  ]
+};
+
+Paragraph.Prototype = function() {
+
+  this.getLength = function() {
+    return this.properties.children.length;
+  };
+
+  this.getChildrenIds = function() {
+    return _.clone(this.properties.children);
+  };
+
+  this.getChildren = function() {
+    return _.map(this.properties.children, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+};
+
+Paragraph.Prototype.prototype = Composite.prototype;
+Paragraph.prototype = new Paragraph.Prototype();
+Paragraph.prototype.constructor = Paragraph;
+
+DocumentNode.defineProperties(Paragraph.prototype, ["children"]);
+
+module.exports = Paragraph;
+
+},{"substance-document":160,"underscore":175}],90:[function(require,module,exports){
+"use strict";
+
+var CompositeView = require("../composite/composite_view");
+
+// Substance.Paragraph.View
+// ==========================================================================
+
+var ParagraphView = function(node, viewFactory) {
+  CompositeView.call(this, node, viewFactory);
+};
+
+ParagraphView.Prototype = function() {
+  
+};
+
+ParagraphView.Prototype.prototype = CompositeView.prototype;
+ParagraphView.prototype = new ParagraphView.Prototype();
+
+module.exports = ParagraphView;
+
+},{"../composite/composite_view":29}],91:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./publication_info"),
+  View: require("./publication_info_view")
+};
+
+},{"./publication_info":92,"./publication_info_view":93}],92:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var PublicationInfo = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+PublicationInfo.type = {
+  "id": "publication_info",
+  "parent": "content",
+  "properties": {
+    // history: array of { type: 'string', date: 'string'}
+    "history": [ "array", "object" ],
+    "published_on": "string",
+    "journal": "string",
+    "provider": "string",
+    "article_type": "string",
+    "keywords": ["array", "string"],
+    "research_organisms": ["array", "string"],
+    "subjects": ["array", "string"],
+    "links": ["array", "objects"],
+    "doi": "string",
+    "related_article": "string",
+    "article_info": "paragraph"
+  }
+};
+
+
+PublicationInfo.description = {
+  "name": "PublicationInfo",
+  "description": "PublicationInfo Node",
+  "remarks": [
+    "Summarizes the article's meta information. Meant to be customized by publishers"
+  ],
+  "properties": {
+    "received_on": "Submission received",
+    "accepted_on": "Paper accepted on",
+    "published_on": "Paper published on",
+    "history": "History of the submission cycle",
+    "journal": "The Journal",
+    "provider": "Who is hosting this article",
+    "article_type": "Research Article vs. Insight, vs. Correction etc.",
+    "keywords": "Article's keywords",
+    "research_organisms": "Research Organisms",
+    "subjects": "Article Subjects",
+    "doi": "Article DOI",
+    "related_article": "DOI of related article if there is any"
+  }
+};
+
+
+PublicationInfo.example = {
+  "id": "publication_info",
+  "published_on": "2012-11-13",
+  "history": [
+    { "type": "received", "date": "2012-06-20" },
+    { "type": "accepted", "date": "2012-09-05" }
+  ],
+  "journal": "eLife",
+  "provider": "eLife",
+  "article_type": "Research Article",
+  "keywords": [
+    "innate immunity",
+    "histones",
+    "lipid droplet",
+    "anti-bacterial"
+  ],
+  "research_organisms": [
+    "B. subtilis",
+    "D. melanogaster",
+    "E. coli",
+    "Mouse"
+  ],
+  "subjects": [
+    "Immunology",
+    "Microbiology and infectious disease"
+  ],
+  "doi": "http://dx.doi.org/10.7554/eLife.00003"
+};
+
+
+PublicationInfo.Prototype = function() {
+
+  this.getArticleInfo = function() {
+    return this.document.get("articleinfo");
+  };
+
+};
+
+PublicationInfo.Prototype.prototype = Document.Node.prototype;
+PublicationInfo.prototype = new PublicationInfo.Prototype();
+PublicationInfo.prototype.constructor = PublicationInfo;
+
+Document.Node.defineProperties(PublicationInfo);
+
+module.exports = PublicationInfo;
+
+},{"substance-document":160}],93:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var articleUtil = require("../../article_util");
+
+var _labels = {
+  "received": "received",
+  "accepted" : "accepted",
+  "revised": "revised",
+  "corrected": "corrected",
+  "rev-recd": "revised",
+  "rev-request": "returned for modification",
+  "published": "published",
+  "default": "updated",
+};
+
+// Lens.PublicationInfo.View
+// ==========================================================================
+
+var PublicationInfoView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+};
+
+PublicationInfoView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    // Display article meta information
+    // ----------------
+
+    var metaData = $$('.meta-data');
+
+
+    // Article Type
+    //
+
+    if (this.node.article_type) {
+      var articleTypeEl = $$('.article-type.container', {
+        children: [
+          $$('div.label', {text: "Article Type"}),
+          $$('div.value', {
+            text: this.node.article_type
+          })
+        ]
+      });
+      metaData.appendChild(articleTypeEl);
+    }
+
+    // Subject
+    //
+
+    if (this.node.subjects && this.node.subjects.length > 0) {
+      var subjectEl = $$('.subject.container', {
+        children: [
+          $$('div.label', {text: "Subject"}),
+          $$('div.value', {
+            text: this.node.subjects.join(', ')
+          })
+        ]
+      });
+      metaData.appendChild(subjectEl);
+    }
+
+    // Organisms
+    //
+
+    if (this.node.research_organisms && this.node.research_organisms.length > 0) {
+      var organismsEl = $$('.subject.container', {
+        children: [
+          $$('div.label', {text: "Organism"}),
+          $$('div.value', {
+            text: this.node.research_organisms.join(', ')
+          })
+        ]
+      });
+      metaData.appendChild(organismsEl);
+    }
+
+    // Keywords
+    //
+
+    if (this.node.keywords && this.node.keywords.length > 0) {
+      var keywordsEl = $$('.keywords.container', {
+        children: [
+          $$('div.label', {text: "Keywords"}),
+          $$('div.value', {
+            text: this.node.keywords.join(', ')
+          })
+        ]
+      });
+      metaData.appendChild(keywordsEl);
+    }
+
+    // DOI
+    //
+
+    if (this.node.doi) {
+      var doiEl = $$('.doi.container', {
+        children: [
+          $$('div.label', {text: "DOI"}),
+          $$('div.value', {
+            children: [$$('a', {href: "http://dx.doi.org/"+this.node.doi, text: this.node.doi, target: '_blank'})]
+          })
+        ]
+      });
+      metaData.appendChild(doiEl);
+    }
+
+    // Related Article
+    //
+
+    if (this.node.related_article) {
+      var relatedArticleEl = $$('.related-article.container', {
+        children: [
+          $$('div.label', {text: "Related Article"}),
+          $$('div.value', {
+            children: [$$('a', {href: this.node.related_article, text: this.node.related_article})]
+          })
+        ]
+      });
+      metaData.appendChild(relatedArticleEl);
+    }
+
+    var historyEl = this.describePublicationHistory();
+
+    metaData.appendChild(historyEl);
+
+    this.content.appendChild(metaData);
+
+    // Display article information
+    // ----------------
+
+    var articleInfo = this.node.getArticleInfo();
+
+    var articleInfoView = this.viewFactory.createView(articleInfo);
+    var articleInfoViewEl = articleInfoView.render().el;
+    this.content.appendChild(articleInfoViewEl);
+
+    return this;
+  };
+
+  // Creates an element with a narrative description of the publication history
+
+  this.describePublicationHistory = function() {
+    var datesEl = $$('.dates');
+    var i;
+
+    var dateEntries = [];
+    if (this.node.history && this.node.history.length > 0) {
+      dateEntries = dateEntries.concat(this.node.history);
+    }
+    if (this.node.published_on) {
+      dateEntries.push({
+        type: 'published',
+        date: this.node.published_on
+      });
+    }
+
+    // If there is any pub history, create a narrative following
+    // 'The article was ((<action> on <date>, )+ and) <action> on <date>'
+    // E.g.,
+    // 'This article was published on 11. Oct. 2014'
+    // 'This article was accepted on 06.05.2014, and published on 11. Oct. 2014'
+
+    if (dateEntries.length > 0) {
+      datesEl.appendChild(document.createTextNode("The article was "));
+      for (i = 0; i < dateEntries.length; i++) {
+        // conjunction with ', ' or ', and'
+        if (i > 0) {
+          datesEl.appendChild(document.createTextNode(', '));
+          if (i === dateEntries.length-1) {
+            datesEl.appendChild(document.createTextNode('and '));
+          }
+        }
+        var entry = dateEntries[i];
+        datesEl.appendChild(document.createTextNode((_labels[entry.type] || _labels.default)+ ' on '));
+        datesEl.appendChild($$('b', {
+          text: articleUtil.formatDate(entry.date)
+        }));
+      }
+      datesEl.appendChild(document.createTextNode('.'));
+    }
+
+    return datesEl;
+  };
+
+  this.dispose = function() {
+    NodeView.prototype.dispose.call(this);
+  };
+};
+
+PublicationInfoView.Prototype.prototype = NodeView.prototype;
+PublicationInfoView.prototype = new PublicationInfoView.Prototype();
+
+module.exports = PublicationInfoView;
+
+},{"../../article_util":3,"../node":85,"substance-application":149}],94:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./resource_reference.js'),
+  View: require('./resource_reference_view.js')
+};
+
+},{"./resource_reference.js":95,"./resource_reference_view.js":96}],95:[function(require,module,exports){
+
+var Document = require('substance-document');
+var Annotation = require('../annotation/annotation');
+
+var ResourceAnnotation = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+ResourceAnnotation.type = {
+  id: "resource_reference",
+  parent: "annotation",
+  properties: {
+    "target": "node"
+  }
+};
+
+ResourceAnnotation.Prototype = function() {};
+ResourceAnnotation.Prototype.prototype = Annotation.prototype;
+ResourceAnnotation.prototype = new ResourceAnnotation.Prototype();
+ResourceAnnotation.prototype.constructor = ResourceAnnotation;
+
+// Do not fragment this annotation
+ResourceAnnotation.fragmentation = Annotation.NEVER;
+
+Document.Node.defineProperties(ResourceAnnotation);
+
+module.exports = ResourceAnnotation;
+
+},{"../annotation/annotation":7,"substance-document":160}],96:[function(require,module,exports){
+"use strict";
+
+var AnnotationView = require('../annotation/annotation_view');
+
+var ResourceReferenceView = function(node, viewFactory) {
+  AnnotationView.call(this, node, viewFactory);
+  this.$el.addClass('resource-reference');
+};
+
+ResourceReferenceView.Prototype = function() {
+  this.createElement = function() {
+    var el = document.createElement('a');
+    el.setAttribute('href', '');
+    return el;
+  };
+};
+ResourceReferenceView.Prototype.prototype = AnnotationView.prototype;
+ResourceReferenceView.prototype = new ResourceReferenceView.Prototype();
+
+module.exports = ResourceReferenceView;
+
+},{"../annotation/annotation_view":8}],97:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./strong.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./strong.js":98}],98:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Strong = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Strong.type = {
+  id: "strong",
+  parent: "annotation",
+  properties: {}
+};
+
+Strong.Prototype = function() {};
+Strong.Prototype.prototype = Annotation.prototype;
+Strong.prototype = new Strong.Prototype();
+Strong.prototype.constructor = Strong;
+
+Strong.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Strong;
+
+},{"../annotation/annotation":7}],99:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./subscript.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./subscript.js":100}],100:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Subscript = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Subscript.type = {
+  id: "subscript",
+  parent: "annotation",
+  properties: {}
+};
+
+Subscript.Prototype = function() {};
+Subscript.Prototype.prototype = Annotation.prototype;
+Subscript.prototype = new Subscript.Prototype();
+Subscript.prototype.constructor = Subscript;
+
+Subscript.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Subscript;
+
+},{"../annotation/annotation":7}],101:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./superscript.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./superscript.js":102}],102:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Superscript = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Superscript.type = {
+  id: "superscript",
+  parent: "annotation",
+  properties: {}
+};
+
+Superscript.Prototype = function() {};
+Superscript.Prototype.prototype = Annotation.prototype;
+Superscript.prototype = new Superscript.Prototype();
+Superscript.prototype.constructor = Superscript;
+
+Superscript.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Superscript;
+
+},{"../annotation/annotation":7}],103:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./supplement'),
+  View: require('./supplement_view')
+};
+
+},{"./supplement":104,"./supplement_view":105}],104:[function(require,module,exports){
+var _ = require('underscore');
+
+var Document = require("substance-document");
+
+// Lens.Supplement
+// -----------------
+//
+
+var Supplement = function(node, doc) {
+  Document.Composite.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Supplement.type = {
+  "id": "supplement",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "url": "string",
+    "caption": "caption", // contains the doi
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Supplement.description = {
+  "name": "Supplement",
+  "remarks": [
+    "A Supplement entity.",
+  ],
+  "properties": {
+    "source_id": "Supplement id as it occurs in the source NLM file",
+    "label": "Supplement label",
+    "caption": "References a caption node, that has all the content",
+    "url": "URL of downloadable file"
+  }
+};
+
+// Example Supplement
+// -----------------
+//
+
+Supplement.example = {
+  "id": "supplement_1",
+  "source_id": "SD1-data",
+  "type": "supplement",
+  "label": "Supplementary file 1.",
+  "url": "http://myserver.com/myfile.pdf",
+  "caption": "caption_supplement_1"
+};
+
+
+Supplement.Prototype = function() {
+
+  this.getChildrenIds = function() {
+    var nodes = [];
+    if (this.properties.caption) {
+      nodes.push(this.properties.caption);
+    }
+    return nodes;
+  };
+
+  this.getCaption = function() {
+    if (this.properties.caption) {
+      return this.document.get(this.properties.caption);
+    } else {
+      return null;
+    }
+  };
+
+  this.getHeader = function() {
+    return this.properties.label;
+  };
+};
+
+Supplement.Prototype.prototype = Document.Composite.prototype;
+Supplement.prototype = new Supplement.Prototype();
+Supplement.prototype.constructor = Supplement;
+
+Document.Node.defineProperties(Supplement);
+
+module.exports = Supplement;
+
+},{"substance-document":160,"underscore":175}],105:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var CompositeView = require("../composite").View;
+var $$ = require("substance-application").$$;
+var ResourceView = require('../../resource_view');
+
+// Lens.Supplement.View
+// ==========================================================================
+
+var SupplementView = function(node, viewFactory, options) {
+  CompositeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+
+};
+
+SupplementView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.renderBody = function() {
+
+    this.renderChildren();
+
+    var file = $$('div.file', {
+      children: [
+        $$('a', {href: this.node.url, html: '<i class="fa fa-download"/> Download' })
+      ]
+    });
+    this.content.appendChild(file);
+  };
+};
+
+SupplementView.Prototype.prototype = CompositeView.prototype;
+SupplementView.prototype = new SupplementView.Prototype();
+SupplementView.prototype.constructor = SupplementView;
+
+module.exports = SupplementView;
+
+},{"../../resource_view":117,"../composite":30,"substance-application":149,"underscore":175}],106:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./text_node"),
+  View: require("./text_view")
+};
+
+},{"./text_node":107,"./text_view":109}],107:[function(require,module,exports){
+"use strict";
+
+// Note: Text node implementation is a built-in node type which is provided by Substance.Document
+var Document = require("substance-document");
+module.exports = Document.TextNode;
+
+},{"substance-document":160}],108:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var Fragmenter = util.Fragmenter;
+var View = require("substance-application").View;
+
+// Substance.TextPropertyView
+// -----------------
+//
+
+var TextPropertyView = function(doc, path, viewFactory, options) {
+  options = options || {};
+  options.elementType = options.elementType || 'span';
+  View.call(this, options);
+
+  this.path = path;
+  this.document = doc;
+  this.viewFactory = viewFactory;
+  this.options = options || {};
+
+  this.property = doc.resolve(this.path);
+  this.$el.addClass('text');
+  if (this.options.classes) {
+    this.$el.addClass(this.options.classes);
+  }
+};
+
+TextPropertyView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    this.el.innerHTML = "";
+    TextPropertyView.renderAnnotatedText(this.document, this.property, this.el, this.viewFactory);
+    return this;
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+
+  this.renderWithAnnotations = function(annotations) {
+    var that = this;
+    var text = this.property.get();
+    var fragment = document.createDocumentFragment();
+    var doc = this.document;
+
+    var annotationViews = [];
+
+    // this splits the text and annotations into smaller pieces
+    // which is necessary to generate proper HTML.
+    var fragmenter = new Fragmenter();
+    fragmenter.onText = function(context, text) {
+      context.appendChild(document.createTextNode(text));
+    };
+    fragmenter.onEnter = function(entry, parentContext) {
+      var anno = doc.get(entry.id);
+      var annotationView = that.viewFactory.createView(anno);
+      parentContext.appendChild(annotationView.el);
+      annotationViews.push(annotationView);
+      return annotationView.el;
+    };
+    // this calls onText and onEnter in turns...
+    fragmenter.start(fragment, text, annotations);
+
+    // allow all annotationViews to (re-)render to allow annotations with custom
+    // rendering (e.g., inline-formulas)
+    for (var i = 0; i < annotationViews.length; i++) {
+      annotationViews[i].render();
+    }
+
+    // set the content
+    this.el.innerHTML = "";
+    this.el.appendChild(fragment);
+  };
+};
+
+TextPropertyView.Prototype.prototype = View.prototype;
+TextPropertyView.prototype = new TextPropertyView.Prototype();
+
+TextPropertyView.renderAnnotatedText = function(doc, property, el, viewFactory) {
+  var fragment = window.document.createDocumentFragment();
+  var text = property.get();
+  var annotations = doc.getIndex("annotations").get(property.path);
+  // this splits the text and annotations into smaller pieces
+  // which is necessary to generate proper HTML.
+  var annotationViews = [];
+  var fragmenter = new Fragmenter();
+  fragmenter.onText = function(context, text) {
+    context.appendChild(window.document.createTextNode(text));
+  };
+  fragmenter.onEnter = function(entry, parentContext) {
+    var anno = doc.get(entry.id);
+    var annotationView = viewFactory.createView(anno);
+    parentContext.appendChild(annotationView.el);
+    annotationViews.push(annotationView);
+    return annotationView.el;
+  };
+  // this calls onText and onEnter in turns...
+  fragmenter.start(fragment, text, annotations);
+
+  // allow all annotationViews to (re-)render to allow annotations with custom
+  // rendering (e.g., inline-formulas)
+  for (var i = 0; i < annotationViews.length; i++) {
+    annotationViews[i].render();
+  }
+  // set the content
+  el.appendChild(fragment);
+};
+
+module.exports = TextPropertyView;
+},{"substance-application":149,"substance-util":167}],109:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var Fragmenter = util.Fragmenter;
+var NodeView = require('../node/node_view');
+var $$ = require("substance-application").$$;
+
+// Substance.Text.View
+// -----------------
+//
+
+var TextView = function(node, viewFactory, options) {
+  NodeView.call(this, node, viewFactory);
+
+  options = this.options = options || {};
+  this.path = options.path || [ node.id, 'content' ];
+  this.property = node.document.resolve(this.path);
+
+  this.$el.addClass('text');
+
+  if (options.classes) {
+    this.$el.addClass(options.classes);
+  }
+
+  // TODO: it would be better to implement the rendering in a TextPropertyView and
+  // make this view a real node view only
+  // remove the 'content-node' class if this is used as a property view
+  if (options.path) {
+    this.$el.removeClass('content-node');
+  }
+
+  this._annotations = {};
+};
+
+TextView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+    this.renderContent();
+    return this;
+  };
+
+  this.dispose = function() {
+    NodeView.prototype.dispose.call(this);
+  };
+
+  this.renderContent = function() {
+    this.content.innerHTML = "";
+    this._annotations = this.node.document.getIndex("annotations").get(this.path);
+    this.renderWithAnnotations(this._annotations);
+  };
+
+  this.createAnnotationElement = function(entry) {
+    if (this.options.createAnnotationElement) {
+      return this.options.createAnnotationElement.call(this, entry);
+    } else {
+      var el;
+      if (entry.type === "link") {
+        el = $$('a.annotation.'+entry.type, {
+          id: entry.id,
+          href: this.node.document.get(entry.id).url // "http://zive.at"
+        });
+      } else {
+        el = $$('span.annotation.'+entry.type, {
+          id: entry.id
+        });
+      }
+      return el;
+    }
+  };
+
+  this.renderWithAnnotations = function(annotations) {
+    var that = this;
+    var text = this.property.get();
+    var fragment = document.createDocumentFragment();
+    var doc = this.node.document;
+
+    var annotationViews = [];
+
+    // this splits the text and annotations into smaller pieces
+    // which is necessary to generate proper HTML.
+    var fragmenter = new Fragmenter();
+    fragmenter.onText = function(context, text) {
+      context.appendChild(document.createTextNode(text));
+    };
+    fragmenter.onEnter = function(entry, parentContext) {
+      var anno = doc.get(entry.id);
+      var annotationView = that.viewFactory.createView(anno);
+      parentContext.appendChild(annotationView.el);
+      annotationViews.push(annotationView);
+      return annotationView.el;
+    };
+    // this calls onText and onEnter in turns...
+    fragmenter.start(fragment, text, annotations);
+
+    // allow all annotationViews to (re-)render to allow annotations with custom
+    // rendering (e.g., inline-formulas)
+    for (var i = 0; i < annotationViews.length; i++) {
+      annotationViews[i].render();
+    }
+
+    // set the content
+    this.content.innerHTML = "";
+    this.content.appendChild(fragment);
+  };
+};
+
+TextView.Prototype.prototype = NodeView.prototype;
+TextView.prototype = new TextView.Prototype();
+
+module.exports = TextView;
+
+},{"../node/node_view":87,"substance-application":149,"substance-util":167}],110:[function(require,module,exports){
+
+module.exports = {
+  Model: require('./underline.js'),
+  View: require('../annotation/annotation_view.js')
+};
+
+},{"../annotation/annotation_view.js":8,"./underline.js":111}],111:[function(require,module,exports){
+
+var Annotation = require('../annotation/annotation');
+
+var Underline = function(node, doc) {
+  Annotation.call(this, node, doc);
+};
+
+Underline.type = {
+  id: "underline",
+  parent: "annotation",
+  properties: {}
+};
+
+Underline.Prototype = function() {};
+Underline.Prototype.prototype = Annotation.prototype;
+Underline.prototype = new Underline.Prototype();
+Underline.prototype.constructor = Underline;
+
+Underline.fragmentation = Annotation.DONT_CARE;
+
+module.exports = Underline;
+
+},{"../annotation/annotation":7}],112:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./video'),
+  View: require('./video_view')
+};
+
+},{"./video":113,"./video_view":114}],113:[function(require,module,exports){
+
+var Document = require('substance-document');
+
+// Lens.Video
+// -----------------
+//
+
+var Video = function(node, doc) {
+  Document.Node.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Video.type = {
+  "id": "video",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "url": "string",
+    "url_webm": "string",
+    "url_ogv": "string",
+    "caption": "caption",
+    "poster": "string"
+  }
+};
+
+Video.config = {
+  "zoomable": true
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Video.description = {
+  "name": "Video",
+  "remarks": [
+    "A video type intended to refer to video resources.",
+    "MP4, WebM and OGV formats are supported."
+  ],
+  "properties": {
+    "label": "Label shown in the resource header.",
+    "url": "URL to mp4 version of the video.",
+    "url_webm": "URL to WebM version of the video.",
+    "url_ogv": "URL to OGV version of the video.",
+    "poster": "Video poster image.",
+    "caption": "References a caption node, that has all the content"
+  }
+};
+
+// Example Video
+// -----------------
+//
+
+Video.example = {
+  "id": "video_1",
+  "type": "video",
+  "label": "Video 1.",
+  "url": "http://cdn.elifesciences.org/video/eLifeLensIntro2.mp4",
+  "url_webm": "http://cdn.elifesciences.org/video/eLifeLensIntro2.webm",
+  "url_ogv": "http://cdn.elifesciences.org/video/eLifeLensIntro2.ogv",
+  "poster": "http://cdn.elifesciences.org/video/eLifeLensIntro2.png",
+  // "doi": "http://dx.doi.org/10.7554/Fake.doi.003",
+  "caption": "caption_25"
+};
+
+Video.Prototype = function() {
+
+  this.getHeader = function() {
+    return this.properties.label;
+  };
+
+  this.getCaption = function() {
+    // HACK: this is not yet a real solution
+    if (this.properties.caption) {
+      return this.document.get(this.properties.caption);
+    } else {
+      return "";
+    }
+  };
+
+};
+
+Video.Prototype.prototype = Document.Node.prototype;
+Video.prototype = new Video.Prototype();
+Video.prototype.constructor = Video;
+
+Document.Node.defineProperties(Video);
+
+module.exports = Video;
+
+},{"substance-document":160}],114:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var $$ = require("substance-application").$$;
+var NodeView = require("../node").View;
+var ResourceView = require('../../resource_view');
+
+
+// Lens.Video.View
+// ==========================================================================
+
+var VideoView = function(node, viewFactory, options) {
+  NodeView.call(this, node, viewFactory);
+
+  // Mix-in
+  ResourceView.call(this, options);
+
+};
+
+
+
+VideoView.Prototype = function() {
+
+  // Mix-in
+  _.extend(this, ResourceView.prototype);
+
+  this.isZoomable = true;
+
+  this.renderBody = function() {
+
+    // Enrich with video content
+    // --------
+    //
+
+    var node = this.node;
+
+    // The actual video
+    // --------
+    //
+
+    var sources = [
+      $$('source', {
+        src: node.url,
+        type: "video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;",
+      })
+    ];
+
+    if (node.url_ogv) {
+      sources.push($$('source', {
+        src: node.url_ogv,
+        type: "video/ogg; codecs=&quot;theora, vorbis&quot;",
+      }));
+    }
+
+    if (node.url_webm) {
+      sources.push($$('source', {
+        src: node.url_webm,
+        type: "video/webm; codecs=&quot;vp8, vorbis%quot;",
+      }));
+    }
+
+    var video = $$('.video-wrapper', {
+      children: [
+        $$('video', {
+          controls: "controls",
+          poster: node.poster,
+          preload: "none",
+          // style: "background-color: black",
+          children: sources
+        })
+      ]
+    });
+
+    this.content.appendChild(video);
+
+    // The video title
+    // --------
+    //
+
+    if (node.title) {
+      this.content.appendChild($$('.title', {
+        text: node.title
+      }));
+    }
+
+    // Add caption if there is any
+    if (this.node.caption) {
+      var caption = this.createView(this.node.caption);
+      this.content.appendChild(caption.render().el);
+      this.captionView = caption;
+    }
+
+    // Add DOI link if available
+    // --------
+    //
+
+    if (node.doi) {
+      this.content.appendChild($$('.doi', {
+        children: [
+          $$('b', {text: "DOI: "}),
+          $$('a', {href: node.doi, target: "_new", text: node.doi})
+        ]
+      }));
+    }
+  };
+
+};
+
+VideoView.Prototype.prototype = NodeView.prototype;
+VideoView.prototype = new VideoView.Prototype();
+
+module.exports = VideoView;
+
+},{"../../resource_view":117,"../node":85,"substance-application":149,"underscore":175}],115:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./web_resource"),
+  View: require("../node").View
+};
+
+},{"../node":85,"./web_resource":116}],116:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require("substance-document").Node;
+
+var WebResource = function(node, doc) {
+  DocumentNode.call(this, node, doc);
+};
+
+WebResource.type = {
+  "id": "webresource",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "url": "string"
+  }
+};
+
+WebResource.description = {
+  "name": "WebResource",
+  "description": "A resource which can be accessed via URL",
+  "remarks": [
+    "This element is a parent for several other nodes such as Image."
+  ],
+  "properties": {
+    "url": "URL to a resource",
+  }
+};
+
+
+WebResource.example = {
+  "type": "webresource",
+  "id": "webresource_3",
+  "url": "http://elife.elifesciences.org/content/elife/1/e00311/F3.medium.gif"
+};
+
+WebResource.Prototype = function() {};
+
+WebResource.Prototype.prototype = DocumentNode.prototype;
+WebResource.prototype = new WebResource.Prototype();
+WebResource.prototype.constructor = WebResource;
+
+DocumentNode.defineProperties(WebResource.prototype, ["url"]);
+
+module.exports = WebResource;
+
+},{"substance-document":160}],117:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var NodeView = require("./nodes/node").View;
+var $$ = require ("substance-application").$$;
+
+var DEFAULT_OPTIONS = {
+  header: false,
+  zoom: false
+};
+
+// Note: this is only a mix-in.
+// Call this in your Prototype function:
+//     _.extend(this, ResourceView.prototype);
+//
+// You should call the constructor, and make use of `this.renderHeader()` somewhere in the render() implementation
+
+var ResourceView = function(options) {
+  this.options = _.extend({}, DEFAULT_OPTIONS, options);
+};
+
+ResourceView.Prototype = function() {
+
+  // add this to the prototype so that every class that uses this mixin has this property set
+  this.isResourceView = true;
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+    this.renderHeader();
+    this.renderBody();
+    return this;
+  };
+
+  // Rendering
+  // =============================
+  //
+
+  this.renderHeader = function() {
+    var node = this.node;
+    if (this.options.header) {
+      var headerEl = $$('.resource-header');
+      headerEl.appendChild(this.renderLabel());
+      if (this.options.zoom) {
+        headerEl.appendChild($$('a.toggle-fullscreen', {
+          "href": "#",
+          "html": "<i class=\"fa fa-expand\"></i><i class=\"fa fa-compress\"></i>",
+        }));
+      }
+      headerEl.appendChild($$('a.toggle-res.action-toggle-resource', {
+        "href": "#",
+        "html": "<i class=\"fa fa-eye\"></i><i class=\"fa fa-eye-slash\"></i>"
+      }));
+      this.headerEl = headerEl;
+      this.el.insertBefore(headerEl, this.content);
+    }
+  };
+
+  this.renderLabel = function() {
+    var labelEl = $$('a.name.action-toggle-resource', {
+      href: "#",
+      html: this.getHeader(),
+    });
+    return labelEl;
+  };
+
+  this.renderBody = function() {
+    
+  };
+
+  this.getHeader = function() {
+    return this.node.getHeader();
+  };
+};
+ResourceView.prototype = new ResourceView.Prototype();
+
+module.exports = ResourceView;
+
+},{"./nodes/node":85,"substance-application":149,"underscore":175}],118:[function(require,module,exports){
+
+var ViewFactory = function(nodeTypes, options) {
+  this.nodeTypes = nodeTypes;
+  this.options = options || {};
+};
+
+ViewFactory.Prototype = function() {
+
+  this.getNodeViewClass = function(node, type) {
+    type = type || node.type;
+    var NodeType = this.nodeTypes[type];
+    if (!NodeType) {
+      throw new Error('No node registered for type ' + type + '.')
+    }
+    var NodeView = NodeType.View;
+    if (!NodeView) {
+      throw new Error('No view registered for type "'+node.type+'".');
+    }
+    return NodeView;
+  };
+
+  this.createView = function(node, options, type) {
+    var NodeView = this.getNodeViewClass(node, type);
+    // Note: passing the factory to the node views
+    // to allow creation of nested views
+    var nodeView = new NodeView(node, this, options);
+    return nodeView;
+  };
+
+};
+
+ViewFactory.prototype = new ViewFactory.Prototype();
+
+module.exports = ViewFactory;
+
+},{}],119:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+
+var LensConverter = require('lens-converter');
+
+var ElifeConverter = function(options) {
+  LensConverter.call(this, options);
+};
+
+ElifeConverter.Prototype = function() {
+
+  var __super__ = LensConverter.prototype;
+
+  this.test = function(xmlDoc, documentUrl) {
+		var publisherName = xmlDoc.querySelector("publisher-name").textContent;
+    return publisherName === "eLife Sciences Publications, Ltd";
+  };
+
+  // Config
+  // ---------
+  //
+  // This makes sure elife-xml-version does not show up in the info panel, as it's a custom metagroup that
+  // would otherwise be considered by the converter
+
+  this.__ignoreCustomMetaNames = ["elife-xml-version"];
+
+  // Add Decision letter and author response
+  // ---------
+
+  this.enhanceArticle = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+    var heading, body;
+
+    // Decision letter (if available)
+    // -----------
+
+    var articleCommentary = article.querySelector("#SA1");
+    if (articleCommentary) {
+      heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 1,
+        content: "Article Commentary"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 2,
+        content: "Decision letter"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      body = articleCommentary.querySelector("body");
+      nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(body)));
+    }
+
+    // Author response
+    // -----------
+
+    var authorResponse = article.querySelector("#SA2");
+    if (authorResponse) {
+
+      heading = {
+        id: state.nextId("heading"),
+        type: "heading",
+        level: 2,
+        content: "Author response"
+      };
+      doc.create(heading);
+      nodes.push(heading);
+
+      body = authorResponse.querySelector("body");
+      nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(body)));
+    }
+
+    // Show them off
+    // ----------
+
+    if (nodes.length > 0) {
+      this.show(state, nodes);
+    }
+  };
+
+  this.enhanceCover = function(state, node, element) {
+    var category;
+    var dispChannel = element.querySelector("subj-group[subj-group-type=display-channel] subject").textContent;
+    try {
+      category = element.querySelector("subj-group[subj-group-type=heading] subject").textContent;
+    } catch(err) {
+      category = null;
+    }
+
+    node.breadcrumbs = [
+      { name: "eLife", url: "http://elifesciences.org/", image: "http://lens.elifesciences.org/lens-elife/styles/elife.png" },
+      { name: dispChannel, url: "http://elifesciences.org/category/"+dispChannel.replace(/ /g, '-').toLowerCase() },
+    ];
+
+    if (category) node.breadcrumbs.push( { name: category, url: "http://elifesciences.org/category/"+category.replace(/ /g, '-').toLowerCase() } );
+  };
+
+  // Resolves figure url
+  // --------
+  //
+
+  this.enhanceFigure = function(state, node, element) {
+    var graphic = element.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
+    node.url = this.resolveURL(state, url);
+  };
+
+  // Add additional information to the info view
+  // ---------
+  //
+  this.enhanceVideo = function(state, node, element) {
+    var href = element.getAttribute("xlink:href").split(".");
+    var name = href[0];
+
+    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
+    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
+    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+  };
+
+  // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
+  this.resolveURL = function(state, url) {
+    // Use absolute URL
+    if (url.match(/http:\/\//)) return url;
+
+    // Look up base url
+    var baseURL = this.getBaseURL(state);
+
+    if (baseURL) {
+      return [baseURL, url].join('');
+    } else {
+      // Use special URL resolving for production articles
+      return [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/jpg/",
+        url,
+        ".jpg"
+      ].join('');
+    }
+  };
+
+  this.enhanceSupplement = function(state, node) {
+    var baseURL = this.getBaseURL(state);
+    if (baseURL) {
+      return [baseURL, node.url].join('');
+    } else {
+      node.url = [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/suppl/",
+        node.url
+      ].join('');
+    }
+  };
+
+  this.enhancePublicationInfo = function(state) {
+    var article = state.xmlDoc.querySelector("article");
+    var articleMeta = article.querySelector("article-meta");
+
+    var publicationInfo = state.doc.get('publication_info');
+
+    // Extract research organism
+    // ------------
+    //
+
+    // <kwd-group kwd-group-type="research-organism">
+    // <title>Research organism</title>
+    // <kwd>B. subtilis</kwd>
+    // <kwd>D. melanogaster</kwd>
+    // <kwd>E. coli</kwd>
+    // <kwd>Mouse</kwd>
+    // </kwd-group>
+    var organisms = articleMeta.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd");
+
+    // Extract keywords
+    // ------------
+    //
+    // <kwd-group kwd-group-type="author-keywords">
+    //  <title>Author keywords</title>
+    //  <kwd>innate immunity</kwd>
+    //  <kwd>histones</kwd>
+    //  <kwd>lipid droplet</kwd>
+    //  <kwd>anti-bacterial</kwd>
+    // </kwd-group>
+    var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
+
+    // Extract subjects
+    // ------------
+    //
+    // <subj-group subj-group-type="heading">
+    // <subject>Immunology</subject>
+    // </subj-group>
+    // <subj-group subj-group-type="heading">
+    // <subject>Microbiology and infectious disease</subject>
+    // </subj-group>
+
+    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
+
+    // Article Type
+    //
+    // <subj-group subj-group-type="display-channel">
+    //   <subject>Research article</subject>
+    // </subj-group>
+
+    var articleType = articleMeta.querySelector("subj-group[subj-group-type=display-channel] subject");
+
+    // Extract PDF link
+    // ---------------
+    //
+    // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
+
+    var pdfURI = article.querySelector("self-uri[content-type=pdf]");
+
+    var pdfLink = [
+      "http://cdn.elifesciences.org/elife-articles/",
+      state.doc.id,
+      "/pdf/",
+      pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
+    ].join('');
+
+    // Collect Links
+    // ---------------
+
+    var links = [];
+
+    if (pdfLink) {
+      links.push({
+        url: pdfLink,
+        name: "PDF",
+        type: "pdf"
+      });
+    }
+
+    links.push({
+      url: "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml",
+      name: "Source XML",
+      type: "xml"
+    });
+
+    // Add JSON Link
+
+    links.push({
+      url: "", // will be auto generated
+      name: "Lens JSON",
+      type: "json"
+    });
+
+    publicationInfo.research_organisms = _.pluck(organisms, "textContent");
+    publicationInfo.keywords = _.pluck(keyWords, "textContent");
+    publicationInfo.subjects = _.pluck(subjects, "textContent");
+    publicationInfo.article_type = articleType ? articleType.textContent : "";
+    publicationInfo.links = links;
+
+    if (publicationInfo.related_article) publicationInfo.related_article = "http://dx.doi.org/" + publicationInfo.related_article;
+  };
+
+  this.enhanceSupplement = function(state, node) {
+    var baseURL = this.getBaseURL(state);
+    if (baseURL) {
+      return [baseURL, node.url].join('');
+    } else {
+      node.url = [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/suppl/",
+        node.url
+      ].join('');
+    }
+  };
+
+  this.enhanceVideo = function(state, node, element) {
+    var href = element.getAttribute("xlink:href").split(".");
+    var name = href[0];
+    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
+    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
+    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
+    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+  };
+
+  // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
+  this.resolveURL = function(state, url) {
+    // Use absolute URL
+    if (url.match(/http:\/\//)) return url;
+
+    // Look up base url
+    var baseURL = this.getBaseURL(state);
+
+    if (baseURL) {
+      return [baseURL, url].join('');
+    } else {
+      // Use special URL resolving for production articles
+      return [
+        "http://cdn.elifesciences.org/elife-articles/",
+        state.doc.id,
+        "/jpg/",
+        url,
+        ".jpg"
+      ].join('');
+    }
+  };
+
+  var AUTHOR_CALLOUT = /author-callout-style/;
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+    // HACK: elife specific hack: there are 'styling' annotations to annotate
+    // text in a certain color associated to one author.
+    if (type === "named-content") {
+      var contentType = element.getAttribute("content-type");
+      if (AUTHOR_CALLOUT.test(contentType)) {
+        anno.type = "author_callout";
+        anno.style = contentType;
+      }
+    }
+  };
+
+  this.showNode = function(state, node) {
+    switch(node.type) {
+    // Boxes go into the figures view if these conditions are met
+    // 1. box has a label (e.g. elife 00288)
+    case "box":
+      if (node.label) {
+        state.doc.show("figures", node.id);
+      }
+      break;
+    default:
+      __super__.showNode.apply(this, arguments);
+    }
+  };
+
+};
+
+ElifeConverter.Prototype.prototype = LensConverter.prototype;
+ElifeConverter.prototype = new ElifeConverter.Prototype();
+ElifeConverter.prototype.constructor = ElifeConverter;
+
+module.exports = ElifeConverter;
+
+},{"lens-converter":120,"substance-util":167,"underscore":175}],120:[function(require,module,exports){
+"use strict";
+
+// Generic Lens converter
+// --------------
+
+var LensConverter = require("./lens_converter");
+
+// Journal-specific implementations
+// --------------
+
+module.exports = LensConverter;
+
+},{"./lens_converter":121}],121:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+var ImporterError = errors.define("ImporterError");
+
+var NlmToLensConverter = function(options) {
+  this.options = options || NlmToLensConverter.DefaultOptions;
+};
+
+NlmToLensConverter.Prototype = function() {
+
+  this._annotationTypes = {
+    "bold": "strong",
+    "italic": "emphasis",
+    "monospace": "code",
+    "sub": "subscript",
+    "sup": "superscript",
+    "sc": "custom_annotation",
+    "underline": "underline",
+    "ext-link": "link",
+    "xref": "",
+    "email": "link",
+    "named-content": "",
+    "inline-formula": "inline-formula",
+    "uri": "link"
+  };
+
+  // mapping from xref.refType to node type
+  this._refTypeMapping = {
+    "bibr": "citation_reference",
+    "fig": "figure_reference",
+    "table": "figure_reference",
+    "supplementary-material": "figure_reference",
+    "other": "figure_reference",
+    "list": "definition_reference",
+  };
+
+  // mapping of contrib type to human readable names
+  // Can be overriden in specialized converter
+  this._contribTypeMapping = {
+    "author": "Author",
+    "author non-byline": "Author",
+    "autahor": "Author",
+    "auther": "Author",
+    "editor": "Editor",
+    "guest-editor": "Guest Editor",
+    "group-author": "Group Author",
+    "collab": "Collaborator",
+    "reviewed-by": "Reviewer",
+    "nominated-by": "Nominator",
+    "corresp": "Corresponding Author",
+    "other": "Other",
+    "assoc-editor": "Associate Editor",
+    "associate editor": "Associate Editor",
+    "series-editor": "Series Editor",
+    "contributor": "Contributor",
+    "chairman": "Chairman",
+    "monographs-editor": "Monographs Editor",
+    "contrib-author": "Contributing Author",
+    "organizer": "Organizer",
+    "chair": "Chair",
+    "discussant": "Discussant",
+    "presenter": "Presenter",
+    "guest-issue-editor": "Guest Issue Editor",
+    "participant": "Participant",
+    "translator": "Translator"
+  };
+
+  this.test = function(xmlDoc, documentUrl) {
+      return true;
+  }
+
+  this.isAnnotation = function(type) {
+    return this._annotationTypes[type] !== undefined;
+  };
+
+  this.isParagraphish = function(node) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      var el = node.childNodes[i];
+      if (el.nodeType !== Node.TEXT_NODE && !this.isAnnotation(el.tagName.toLowerCase())) return false;
+    }
+    return true;
+  };
+
+  this.test = function(xml, documentUrl) {
+    return;
+  };
+
+  // Helpers
+  // --------
+
+  this.getName = function(nameEl) {
+    if (!nameEl) return "N/A";
+    var names = [];
+
+    var surnameEl = nameEl.querySelector("surname");
+    var givenNamesEl = nameEl.querySelector("given-names");
+    var suffix = nameEl.querySelector("suffix");
+
+    if (givenNamesEl) names.push(givenNamesEl.textContent);
+    if (surnameEl) names.push(surnameEl.textContent);
+    if (suffix) return [names.join(" "), suffix.textContent].join(", ");
+
+    return names.join(" ");
+  };
+
+  this.toHtml = function(el) {
+    if (!el) return "";
+    var tmp = document.createElement("DIV");
+    tmp.appendChild(el.cloneNode(true));
+    return tmp.innerHTML;
+  };
+
+  this.mmlToHtmlString = function(el) {
+    var html = this.toHtml(el);
+    html = html.replace(/<(\/)?mml:([^>]+)>/g, "<$1$2>");
+    return html;
+  }
+
+  this.selectDirectChildren = function(scopeEl, selector) {
+    // Note: if the ':scope' pseudo class was supported by more browsers
+    // it would be the correct selector based solution.
+    // However, for now we do simple filtering.
+    var result = [];
+    var els = scopeEl.querySelectorAll(selector);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.parentElement === scopeEl) result.push(el);
+    }
+    return result;
+  };
+
+  // ### The main entry point for starting an import
+
+  this.import = function(input) {
+    var xmlDoc;
+
+    // Note: when we are using jqueries get("<file>.xml") we
+    // magically get a parsed XML document already
+    if (_.isString(input)) {
+      var parser = new DOMParser();
+      xmlDoc = parser.parseFromString(input,"text/xml");
+    } else {
+      xmlDoc = input;
+    }
+
+    this.sanitizeXML(xmlDoc);
+
+    // Creating the output Document via factore, so that it is possible to
+    // create specialized NLMImporter later which would want to instantiate
+    // a specialized Document type
+    var doc = this.createDocument();
+
+    // For debug purposes
+    window.doc = doc;
+
+    // A deliverable state which makes this importer stateless
+    var state = this.createState(xmlDoc, doc);
+
+    // Note: all other methods are called corresponding
+    return this.document(state, xmlDoc);
+  };
+
+  // Sometimes we need to deal with unconsistent XML
+  // When overwriting this function in your custom converter
+  // you can solve those issues in a preprocessing step instead of adding
+  // hacks in the main converter code
+
+  this.sanitizeXML = function(/*xmlDoc*/) {
+  };
+
+  this.createState = function(xmlDoc, doc) {
+    return new NlmToLensConverter.State(this, xmlDoc, doc);
+  };
+
+  // Overridden to create a Lens Article instance
+  this.createDocument = function() {
+    var Article = require("lens-article");
+    var doc = new Article();
+    return doc;
+  };
+
+  this.show = function(state, nodes) {
+    _.each(nodes, function(n) {
+      this.showNode(state, n);
+    }, this);
+  };
+
+  this.extractDate = function(dateEl) {
+    if (!dateEl) return null;
+
+    var year = dateEl.querySelector("year");
+    var month = dateEl.querySelector("month");
+    var day = dateEl.querySelector("day");
+
+    var res = [year.textContent];
+    if (month) res.push(month.textContent);
+    if (day) res.push(day.textContent);
+
+    return res.join("-");
+  };
+
+  this.extractPublicationInfo = function(state, article) {
+    var doc = state.doc;
+
+    var articleMeta = article.querySelector("article-meta");
+    var pubDate = articleMeta.querySelector("pub-date");
+    var history = articleMeta.querySelectorAll("history date");
+
+    // Journal title
+    //
+    var journalTitle = article.querySelector("journal-title");
+
+    // DOI
+    //
+    // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
+    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
+
+    // Related article if exists
+    //
+    // TODO: can't there be more than one?
+    var relatedArticle = article.querySelector("related-article");
+
+    // Article information
+    var articleInfo = this.extractArticleInfo(state, article);
+
+    // Create PublicationInfo node
+    // ---------------
+
+    var pubInfoNode = {
+      "id": "publication_info",
+      "type": "publication_info",
+      "published_on": this.extractDate(pubDate),
+      "journal": journalTitle ? journalTitle.textContent : "",
+      "related_article": relatedArticle ? relatedArticle.getAttribute("xlink:href") : "",
+      "doi": articleDOI ? articleDOI.textContent : "",
+      "article_info": articleInfo.id,
+      // TODO: 'article_type' should not be optional; we need to find a good default implementation
+      "article_type": "",
+      // Optional fields not covered by the default implementation
+      // Implement config.enhancePublication() to complement the data
+      // TODO: think about how we could provide good default implementations
+      "keywords": [],
+      "links": [],
+      "subjects": [],
+      "supplements": [],
+      "history": [],
+      // TODO: it seems messy to have this in the model
+      // Instead it would be cleaner to add 'custom': 'object' field
+      "research_organisms": [],
+      // TODO: this is in the schema, but seems to be unused
+      "provider": "",
+    };
+
+    for (var i = 0; i < history.length; i++) {
+      var dateEl = history[i];
+      var historyEntry = {
+        type: dateEl.getAttribute('date-type'),
+        date: this.extractDate(dateEl)
+      };
+      pubInfoNode.history.push(historyEntry);
+    }
+
+    doc.create(pubInfoNode);
+    doc.show("info", pubInfoNode.id, 0);
+
+    this.enhancePublicationInfo(state, pubInfoNode);
+  };
+
+  this.extractArticleInfo = function(state, article) {
+    // Initialize the Article Info object
+    var articleInfo = {
+      "id": "articleinfo",
+      "type": "paragraph",
+    };
+    var doc = state.doc;
+
+    var nodes = [];
+
+    // Reviewing editor
+    nodes = nodes.concat(this.extractEditor(state, article));
+    // Datasets
+    nodes = nodes.concat(this.extractDatasets(state, article));
+    // Includes meta information (such as impact statement for eLife)
+    nodes = nodes.concat(this.extractCustomMetaGroup(state, article));
+    // Acknowledgments
+    nodes = nodes.concat(this.extractAcknowledgements(state, article));
+    // License and Copyright
+    nodes = nodes.concat(this.extractCopyrightAndLicense(state, article));
+    // Notes (Footnotes + Author notes)
+    nodes = nodes.concat(this.extractNotes(state, article));
+
+    articleInfo.children = nodes;
+    doc.create(articleInfo);
+
+    return articleInfo;
+  };
+
+  // Get reviewing editor
+  // --------------
+  // TODO: it is possible to have multiple editors. This does only show the first one
+  //   However, this would be easy: just querySelectorAll and have 'Reviewing Editors' as heading when there are multiple nodes found
+
+  this.extractEditor = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var editor = article.querySelector("contrib[contrib-type=editor]");
+    if (editor) {
+      var content = [];
+
+      var name = this.getName(editor.querySelector('name'));
+      if (name) content.push(name);
+      var inst = editor.querySelector("institution");
+      if (inst) content.push(inst.textContent);
+      var country = editor.querySelector("country");
+      if (country) content.push(country.textContent);
+
+      var h1 = {
+        "type": "heading",
+        "id": state.nextId("heading"),
+        "level": 3,
+        "content": "Reviewing Editor"
+      };
+
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      var t1 = {
+        "type": "text",
+        "id": state.nextId("text"),
+        "content": content.join(", ")
+      };
+
+      doc.create(t1);
+      nodes.push(t1.id);
+    }
+    return nodes;
+  };
+
+  //
+  // Extracts major datasets
+  // -----------------------
+
+  this.extractDatasets = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var datasets = article.querySelectorAll('sec');
+    for (var i = 0;i <datasets.length;i++){
+      var data = datasets[i];
+      var type = data.getAttribute('sec-type');
+      if (type === 'datasets') {
+        var h1 = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : "Major Datasets"
+        };
+        doc.create(h1);
+        nodes.push(h1.id);
+        var ids = this.datasets(state, util.dom.getChildren(data));
+        for (var j=0;j < ids.length;j++) {
+          if (ids[j]) {
+            nodes.push(ids[j]);
+          }
+        }
+      }
+    }
+    return nodes;
+  };
+
+  var _capitalized = function(str, all) {
+    if (all) {
+      return str.split(' ').map(function(s){
+        return _capitalized(s);
+      }).join(' ');
+    } else {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  };
+
+  this.capitalized = function(str, all) {
+    return _capitalized(str, all);
+  };
+
+  //
+  // Extracts Acknowledgements
+  // -------------------------
+
+  this.extractAcknowledgements = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var acks = article.querySelectorAll("ack");
+    if (acks && acks.length > 0) {
+      _.each(acks, function(ack) {
+        var title = ack.querySelector('title');
+        var header = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : title ? this.capitalized(title.textContent.toLowerCase(), "all") : "Acknowledgements"
+        };
+        doc.create(header);
+        nodes.push(header.id);
+
+        // There may be multiple paragraphs per ack element
+        var pars = this.bodyNodes(state, util.dom.getChildren(ack), {
+          ignore: ["title"]
+        });
+        _.each(pars, function(par) {
+          nodes.push(par.id);
+        });
+      }, this);
+    }
+
+    return nodes;
+  };
+
+  //
+  // Extracts footnotes that should be shown in article info
+  // ------------------------------------------
+  //
+  // Needs to be overwritten in configuration
+
+  this.extractNotes = function(/*state, article*/) {
+    var nodes = [];
+    return nodes;
+  };
+
+  // Can be overridden by custom converter to ignore <meta-name> values.
+  // TODO: Maybe switch to a whitelisting approach, so we don't show
+  // nonsense. See HighWire implementation
+  this.__ignoreCustomMetaNames = [];
+
+  this.extractCustomMetaGroup = function(state, article) {
+    var nodeIds = [];
+    var doc = state.doc;
+
+    var customMetaEls = article.querySelectorAll('article-meta-group custom-meta');
+    if (customMetaEls.length === 0) return nodeIds;
+
+    for (var i = 0; i < customMetaEls.length; i++) {
+      var customMetaEl = customMetaEls[i];
+
+      var metaNameEl = customMetaEl.querySelector('meta-name');
+      var metaValueEl = customMetaEl.querySelector('meta-value');
+
+      if (!_.include(this.__ignoreCustomMetaNames, metaNameEl.textContent)) {
+        var header = {
+          "type" : "heading",
+          "id" : state.nextId("heading"),
+          "level" : 3,
+          "content" : ""
+        };
+        header.content = this.annotatedText(state, metaNameEl, [header.id, 'content']);
+        doc.create(header);
+        var bodyNodes = this.paragraphGroup(state, metaValueEl);
+
+        nodeIds.push(header.id);
+        nodeIds = nodeIds.concat(_.pluck(bodyNodes, 'id'));
+      }
+    }
+    return nodeIds;
+  };
+
+  //
+  // Extracts Copyright and License Information
+  // ------------------------------------------
+
+  this.extractCopyrightAndLicense = function(state, article) {
+    var nodes = [];
+    var doc = state.doc;
+
+    var license = article.querySelector("permissions");
+    if (license) {
+      var h1 = {
+        "type" : "heading",
+        "id" : state.nextId("heading"),
+        "level" : 3,
+        "content" : "Copyright & License"
+      };
+      doc.create(h1);
+      nodes.push(h1.id);
+
+      // TODO: this is quite messy. We should introduce a dedicated note for article info
+      // and do that rendering related things there, e.g., '. ' separator
+
+      var par;
+      var copyright = license.querySelector("copyright-statement");
+      if (copyright) {
+        par = this.paragraphGroup(state, copyright);
+        if (par && par.length) {
+          nodes = nodes.concat( _.map(par, function(p) { return p.id; } ) );
+          // append '.' only if there is none yet
+          if (copyright.textContent.trim().slice(-1) !== '.') {
+            // TODO: this needs to be more robust... what if there are no children
+            var textid = _.last(_.last(par).children);
+            doc.nodes[textid].content += ". ";
+          }
+        }
+      }
+      var lic = license.querySelector("license");
+      if (lic) {
+        for (var child = lic.firstElementChild; child; child = child.nextElementSibling) {
+          var type = util.dom.getNodeType(child);
+          if (type === 'p' || type === 'license-p') {
+            par = this.paragraphGroup(state, child);
+            if (par && par.length) {
+              nodes = nodes.concat( _.pluck(par, 'id') );
+            }
+          }
+        }
+      }
+    }
+
+    return nodes;
+  };
+
+  this.extractCover = function(state, article) {
+    var doc = state.doc;
+    var docNode = doc.get("document");
+    var cover = {
+      id: "cover",
+      type: "cover",
+      title: docNode.title,
+      authors: [], // docNode.authors,
+      abstract: docNode.abstract
+    };
+
+    // Create authors paragraph that has contributor_reference annotations
+    // to activate the author cards
+
+    _.each(docNode.authors, function(contributorId) {
+      var contributor = doc.get(contributorId);
+
+      var authorsPara = {
+        "id": "text_"+contributorId+"_reference",
+        "type": "text",
+        "content": contributor.name
+      };
+
+      doc.create(authorsPara);
+      cover.authors.push(authorsPara.id);
+
+      var anno = {
+        id: state.nextId("contributor_reference"),
+        type: "contributor_reference",
+        path: ["text_" + contributorId + "_reference", "content"],
+        range: [0, contributor.name.length],
+        target: contributorId
+      };
+
+      doc.create(anno);
+    }, this);
+
+    // Move to elife configuration
+    // -------------------
+    // <article-categories>
+    // <subj-group subj-group-type="display-channel">...</subj-group>
+    // <subj-group subj-group-type="heading">...</subj-group>
+    // </article-categories>
+
+    // <article-categories>
+    //   <subj-group subj-group-type="display-channel">
+    //     <subject>Research article</subject>
+    //   </subj-group>
+    //   <subj-group subj-group-type="heading">
+    //     <subject>Biophysics and structural biology</subject>
+    //   </subj-group>
+    // </article-categories>
+
+    this.enhanceCover(state, cover, article);
+
+    doc.create(cover);
+    doc.show("content", cover.id, 0);
+  };
+
+  // Note: Substance.Article supports only one author.
+  // We use the first author found in the contribGroup for the 'creator' property.
+  this.contribGroup = function(state, contribGroup) {
+    var i;
+    var contribs = contribGroup.querySelectorAll("contrib");
+    for (i = 0; i < contribs.length; i++) {
+      this.contributor(state, contribs[i]);
+    }
+    // Extract on-behalf-of element and stick it to the document
+    var doc = state.doc;
+    var onBehalfOf = contribGroup.querySelector("on-behalf-of");
+    if (onBehalfOf) doc.on_behalf_of = onBehalfOf.textContent.trim();
+  };
+
+  this.affiliation = function(state, aff) {
+    var doc = state.doc;
+
+    var institution = aff.querySelector("institution");
+    var country = aff.querySelector("country");
+    var label = aff.querySelector("label");
+    var department = aff.querySelector("addr-line named-content[content-type=department]");
+    var city = aff.querySelector("addr-line named-content[content-type=city]");
+
+    // TODO: this is a potential place for implementing a catch-bin
+    // For that, iterate all children elements and fill into properties as needed or add content to the catch-bin
+
+    var affiliationNode = {
+      id: state.nextId("affiliation"),
+      type: "affiliation",
+      source_id: aff.getAttribute("id"),
+      label: label ? label.textContent : null,
+      department: department ? department.textContent : null,
+      city: city ? city.textContent : null,
+      institution: institution ? institution.textContent : null,
+      country: country ? country.textContent: null
+    };
+    doc.create(affiliationNode);
+  };
+
+  this.contributor = function(state, contrib) {
+    var doc = state.doc;
+
+    var id = state.nextId("contributor");
+    var contribNode = {
+      id: id,
+      source_id: contrib.getAttribute("id"),
+      type: "contributor",
+      name: "",
+      affiliations: [],
+      fundings: [],
+      bio: [],
+
+      // Not yet supported... need examples
+      image: "",
+      deceased: false,
+      emails: [],
+      contribution: "",
+      members: []
+    };
+
+    // Extract contrib type
+    var contribType = contrib.getAttribute("contrib-type");
+
+    // Assign human readable version
+    contribNode["contributor_type"] = this._contribTypeMapping[contribType];
+
+    // Extract role
+    var role = contrib.querySelector("role");
+    if (role) {
+      contribNode["role"] = role.textContent;
+    }
+
+    // Search for author bio and author image
+    var bio = contrib.querySelector("bio");
+    if (bio) {
+      _.each(util.dom.getChildren(bio), function(par) {
+        var graphic = par.querySelector("graphic");
+        if (graphic) {
+          var imageUrl = graphic.getAttribute("xlink:href");
+          contribNode.image = imageUrl;
+        } else {
+          var pars = this.paragraphGroup(state, par);
+          if (pars.length > 0) {
+            contribNode.bio = [ pars[0].id ];
+          }
+        }
+      }, this);
+    }
+
+    // Deceased?
+
+    if (contrib.getAttribute("deceased") === "yes") {
+      contribNode.deceased = true;
+    }
+
+    // Extract ORCID
+    // -----------------
+    //
+    // <uri content-type="orcid" xlink:href="http://orcid.org/0000-0002-7361-560X"/>
+
+    var orcidURI = contrib.querySelector("uri[content-type=orcid]");
+    if (orcidURI) {
+      contribNode.orcid = orcidURI.getAttribute("xlink:href");
+    }
+
+    // Extracting equal contributions
+    var nameEl = contrib.querySelector("name");
+    if (nameEl) {
+      contribNode.name = this.getName(nameEl);
+    } else {
+      var collab = contrib.querySelector("collab");
+      // Assuming this is an author group
+      if (collab) {
+        contribNode.name = collab.textContent;
+      } else {
+        contribNode.name = "N/A";
+      }
+    }
+
+    this.extractContributorProperties(state, contrib, contribNode);
+
+
+    // HACK: for cases where no explicit xrefs are given per
+    // contributor we assin all available affiliations
+    if (contribNode.affiliations.length === 0) {
+      contribNode.affiliations = state.affiliations;
+    }
+
+    // HACK: if author is assigned a conflict, remove the redundant
+    // conflict entry "The authors have no competing interests to declare"
+    // This is a data-modelling problem on the end of our input XML
+    // so we need to be smart about it in the converter
+    if (contribNode.competing_interests.length > 1) {
+      contribNode.competing_interests = _.filter(contribNode.competing_interests, function(confl) {
+        return confl.indexOf("no competing") < 0;
+      });
+    }
+
+    if (contrib.getAttribute("contrib-type") === "author") {
+      doc.nodes.document.authors.push(id);
+    }
+
+    doc.create(contribNode);
+    doc.show("info", contribNode.id);
+  };
+
+  this._getEqualContribs = function (state, contrib, contribId) {
+    var result = [];
+    var refs = state.xmlDoc.querySelectorAll("xref[rid="+contribId+"]");
+    // Find xrefs within contrib elements
+    _.each(refs, function(ref) {
+      var c = ref.parentNode;
+      if (c !== contrib) result.push(this.getName(c.querySelector("name")));
+    }, this);
+    return result;
+  };
+
+  this.extractContributorProperties = function(state, contrib, contribNode) {
+    var doc = state.doc;
+
+    // Extract equal contributors
+    var equalContribs = [];
+    var compInterests = [];
+
+    // extract affiliations stored as xrefs
+    var xrefs = contrib.querySelectorAll("xref");
+    _.each(xrefs, function(xref) {
+      if (xref.getAttribute("ref-type") === "aff") {
+        var affId = xref.getAttribute("rid");
+        var affNode = doc.getNodeBySourceId(affId);
+        if (affNode) {
+          contribNode.affiliations.push(affNode.id);
+          state.used[affId] = true;
+        }
+      } else if (xref.getAttribute("ref-type") === "other") {
+        // FIXME: it seems *very* custom to interprete every 'other' that way
+        // TODO: try to find and document when this is applied
+        console.log("FIXME: please add documentation about using 'other' as indicator for extracting an awardGroup.");
+
+        var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
+        if (!awardGroup) return;
+        var fundingSource = awardGroup.querySelector("funding-source");
+        if (!fundingSource) return;
+        var awardId = awardGroup.querySelector("award-id");
+        awardId = awardId ? ", "+awardId.textContent : "";
+        // Funding source nodes are looking like this
+        //
+        // <funding-source>
+        //   National Institutes of Health
+        //   <named-content content-type="funder-id">http://dx.doi.org/10.13039/100000002</named-content>
+        // </funding-source>
+        //
+        // and we only want to display the first text node, excluding the funder id
+        var fundingSourceName = fundingSource.childNodes[0].textContent;
+        contribNode.fundings.push([fundingSourceName, awardId].join(''));
+      } else if (xref.getAttribute("ref-type") === "corresp") {
+        var correspId = xref.getAttribute("rid");
+        var corresp = state.xmlDoc.getElementById(correspId);
+        if (!corresp) return;
+        // TODO: a corresp element allows *much* more than just an email
+        // Thus, we are leaving this like untouched, so that it may be grabbed by extractAuthorNotes()
+        // state.used[correspId] = true;
+        var email = corresp.querySelector("email");
+        if (!email) return;
+        contribNode.emails.push(email.textContent);
+      } else if (xref.getAttribute("ref-type") === "fn") {
+        var fnId = xref.getAttribute("rid");
+        var fnElem = state.xmlDoc.getElementById(fnId);
+        var used = true;
+        if (fnElem) {
+          var fnType = fnElem.getAttribute("fn-type");
+          switch (fnType) {
+            case "con":
+              contribNode.contribution = fnElem.textContent;
+              break;
+            case "conflict":
+              compInterests.push(fnElem.textContent.trim());
+              break;
+            case "present-address":
+              contribNode.present_address = fnElem.querySelector("p").textContent;
+              break;
+            case "equal":
+              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
+              equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              break;
+            case "other":
+              // HACK: sometimes equal contribs are encoded as 'other' plus special id
+              console.log("FIXME: isn't fnElem.getAttribute(id) === fnId?");
+              if (fnElem.getAttribute("id").indexOf("equal-contrib")>=0) {
+                equalContribs = this._getEqualContribs(state, contrib, fnElem.getAttribute("id"));
+              } else {
+                used = false;
+              }
+              break;
+            default:
+              used = false;
+          }
+          if (used) state.used[fnId] = true;
+        }
+      } else {
+        // TODO: this is a potential place for implementing a catch-bin
+        // For that, we could push the content of the referenced element into the contrib's catch-bin
+        console.log("Skipping contrib's xref", xref.textContent);
+      }
+    }, this);
+
+    // Extract member list for person group
+    // eLife specific?
+    // ----------------
+
+    if (compInterests.length > 1) {
+      compInterests = _.filter(compInterests, function(confl) {
+        return confl.indexOf("no competing") < 0;
+      });
+    }
+
+    contribNode.competing_interests = compInterests;
+    var memberList = contrib.querySelector("xref[ref-type=other]");
+
+    if (memberList) {
+      var memberListId = memberList.getAttribute("rid");
+      var members = state.xmlDoc.querySelectorAll("#"+memberListId+" contrib");
+      contribNode.members = _.map(members, function(m) {
+        return this.getName(m.querySelector("name"));
+      }, this);
+    }
+
+    contribNode.equal_contrib = equalContribs;
+    contribNode.competing_interests = compInterests;
+  };
+
+  // Parser
+  // --------
+  // These methods are used to process XML elements in
+  // using a recursive-descent approach.
+
+
+  // ### Top-Level function that takes a full NLM tree
+  // Note: a specialized converter can derive this method and
+  // add additional pre- or post-processing.
+
+  this.document = function(state, xmlDoc) {
+    var doc = state.doc;
+    var article = xmlDoc.querySelector("article");
+    if (!article) {
+      throw new ImporterError("Expected to find an 'article' element.");
+    }
+    // recursive-descent for the main body of the article
+    this.article(state, article);
+    // post-processing:
+    this.postProcessAnnotations(state);
+    // Rebuild views to ensure consistency
+    _.each(doc.containers, function(container) {
+      container.rebuild();
+    });
+    return doc;
+  };
+
+  this.postProcessAnnotations = function(state) {
+    // Creating the annotations afterwards, to make sure
+    // that all referenced nodes are available
+    for (var i = 0; i < state.annotations.length; i++) {
+      var anno = state.annotations[i];
+      if (anno.target) {
+        var targetNode = state.doc.getNodeBySourceId(anno.target);
+        if (targetNode) {
+          anno.target = targetNode.id;
+        } else {
+          // NOTE: I've made this silent because it frequently occurs that no targetnode is
+          // available (e.g. for inline formulas)
+          // console.log("Could not lookup targetNode for annotation", anno);
+        }
+      }
+      state.doc.create(state.annotations[i]);
+    }
+  };
+
+  // Article
+  // --------
+  // Does the actual conversion.
+  //
+  // Note: this is implemented as lazy as possible (ALAP) and will be extended as demands arise.
+  //
+  // If you need such an element supported:
+  //  - add a stub to this class (empty body),
+  //  - add code to call the method to the appropriate function,
+  //  - and implement the handler here if it can be done in general way
+  //    or in your specialized importer.
+
+  this.article = function(state, article) {
+    var doc = state.doc;
+
+    // Assign id
+    var articleId = article.querySelector("article-id");
+    // Note: Substance.Article does only support one id
+    if (articleId) {
+      doc.id = articleId.textContent;
+    } else {
+      // if no id was set we create a random one
+      doc.id = util.uuid();
+    }
+
+    // Extract glossary
+    this.extractDefinitions(state, article);
+
+    // Extract authors etc.
+    this.extractAffilitations(state, article);
+    this.extractContributors(state, article);
+
+    // Same for the citations, also globally
+    this.extractCitations(state, article);
+
+    // First extract all figure-ish content, using a global approach
+    this.extractFigures(state, article);
+
+    // Make up a cover node
+    this.extractCover(state, article);
+
+    // Extract ArticleMeta
+    this.extractArticleMeta(state, article);
+
+    // Populate Publication Info node
+    this.extractPublicationInfo(state, article);
+
+    var body = article.querySelector("body");
+    if (body) {
+      this.body(state, body);
+    }
+
+    this.enhanceArticle(state, article);
+  };
+
+  this.extractDefinitions = function(state /*, article*/) {
+    var defItems = state.xmlDoc.querySelectorAll("def-item");
+
+    _.each(defItems, function(defItem) {
+      var term = defItem.querySelector("term");
+      var def = defItem.querySelector("def");
+
+      // using hwp:id as a fallback MCP articles don't have def.id set
+      var id = def.id || def.getAttribute("hwp:id") || state.nextId('definition');
+
+      var definitionNode = {
+        id: id,
+        type: "definition",
+        title: term.textContent,
+        description: def.textContent
+      };
+
+      state.doc.create(definitionNode);
+      state.doc.show("definitions", definitionNode.id);
+    });
+  };
+
+  // #### Front.ArticleMeta
+  //
+
+  this.extractArticleMeta = function(state, article) {
+    // var doc = state.doc;
+
+    var articleMeta = article.querySelector("article-meta");
+    if (!articleMeta) {
+      throw new ImporterError("Expected element: 'article-meta'");
+    }
+
+    // <article-id> Article Identifier, zero or more
+    var articleIds = articleMeta.querySelectorAll("article-id");
+    this.articleIds(state, articleIds);
+
+    // <title-group> Title Group, zero or one
+    var titleGroup = articleMeta.querySelector("title-group");
+    if (titleGroup) {
+      this.titleGroup(state, titleGroup);
+    }
+
+    // <pub-date> Publication Date, zero or more
+    var pubDates = articleMeta.querySelectorAll("pub-date");
+    this.pubDates(state, pubDates);
+
+    this.abstracts(state, articleMeta);
+
+    // Not supported yet:
+    // <trans-abstract> Translated Abstract, zero or more
+    // <kwd-group> Keyword Group, zero or more
+    // <conference> Conference Information, zero or more
+    // <counts> Counts, zero or one
+    // <custom-meta-group> Custom Metadata Group, zero or one
+  };
+
+  this.extractAffilitations = function(state, article) {
+    var affiliations =  article.querySelectorAll("aff");
+    for (var i = 0; i < affiliations.length; i++) {
+      this.affiliation(state, affiliations[i]);
+    }
+  };
+
+  this.extractContributors = function(state, article) {
+    // TODO: the spec says, that there may be any combination of
+    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
+    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
+    var contribGroup = article.querySelector("article-meta contrib-group");
+    if (contribGroup) {
+      this.contribGroup(state, contribGroup);
+    }
+
+  };
+
+  this.extractFigures = function(state, xmlDoc) {
+    // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
+    // mimetype="video"
+    var body = xmlDoc.querySelector("body");
+    var figureElements = body.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
+    var figureNodes = [];
+    var node;
+
+    for (var i = 0; i < figureElements.length; i++) {
+      var figEl = figureElements[i];
+      var type = util.dom.getNodeType(figEl);
+
+      if (type === "fig") {
+        node = this.figure(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+      else if (type === "table-wrap") {
+        node = this.tableWrap(state, figEl);
+        if (node) figureNodes.push(node);
+        // nodes = nodes.concat(this.section(state, child));
+      } else if (type === "media") {
+        node = this.video(state, figEl);
+        if (node) figureNodes.push(node);
+      } else if (type === "supplementary-material") {
+
+        node = this.supplement(state, figEl);
+        if (node) figureNodes.push(node);
+      }
+    }
+
+    // Show the figures
+    if (figureNodes.length > 0) {
+      this.show(state, figureNodes);
+    }
+  };
+
+  this.extractCitations = function(state, xmlDoc) {
+    var refList = xmlDoc.querySelector("ref-list");
+    if (refList) {
+      this.refList(state, refList);
+    }
+  };
+
+  // articleIds: array of <article-id> elements
+  this.articleIds = function(state, articleIds) {
+    var doc = state.doc;
+
+    // Note: Substance.Article does only support one id
+    if (articleIds.length > 0) {
+      doc.id = articleIds[0].textContent;
+    } else {
+      // if no id was set we create a random one
+      doc.id = util.uuid();
+    }
+  };
+
+  this.titleGroup = function(state, titleGroup) {
+    var doc = state.doc;
+    var articleTitle = titleGroup.querySelector("article-title");
+    if (articleTitle) {
+      doc.title = this.annotatedText(state, articleTitle, ['document', 'title'], {
+        ignore: ['xref']
+      });
+    }
+    // Not yet supported:
+    // <subtitle> Document Subtitle, zero or one
+  };
+
+  // Note: Substance.Article supports no publications directly.
+  // We use the first pub-date for created_at
+  this.pubDates = function(state, pubDates) {
+    var doc = state.doc;
+    if (pubDates.length > 0) {
+      var converted = this.pubDate(state, pubDates[0]);
+      doc.created_at = converted.date;
+    }
+  };
+
+  // Note: this does not follow the spec but only takes the parts as it was necessary until now
+  // TODO: implement it thoroughly
+  this.pubDate = function(state, pubDate) {
+    var day = -1;
+    var month = -1;
+    var year = -1;
+    _.each(util.dom.getChildren(pubDate), function(el) {
+      var type = util.dom.getNodeType(el);
+
+      var value = el.textContent;
+      if (type === "day") {
+        day = parseInt(value, 10);
+      } else if (type === "month") {
+        month = parseInt(value, 10);
+      } else if (type === "year") {
+        year = parseInt(value, 10);
+      }
+    }, this);
+    var date = new Date(year, month, day);
+    return {
+      date: date
+    };
+  };
+
+  this.abstracts = function(state, articleMeta) {
+    // <abstract> Abstract, zero or more
+    var abstracts = articleMeta.querySelectorAll("abstract");
+    _.each(abstracts, function(abs) {
+      this.abstract(state, abs);
+    }, this);
+  };
+
+  this.abstract = function(state, abs) {
+    var doc = state.doc;
+    var nodes = [];
+
+    var title = abs.querySelector("title");
+
+    var heading = {
+      id: state.nextId("heading"),
+      type: "heading",
+      level: 1,
+      content: title ? title.textContent : "Abstract"
+    };
+
+    doc.create(heading);
+    nodes.push(heading);
+
+    // with eLife there are abstracts having an object-id.
+    // TODO: we should store that in the model instead of dropping it
+
+    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs), {
+      ignore: ["title", "object-id"]
+    }));
+
+    if (nodes.length > 0) {
+      this.show(state, nodes);
+    }
+  };
+
+  // ### Article.Body
+  //
+
+  this.body = function(state, body) {
+    var doc = state.doc;
+    var heading = {
+      id: state.nextId("heading"),
+      type: "heading",
+      level: 1,
+      content: "Main Text"
+    };
+    doc.create(heading);
+    var nodes = [heading].concat(this.bodyNodes(state, util.dom.getChildren(body)));
+    if (nodes.length > 0) {
+      this.show(state, nodes);
+    }
+  };
+
+  this._ignoredBodyNodes = {
+    // figures and table-wraps are treated globally
+    "fig": true,
+    "table-wrap": true
+  };
+
+  // Top-level elements as they can be found in the body or
+  // in a section
+  // Note: this is also used for boxed-text elements
+  this._bodyNodes = {};
+
+  this.bodyNodes = function(state, children, options) {
+    var nodes = [], node;
+
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = util.dom.getNodeType(child);
+
+      if (this._bodyNodes[type]) {
+        var result = this._bodyNodes[type].call(this, state, child);
+        if (_.isArray(result)) {
+          nodes = nodes.concat(result);
+        } else if (result) {
+          nodes.push(result);
+        } else {
+          // skip
+        }
+      } else if (this._ignoredBodyNodes[type] || (options && options.ignore && options.ignore.indexOf(type) >= 0) ) {
+        // Note: here are some node types ignored which are
+        // processed in an extra pass (figures, tables, etc.)
+        node = this.ignoredNode(state, child, type);
+        if (node) nodes.push(node);
+      } else {
+        console.error("Node not yet supported as top-level node: " + type);
+      }
+    }
+    return nodes;
+  };
+
+  this._bodyNodes["p"] = function(state, child) {
+    return this.paragraphGroup(state, child);
+  };
+  this._bodyNodes["sec"] = function(state, child) {
+    return this.section(state, child);
+  };
+  this._bodyNodes["list"] = function(state, child) {
+    return this.list(state, child);
+  };
+  this._bodyNodes["disp-formula"] = function(state, child) {
+    return this.formula(state, child);
+  };
+  this._bodyNodes["caption"] = function(state, child) {
+    return this.caption(state, child);
+  };
+  this._bodyNodes["boxed-text"] = function(state, child) {
+    return this.boxedText(state, child);
+  };
+  this._bodyNodes["disp-quote"] = function(state, child) {
+    return this.boxedText(state, child);
+  };
+  this._bodyNodes["attrib"] = function(state, child) {
+    return this.paragraphGroup(state, child);
+  };
+  this._bodyNodes["comment"] = function(state, child) {
+    return this.comment(state, child);
+  };
+
+  // Overwirte in specific converter
+  this.ignoredNode = function(/*state, node, type*/) {
+  };
+
+  this.comment = function(/*state, comment*/) {
+    // TODO: this is not yet represented in the article data model
+    return null;
+  };
+
+  this.boxedText = function(state, box) {
+    var doc = state.doc;
+    // Assuming that there are no nested <boxed-text> elements
+    var childNodes = this.bodyNodes(state, util.dom.getChildren(box));
+    var boxId = state.nextId("box");
+    var boxNode = {
+      "type": "box",
+      "id": boxId,
+      "source_id": box.getAttribute("id"),
+      "label": "",
+      "children": _.pluck(childNodes, 'id')
+    };
+    doc.create(boxNode);
+    return boxNode;
+  };
+
+  this.datasets = function(state, datasets) {
+    var nodes = [];
+
+    for (var i=0;i<datasets.length;i++) {
+      var data = datasets[i];
+      var type = util.dom.getNodeType(data);
+      if (type === 'p') {
+        var obj = data.querySelector('related-object');
+        if (obj) {
+          nodes = nodes.concat(this.indivdata(state,obj));
+        }
+        else {
+          var par = this.paragraphGroup(state, data);
+          if (par.length > 0) nodes.push(par[0].id);
+        }
+      }
+    }
+    return nodes;
+  };
+
+  this.indivdata = function(state,indivdata) {
+    var doc = state.doc;
+
+    var p1 = {
+      "type" : "paragraph",
+      "id" : state.nextId("paragraph"),
+      "children" : []
+    };
+    var text1 = {
+      "type" : "text",
+      "id" : state.nextId("text"),
+      "content" : ""
+    };
+    p1.children.push(text1.id);
+    var input = util.dom.getChildren(indivdata);
+    for (var i = 0;i<input.length;i++) {
+      var info = input[i];
+      var type = util.dom.getNodeType(info);
+      var par;
+      if (type === "name") {
+        var children = util.dom.getChildren(info);
+        for (var j = 0;j<children.length;j++) {
+          var name = children[j];
+          if (j === 0) {
+            par = this.paragraphGroup(state,name);
+            p1.children.push(par[0].children[0]);
+          }
+          else {
+            var text2 = {
+              "type" : "text",
+              "id" : state.nextId("text"),
+              "content" : ", "
+            };
+            doc.create(text2);
+            p1.children.push(text2.id);
+            par = this.paragraphGroup(state,name);
+            p1.children.push(par[0].children[0]);
+          }
+        }
+      }
+      else {
+        par = this.paragraphGroup(state,info);
+        // Smarter null reference check?
+        if (par && par[0] && par[0].children) {
+          p1.children.push(par[0].children[0]);
+        }
+      }
+    }
+    doc.create(p1);
+    doc.create(text1);
+    return p1.id;
+  };
+
+  this.section = function(state, section) {
+    // pushing the section level to track the level for nested sections
+    state.sectionLevel++;
+
+    var doc = state.doc;
+    var children = util.dom.getChildren(section);
+    var nodes = [];
+
+    // Optional heading label
+    var label = this.selectDirectChildren(section, "label")[0];
+
+    // create a heading
+    var title = this.selectDirectChildren(section, 'title')[0];
+    if (!title) {
+      console.error("FIXME: every section should have a title", this.toHtml(section));
+    }
+
+    // Recursive Descent: get all section body nodes
+    nodes = nodes.concat(this.bodyNodes(state, children, {
+      ignore: ["title", "label"]
+    }));
+
+    if (nodes.length > 0 && title) {
+      var id = state.nextId("heading");
+      var heading = {
+        id: id,
+        source_id: section.getAttribute("id"),
+        type: "heading",
+        level: state.sectionLevel,
+        content: title ? this.annotatedText(state, title, [id, 'content']) : ""
+      };
+
+      if (label) {
+        heading.label = label.textContent;
+      }
+
+      if (heading.content.length > 0) {
+        doc.create(heading);
+        nodes.unshift(heading);
+      }
+    } else if (nodes.length === 0) {
+      console.info("NOTE: skipping section without content:", title ? title.innerHTML : "no title");
+    }
+
+    // popping the section level
+    state.sectionLevel--;
+    return nodes;
+  };
+
+  this.ignoredParagraphElements = {
+    "comment": true,
+    "supplementary-material": true,
+    "fig": true,
+    "fig-group": true,
+    "table-wrap": true,
+    "media": true
+  };
+
+  this.acceptedParagraphElements = {
+    "boxed-text": {handler: "boxedText"},
+    "list": { handler: "list" },
+    "disp-formula": { handler: "formula" },
+  };
+
+  this.inlineParagraphElements = {
+    "inline-graphic": true,
+    "inline-formula": true
+  };
+
+  // Segments children elements of a NLM <p> element
+  // into blocks grouping according to following rules:
+  // - "text", "inline-graphic", "inline-formula", and annotations
+  // - ignore comments, supplementary-materials
+  // - others are treated as singles
+  this.segmentParagraphElements = function(paragraph) {
+    var blocks = [];
+    var lastType = "";
+    var iterator = new util.dom.ChildNodeIterator(paragraph);
+
+    // first fragment the childNodes into blocks
+    while (iterator.hasNext()) {
+      var child = iterator.next();
+      var type = util.dom.getNodeType(child);
+
+      // ignore some elements
+      if (this.ignoredParagraphElements[type]) continue;
+
+      // paragraph elements
+      if (type === "text" || this.isAnnotation(type) || this.inlineParagraphElements[type]) {
+        if (lastType !== "paragraph") {
+          blocks.push({ handler: "paragraph", nodes: [] });
+          lastType = "paragraph";
+        }
+        _.last(blocks).nodes.push(child);
+        continue;
+      }
+      // other elements are treated as single blocks
+      else if (this.acceptedParagraphElements[type]) {
+        blocks.push(_.extend({node: child}, this.acceptedParagraphElements[type]));
+      }
+      lastType = type;
+    }
+    return blocks;
+  };
+
+
+  // A 'paragraph' is given a '<p>' tag
+  // An NLM <p> can contain nested elements that are represented flattened in a Substance.Article
+  // Hence, this function returns an array of nodes
+  this.paragraphGroup = function(state, paragraph) {
+    var nodes = [];
+
+    // Note: there are some elements in the NLM paragraph allowed
+    // which are flattened here. To simplify further processing we
+    // segment the children of the paragraph elements in blocks
+    var blocks = this.segmentParagraphElements(paragraph);
+
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      var node;
+      if (block.handler === "paragraph") {
+        node = this.paragraph(state, block.nodes);
+        if (node) node.source_id = paragraph.getAttribute("id");
+      } else {
+        node = this[block.handler](state, block.node);
+      }
+      if (node) nodes.push(node);
+    }
+
+    return nodes;
+  };
+
+  this.paragraph = function(state, children) {
+    var doc = state.doc;
+
+    // Reset whitespace handling at the beginning of a paragraph.
+    // I.e., whitespaces at the beginning will be removed rigorously.
+    state.skipWS = true;
+
+    var node = {
+      id: state.nextId("paragraph"),
+      type: "paragraph",
+      children: null
+    };
+    var nodes = [];
+
+    var iterator = new util.dom.ChildNodeIterator(children);
+    while (iterator.hasNext()) {
+      var child = iterator.next();
+      var type = util.dom.getNodeType(child);
+
+      // annotated text node
+      if (type === "text" || this.isAnnotation(type)) {
+        var textNode = {
+          id: state.nextId("text"),
+          type: "text",
+          content: null
+        };
+        // pushing information to the stack so that annotations can be created appropriately
+        state.stack.push({
+          path: [textNode.id, "content"]
+        });
+        // Note: this will consume as many textish elements (text and annotations)
+        // but will return when hitting the first un-textish element.
+        // In that case, the iterator will still have more elements
+        // and the loop is continued
+        // Before descending, we reset the iterator to provide the current element again.
+        var annotatedText = this._annotatedText(state, iterator.back(), { offset: 0, breakOnUnknown: true });
+
+        // Ignore empty paragraphs
+        if (annotatedText.length > 0) {
+          textNode.content = annotatedText;
+          doc.create(textNode);
+          nodes.push(textNode);
+        }
+
+        // popping the stack
+        state.stack.pop();
+      }
+
+      // inline image node
+      else if (type === "inline-graphic") {
+        var url = child.getAttribute("xlink:href");
+        var img = {
+          id: state.nextId("image"),
+          type: "image",
+          url: this.resolveURL(state, url)
+        };
+        doc.create(img);
+        nodes.push(img);
+      }
+      else if (type === "inline-formula") {
+        var formula = this.formula(state, child, "inline");
+        if (formula) {
+          nodes.push(formula);
+        }
+      }
+    }
+
+    // return if there is no content
+    if (nodes.length === 0) return null;
+
+    // FIXME: ATM we can not unwrap single nodes, as there is code relying
+    // on getting a paragraph with children
+    // // if there is only a single node, do not create a paragraph around it
+    // if (nodes.length === 1) {
+    //   return nodes[0];
+    // } else {
+    //   node.children = _.map(nodes, function(n) { return n.id; } );
+    //   doc.create(node);
+    //   return node;
+    // }
+
+    node.children = _.map(nodes, function(n) { return n.id; } );
+    doc.create(node);
+    return node;
+  };
+
+  // List type
+  // --------
+
+  this.list = function(state, list) {
+    var doc = state.doc;
+
+    var listNode = {
+      "id": state.nextId("list"),
+      "source_id": list.getAttribute("id"),
+      "type": "list",
+      "items": [],
+      "ordered": false
+    };
+
+    // TODO: better detect ordererd list types (need examples)
+    if (list.getAttribute("list-type") === "ordered") {
+      listNode.ordered = true;
+    }
+
+    var listItems = list.querySelectorAll("list-item");
+    for (var i = 0; i < listItems.length; i++) {
+      var listItem = listItems[i];
+      // Note: we do not care much about what is served as items
+      // However, we do not have complex nodes on paragraph level
+      // They will be extract as sibling items
+      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem));
+      for (var j = 0; j < nodes.length; j++) {
+        listNode.items.push(nodes[j].id);
+      }
+    }
+
+    doc.create(listNode);
+    return listNode;
+  };
+
+  // Handle <fig> element
+  // --------
+  //
+
+  this.figure = function(state, figure) {
+    var doc = state.doc;
+
+    // Top level figure node
+    var figureNode = {
+      "type": "figure",
+      "id": state.nextId("figure"),
+      "source_id": figure.getAttribute("id"),
+      "label": "Figure",
+      "url": "",
+      "caption": null
+    };
+
+    var labelEl = figure.querySelector("label");
+    if (labelEl) {
+      figureNode.label = this.annotatedText(state, labelEl, [figureNode.id, 'label']);
+    }
+
+    // Add a caption if available
+    var caption = figure.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) figureNode.caption = captionNode.id;
+    }
+
+    var attrib = figure.querySelector("attrib");
+    if (attrib) {
+      figureNode.attrib = attrib.textContent;
+    }
+
+    // Lets the configuration patch the figure node properties
+    this.enhanceFigure(state, figureNode, figure);
+    doc.create(figureNode);
+
+    return figureNode;
+  };
+
+  // Handle <supplementary-material> element
+  // --------
+  //
+  // eLife Example:
+  //
+  // <supplementary-material id="SD1-data">
+  //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
+  //   <label>Supplementary file 1.</label>
+  //   <caption>
+  //     <title>Compilation of the tables and figures (XLS).</title>
+  //     <p>This is a static version of the
+  //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
+  //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
+  //     </p>
+  //   </caption>
+  //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
+  // </supplementary-material>
+  //
+  // LB Example:
+  //
+  // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
+  //   <label>Additional material</label>
+  //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
+  // </supplementary-material>
+
+  this.supplement = function(state, supplement) {
+    var doc = state.doc;
+
+    //get supplement info
+    var label = supplement.querySelector("label");
+
+    var mediaEl = supplement.querySelector("media");
+    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
+    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
+    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
+
+    //create supplement node using file ids
+    var supplementNode = {
+      "id": state.nextId("supplement"),
+      "source_id": supplement.getAttribute("id"),
+      "type": "supplement",
+      "label": label ? label.textContent : "",
+      "url": url,
+      "caption": null
+    };
+
+    // Add a caption if available
+    var caption = supplement.querySelector("caption");
+
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) supplementNode.caption = captionNode.id;
+    }
+
+    // Let config enhance the node
+    this.enhanceSupplement(state, supplementNode, supplement);
+    doc.create(supplementNode);
+
+    return supplementNode;
+  };
+
+  // Used by Figure, Table, Video, Supplement types.
+  // --------
+
+  this.caption = function(state, caption) {
+    var doc = state.doc;
+
+    var captionNode = {
+      "id": state.nextId("caption"),
+      "source_id": caption.getAttribute("id"),
+      "type": "caption",
+      "title": "",
+      "children": []
+    };
+
+    // Titles can be annotated, thus delegate to paragraph
+    var title = caption.querySelector("title");
+    if (title) {
+      // Resolve title by delegating to the paragraph
+      var node = this.paragraph(state, title);
+      if (node) {
+        captionNode.title = node.id;
+      }
+    }
+
+    var children = [];
+    var paragraphs = caption.querySelectorAll("p");
+    _.each(paragraphs, function(p) {
+      // Only consider direct children
+      if (p.parentNode !== caption) return;
+      var node = this.paragraph(state, p);
+      if (node) children.push(node.id);
+    }, this);
+
+    captionNode.children = children;
+    doc.create(captionNode);
+
+    return captionNode;
+  };
+
+  // Example video element
+  //
+  // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
+  //   <object-id pub-id-type="doi">
+  //     10.7554/eLife.00005.013</object-id>
+  //   <label>Movie 1.</label>
+  //   <caption>
+  //     <title>Movement of GFP tag.</title>
+  //     <p>
+  //       <bold>DOI:</bold>
+  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
+  //     </p>
+  //   </caption>
+  // </media>
+
+  this.video = function(state, video) {
+    var doc = state.doc;
+    var label = video.querySelector("label").textContent;
+
+    var id = state.nextId("video");
+    var videoNode = {
+      "id": id,
+      "source_id": video.getAttribute("id"),
+      "type": "video",
+      "label": label,
+      "title": "",
+      "caption": null,
+      "poster": ""
+    };
+
+    // Add a caption if available
+    var caption = video.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) videoNode.caption = captionNode.id;
+    }
+
+    this.enhanceVideo(state, videoNode, video);
+    doc.create(videoNode);
+
+    return videoNode;
+  };
+
+  this.tableWrap = function(state, tableWrap) {
+    var doc = state.doc;
+    var label = tableWrap.querySelector("label");
+
+    var tableNode = {
+      "id": state.nextId("html_table"),
+      "source_id": tableWrap.getAttribute("id"),
+      "type": "html_table",
+      "title": "",
+      "label": label ? label.textContent : "Table",
+      "content": "",
+      "caption": null,
+      // Not supported yet ... need examples
+      footers: [],
+      // doi: "" needed?
+    };
+
+    // Note: using a DOM div element to create HTML
+    var table = tableWrap.querySelector("table");
+    if (table) {
+      tableNode.content = this.toHtml(table);
+    }
+    this.extractTableCaption(state, tableNode, tableWrap);
+
+    this.enhanceTable(state, tableNode, tableWrap);
+    doc.create(tableNode);
+    return tableNode;
+  };
+
+  this.extractTableCaption = function(state, tableNode, tableWrap) {
+    // Add a caption if available
+    var caption = tableWrap.querySelector("caption");
+    if (caption) {
+      var captionNode = this.caption(state, caption);
+      if (captionNode) tableNode.caption = captionNode.id;
+    } else {
+      console.error('caption node not found for', tableWrap);
+    }
+  };
+
+  // Formula Node Type
+  // --------
+
+  this._getFormulaData = function(formulaElement) {
+    var result = [];
+    for (var child = formulaElement.firstElementChild; child; child = child.nextElementSibling) {
+      var type = util.dom.getNodeType(child);
+      switch (type) {
+        case "graphic":
+        case "inline-graphic":
+          result.push({
+            format: 'image',
+            data: child.getAttribute('xlink:href')
+          });
+          break;
+        case "svg":
+          result.push({
+            format: "svg",
+            data: this.toHtml(child)
+          });
+          break;
+        case "mml:math":
+        case "math":
+          result.push({
+            format: "mathml",
+            data: this.mmlToHtmlString(child)
+          });
+          break;
+        case "tex-math":
+          result.push({
+            format: "latex",
+            data: child.textContent
+          });
+          break;
+        case "label":
+          // Skipping - is handled in this.formula()
+          break;
+        default:
+          console.error('Unsupported formula element of type ' + type);
+      }
+    }
+    return result;
+  };
+
+  this.formula = function(state, formulaElement, inline) {
+    var doc = state.doc;
+    var formulaNode = {
+      id: state.nextId("formula"),
+      source_id: formulaElement.getAttribute("id"),
+      type: "formula",
+      label: "",
+      inline: !!inline,
+      data: [],
+      format: [],
+    };
+    var label = formulaElement.querySelector("label");
+    if (label) formulaNode.label = label.textContent;
+    var formulaData = this._getFormulaData(formulaElement, inline);
+    for (var i = 0; i < formulaData.length; i++) {
+      formulaNode.format.push(formulaData[i].format);
+      formulaNode.data.push(formulaData[i].data);
+    }
+    doc.create(formulaNode);
+    return formulaNode;
+  };
+
+  // Citations
+  // ---------
+
+  this.citationTypes = {
+    "mixed-citation": true,
+    "element-citation": true
+  };
+
+  this.refList = function(state, refList) {
+    var refs = refList.querySelectorAll("ref");
+    for (var i = 0; i < refs.length; i++) {
+      this.ref(state, refs[i]);
+    }
+  };
+
+  this.ref = function(state, ref) {
+    var children = util.dom.getChildren(ref);
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var type = util.dom.getNodeType(child);
+
+      if (this.citationTypes[type]) {
+        this.citation(state, ref, child);
+      } else if (type === "label") {
+        // skip the label here...
+        // TODO: could we do something useful with it?
+      } else {
+        console.error("Not supported in 'ref': ", type);
+      }
+    }
+  };
+
+  // Citation
+  // ------------------
+  // NLM input example
+  //
+  // <element-citation publication-type="journal" publication-format="print">
+  // <name><surname>Llanos De La Torre Quiralte</surname>
+  // <given-names>M</given-names></name>
+  // <name><surname>Garijo Ayestaran</surname>
+  // <given-names>M</given-names></name>
+  // <name><surname>Poch Olive</surname>
+  // <given-names>ML</given-names></name>
+  // <article-title xml:lang="es">Evolucion de la mortalidad
+  // infantil de La Rioja (1980-1998)</article-title>
+  // <trans-title xml:lang="en">Evolution of the infant
+  // mortality rate in la Rioja in Spain
+  // (1980-1998)</trans-title>
+  // <source>An Esp Pediatr</source>
+  // <year>2001</year>
+  // <month>Nov</month>
+  // <volume>55</volume>
+  // <issue>5</issue>
+  // <fpage>413</fpage>
+  // <lpage>420</lpage>
+  // <comment>Figura 3, Tendencia de mortalidad infantil
+  // [Figure 3, Trends in infant mortality]; p. 418.
+  // Spanish</comment>
+  // </element-citation>
+
+  // TODO: is implemented naively, should be implemented considering the NLM spec
+  this.citation = function(state, ref, citation) {
+    var doc = state.doc;
+    var citationNode;
+    var i;
+
+    var id = state.nextId("article_citation");
+
+    // TODO: we should consider to have a more structured citation type
+    // and let the view decide how to render it instead of blobbing everything here.
+    var personGroup = citation.querySelector("person-group");
+
+    // HACK: we try to create a 'articleCitation' when there is structured
+    // content (ATM, when personGroup is present)
+    // Otherwise we create a mixed-citation taking the plain text content of the element
+    if (personGroup) {
+
+      citationNode = {
+        "id": id,
+        "source_id": ref.getAttribute("id"),
+        "type": "citation",
+        "title": "N/A",
+        "label": "",
+        "authors": [],
+        "doi": "",
+        "source": "",
+        "volume": "",
+        "fpage": "",
+        "lpage": "",
+        "citation_urls": []
+      };
+
+      var nameElements = personGroup.querySelectorAll("name");
+      for (i = 0; i < nameElements.length; i++) {
+        citationNode.authors.push(this.getName(nameElements[i]));
+      }
+
+      // Consider collab elements (treat them as authors)
+      var collabElements = personGroup.querySelectorAll("collab");
+      for (i = 0; i < collabElements.length; i++) {
+        citationNode.authors.push(collabElements[i].textContent);
+      }
+
+      var source = citation.querySelector("source");
+      if (source) citationNode.source = source.textContent;
+
+      var articleTitle = citation.querySelector("article-title");
+      if (articleTitle) {
+        citationNode.title = this.annotatedText(state, articleTitle, [id, 'title']);
+      } else {
+        var comment = citation.querySelector("comment");
+        if (comment) {
+          citationNode.title = this.annotatedText(state, comment, [id, 'title']);
+        } else {
+          // 3rd fallback -> use source
+          if (source) {
+            citationNode.title = this.annotatedText(state, source, [id, 'title']);
+          } else {
+            console.error("FIXME: this citation has no title", citation);
+          }
+        }
+      }
+
+      var volume = citation.querySelector("volume");
+      if (volume) citationNode.volume = volume.textContent;
+
+      var publisherLoc = citation.querySelector("publisher-loc");
+      if (publisherLoc) citationNode.publisher_location = publisherLoc.textContent;
+
+      var publisherName = citation.querySelector("publisher-name");
+      if (publisherName) citationNode.publisher_name = publisherName.textContent;
+
+      var fpage = citation.querySelector("fpage");
+      if (fpage) citationNode.fpage = fpage.textContent;
+
+      var lpage = citation.querySelector("lpage");
+      if (lpage) citationNode.lpage = lpage.textContent;
+
+      var year = citation.querySelector("year");
+      if (year) citationNode.year = year.textContent;
+
+      // Note: the label is child of 'ref'
+      var label = ref.querySelector("label");
+      if(label) citationNode.label = label.textContent;
+
+      var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
+      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
+    } else {
+      console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
+      return;
+      // citationNode = {
+      //   id: id,
+      //   type: "mixed_citation",
+      //   citation: citation.textContent,
+      //   doi: ""
+      // };
+    }
+
+    doc.create(citationNode);
+    doc.show("citations", id);
+
+    return citationNode;
+  };
+
+  // Article.Back
+  // --------
+
+  this.back = function(/*state, back*/) {
+    // No processing at the moment
+    return null;
+  };
+
+
+  // Annotations
+  // -----------
+
+  this.createAnnotation = function(state, el, start, end) {
+    // do not create an annotaiton if there is no range
+    if (start === end) return;
+    var type = el.tagName.toLowerCase();
+    var anno = {
+      type: "annotation",
+      path: _.last(state.stack).path,
+      range: [start, end],
+    };
+    this.addAnnotationData(state, anno, el, type);
+    this.enhanceAnnotationData(state, anno, el, type);
+
+    // assign an id after the type has been extracted to be able to create typed ids
+    anno.id = state.nextId(anno.type);
+    state.annotations.push(anno);
+  };
+
+  // Called for annotation types registered in this._annotationTypes
+  this.addAnnotationData = function(state, anno, el, type) {
+    anno.type = this._annotationTypes[type] || "annotation";
+    if (type === 'xref') {
+      this.addAnnotationDataForXref(state, anno, el);
+    } else if (type === "ext-link" || type === "uri") {
+      anno.url = el.getAttribute("xlink:href");
+      // Add 'http://' to URIs without a protocol, such as 'www.google.com'
+      // Except: Url starts with a slash, then we consider them relative
+      var extLinkType = el.getAttribute('ext-link-type') || '';
+      if ((type === "uri" || extLinkType.toLowerCase() === 'uri') && !/^\w+:\/\//.exec(anno.url) && !/^\//.exec(anno.url)) {
+        anno.url = 'http://' + anno.url;
+      } else if (extLinkType.toLowerCase() === 'doi') {
+        anno.url = ["http://dx.doi.org/", anno.url].join("");
+      }
+    } else if (type === "email") {
+      anno.url = "mailto:" + el.textContent.trim();
+    } else if (type === 'inline-graphic') {
+      anno.url = el.getAttribute("xlink:href");
+    } else if (type === 'inline-formula') {
+      var formula = this.formula(state, el, "inline");
+      anno.target = formula.id;
+    }
+  };
+
+  this.addAnnotationDataForXref = function(state, anno, el) {
+    var refType = el.getAttribute("ref-type");
+    var sourceId = el.getAttribute("rid");
+    // Default reference is a cross_reference
+    anno.type = this._refTypeMapping[refType] || "cross_reference";
+    if (sourceId) anno.target = sourceId.split(" ")[0];
+  };
+
+  // Parse annotated text
+  // --------------------
+  // Make sure you call this method only for nodes where `this.isParagraphish(node) === true`
+  //
+  this.annotatedText = function(state, node, path, options) {
+    options = options || {};
+    state.stack.push({
+      path: path,
+      ignore: options.ignore
+    });
+    var childIterator = new util.dom.ChildNodeIterator(node);
+    var text = this._annotatedText(state, childIterator, options);
+    state.stack.pop();
+    return text;
+  };
+
+  // Internal function for parsing annotated text
+  // --------------------------------------------
+  // As annotations are nested this is a bit more involved and meant for
+  // internal use only.
+  //
+  this._annotatedText = function(state, iterator, options) {
+    var plainText = "";
+
+    var charPos = (options.offset === undefined) ? 0 : options.offset;
+    var nested = !!options.nested;
+    var breakOnUnknown = !!options.breakOnUnknown;
+
+    while(iterator.hasNext()) {
+      var el = iterator.next();
+      // Plain text nodes...
+      if (el.nodeType === Node.TEXT_NODE) {
+        var text = state.acceptText(el.textContent);
+        plainText += text;
+        charPos += text.length;
+      }
+      // Annotations...
+      else {
+        var annotatedText;
+        var type = util.dom.getNodeType(el);
+        if (this.isAnnotation(type)) {
+          if (state.top().ignore.indexOf(type) < 0) {
+            var start = charPos;
+            if (this._annotationTextHandler[type]) {
+              annotatedText = this._annotationTextHandler[type].call(this, state, el, type, charPos);
+            } else {
+              annotatedText = this._getAnnotationText(state, el, type, charPos);
+            }
+            plainText += annotatedText;
+            charPos += annotatedText.length;
+            if (!state.ignoreAnnotations) {
+              this.createAnnotation(state, el, start, charPos);
+            }
+          }
+        }
+        // Unsupported...
+        else if (!breakOnUnknown) {
+          if (state.top().ignore.indexOf(type) < 0) {
+            annotatedText = this._getAnnotationText(state, el, type, charPos);
+            plainText += annotatedText;
+            charPos += annotatedText.length;
+          }
+        } else {
+          if (nested) {
+            console.error("Node not yet supported in annoted text: " + type);
+          }
+          else {
+            // on paragraph level other elements can break a text block
+            // we shift back the position and finish this call
+            iterator.back();
+            break;
+          }
+        }
+      }
+    }
+    return plainText;
+  };
+
+  // A place to register handlers to override how the text of an annotation is created.
+  // The default implementation is this._getAnnotationText() which extracts the plain text and creates
+  // nested annotations if necessary.
+  // Examples for other implementations:
+  //   - links: the label of a link may be shortened in certain cases
+  //   - inline elements: we model inline elements by a pair of annotation and a content node, and we create a custom label.
+
+  this._annotationTextHandler = {};
+
+  this._getAnnotationText = function(state, el, type, charPos) {
+    // recurse into the annotation element to collect nested annotations
+    // and the contained plain text
+    var childIterator = new util.dom.ChildNodeIterator(el);
+    var annotatedText = this._annotatedText(state, childIterator, { offset: charPos, nested: true });
+    return annotatedText;
+  };
+
+  this._annotationTextHandler['ext-link'] = function(state, el, type, charPos) {
+    var annotatedText = this._getAnnotationText(state, el, charPos);
+    // Shorten label for URL links (i.e. if label === url )
+    if (type === 'ext-link' && el.getAttribute('xlink:href') === annotatedText.trim()) {
+      annotatedText = this.shortenLinkLabel(state, annotatedText);
+    }
+    return annotatedText;
+  };
+
+  this._annotationTextHandler['inline-formula'] = function(state) {
+    return state.acceptText("{{inline-formula}}");
+  };
+
+  this.shortenLinkLabel = function(state, linkLabel) {
+    var LINK_MAX_LENGTH = 50;
+    var MARGIN = 10;
+    // The strategy is preferably to shorten the fragment after the host part, preferring the tail.
+    // If this is not possible, both parts are shortened.
+    if (linkLabel.length > LINK_MAX_LENGTH) {
+      var match = /((?:\w+:\/\/)?[\/]?[^\/]+[\/]?)(.*)/.exec(linkLabel);
+      if (!match) {
+        linkLabel = linkLabel.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + linkLabel.substring(linkLabel.length - MARGIN - 3);
+      } else {
+        var host = match[1] || '';
+        var tail = match[2] || '';
+        if (host.length > LINK_MAX_LENGTH - MARGIN) {
+          linkLabel = host.substring(0, LINK_MAX_LENGTH - MARGIN) + '...' + tail.substring(tail.length - MARGIN - 3);
+        } else {
+          var margin = Math.max(LINK_MAX_LENGTH - host.length - 3, MARGIN - 3);
+          linkLabel = host + '...' + tail.substring(tail.length - margin);
+        }
+      }
+    }
+    return linkLabel;
+  };
+
+
+  // Configureable methods
+  // -----------------
+  // 
+
+  this.getBaseURL = function(state) {
+    // Use xml:base attribute if present
+    var baseURL = state.xmlDoc.querySelector("article").getAttribute("xml:base");
+    return baseURL || state.options.baseURL;
+  };
+
+  this.enhanceArticle = function(state, article) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceCover = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  // Implements resolving of relative urls
+  this.enhanceFigure = function(state, node, element) {
+    var graphic = element.querySelector("graphic");
+    var url = graphic.getAttribute("xlink:href");
+    node.url = this.resolveURL(state, url);
+  };
+
+  this.enhancePublicationInfo = function(converter, state, article) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceSupplement = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  this.enhanceTable = function(state, node, element) {
+    // Noop - override in custom converter
+  };
+
+  // Default video resolver
+  // --------
+  //
+
+  this.enhanceVideo = function(state, node, element) {
+    var el = element.querySelector("media") || element;
+    // xlink:href example: elife00778v001.mov
+
+    var url = element.getAttribute("xlink:href");
+    var name;
+    // Just return absolute urls
+    if (url.match(/http:/)) {
+      var lastdotIdx = url.lastIndexOf(".");
+      name = url.substring(0, lastdotIdx);
+      node.url = name+".mp4";
+      node.url_ogv = name+".ogv";
+      node.url_webm = name+".webm";
+      node.poster = name+".png";
+      return;
+    } else {
+      var baseURL = this.getBaseURL(state);
+      name = url.split(".")[0];
+      node.url = baseURL+name+".mp4";
+      node.url_ogv = baseURL+name+".ogv";
+      node.url_webm = baseURL+name+".webm";
+      node.poster = baseURL+name+".png";
+    }
+  };
+
+  // Default figure url resolver
+  // --------
+  //
+  // For relative urls it uses the same basebath as the source XML
+
+  this.resolveURL = function(state, url) {
+    // Just return absolute urls
+    if (url.match(/http:/)) return url;
+    return [
+      state.options.baseURL,
+      url
+    ].join('');
+  };
+
+  this.viewMapping = {
+    // "image": "figures",
+    "box": "content",
+    "supplement": "figures",
+    "figure": "figures",
+    "html_table": "figures",
+    "video": "figures"
+  };
+
+  this.enhanceAnnotationData = function(state, anno, element, type) {
+    
+  };
+
+  this.showNode = function(state, node) {
+    var view = this.viewMapping[node.type] || "content";
+    state.doc.show(view, node.id);
+  };
+
+};
+
+NlmToLensConverter.State = function(converter, xmlDoc, doc) {
+  var self = this;
+
+  // the input xml document
+  this.xmlDoc = xmlDoc;
+
+  // the output substance document
+  this.doc = doc;
+
+  // keep track of the options
+  this.options = converter.options;
+
+  // this.config = new DefaultConfiguration();
+
+  // store annotations to be created here
+  // they will be added to the document when everything else is in place
+  this.annotations = [];
+
+  // when recursing into sub-nodes it is necessary to keep the stack
+  // of processed nodes to be able to associate other things (e.g., annotations) correctly.
+  this.stack = [];
+
+  this.sectionLevel = 1;
+
+  // Tracks all available affiliations
+  this.affiliations = [];
+
+  // an id generator for different types
+  var ids = {};
+  this.nextId = function(type) {
+    ids[type] = ids[type] || 0;
+    ids[type]++;
+    return type +"_"+ids[type];
+  };
+
+  // store ids here which have been processed already
+  this.used = {};
+
+  // Note: it happens that some XML files are edited without considering the meaning of whitespaces
+  // to increase readability.
+  // This *hack* eliminates multiple whitespaces at the begin and end of textish elements.
+  // Tabs and New Lines are eliminated completely. So with this, the preferred way to prettify your XML
+  // is to use Tabuators and New Lines. At the same time, it is not possible anymore to have soft breaks within
+  // a text.
+
+  var WS_LEFT = /^\s+/g;
+  var WS_LEFT_ALL = /^\s*/g;
+  var WS_RIGHT = /\s+$/g;
+   var WS_ALL = /\s+/g;
+  // var ALL_WS_NOTSPACE_LEFT = /^[\t\n]+/g;
+  // var ALL_WS_NOTSPACE_RIGHT = /[\t\n]+$/g;
+  var SPACE = " ";
+  var TABS_OR_NL = /[\t\n\r]+/g;
+
+  this.lastChar = "";
+  this.skipWS = false;
+
+  this.acceptText = function(text) {
+    if (!this.options.TRIM_WHITESPACES) {
+      return text;
+    }
+
+    // EXPERIMENTAL: drop all 'formatting' white-spaces (e.g., tabs and new lines)
+    // (instead of doing so only at the left and right end)
+    //text = text.replace(ALL_WS_NOTSPACE_LEFT, "");
+    //text = text.replace(ALL_WS_NOTSPACE_RIGHT, "");
+    text = text.replace(TABS_OR_NL, "");
+
+    if (this.lastChar === SPACE || this.skipWS) {
+      text = text.replace(WS_LEFT_ALL, "");
+    } else {
+      text = text.replace(WS_LEFT, SPACE);
+    }
+    // this state is only kept for one call
+    this.skipWS = false;
+
+    text = text.replace(WS_RIGHT, SPACE);
+
+    // EXPERIMENTAL: also remove white-space within
+    if (this.options.REMOVE_INNER_WS) {
+      text = text.replace(WS_ALL, SPACE);
+    }
+
+    this.lastChar = text[text.length-1] || this.lastChar;
+    return text;
+  };
+
+  this.top = function() {
+    var top = _.last(self.stack);
+    top = top || {};
+    top.ignore = top.ignore || [];
+    return top;
+  };
+};
+
+NlmToLensConverter.prototype = new NlmToLensConverter.Prototype();
+NlmToLensConverter.prototype.constructor = NlmToLensConverter;
+
+// NlmToLensConverter.DefaultConfiguration = DefaultConfiguration;
+
+NlmToLensConverter.DefaultOptions = {
+  TRIM_WHITESPACES: true,
+  REMOVE_INNER_WS: true
+};
+
+module.exports = NlmToLensConverter;
+
+},{"lens-article":4,"substance-util":167,"underscore":175}],122:[function(require,module,exports){
+
+module.exports = require('./src/lens');
+
+},{"./src/lens":125}],123:[function(require,module,exports){
+var ContainerPanel = require('./panels/container_panel');
+
+var figuresPanel = new ContainerPanel({
+  type: 'resource',
+  name: 'figures',
+  container: 'figures',
+  title: 'Figures',
+  icon: 'fa-picture-o',
+  references: ['figure_reference'],
+  zoom: true,
+});
+
+var citationsPanel = new ContainerPanel({
+  type: 'resource',
+  name: 'citations',
+  container: 'citations',
+  title: 'References',
+  icon: 'fa-link',
+  references: ['citation_reference'],
+});
+
+var definitionsPanel = new ContainerPanel({
+  type: 'resource',
+  name: 'definitions',
+  container: 'definitions',
+  title: 'Glossary',
+  icon: 'fa-book',
+  references: ['definition_reference'],
+});
+
+var infoPanel = new ContainerPanel({
+  type: 'resource',
+  name: 'info',
+  container: 'info',
+  title: 'Info',
+  icon: 'fa-info',
+  references: ['contributor_reference'],
+});
+
+module.exports = [
+  figuresPanel, citationsPanel, definitionsPanel, infoPanel
+];
+
+},{"./panels/container_panel":129}],124:[function(require,module,exports){
+
+var ToggleResourceReference = require('./workflows/toggle_resource_reference');
+var FollowCrossRefs = require('./workflows/follow_crossrefs');
+var JumpToTop = require('./workflows/jump_to_top');
+
+var workflows = [
+  new ToggleResourceReference(),
+  new FollowCrossRefs(),
+  new JumpToTop()
+];
+
+module.exports = workflows;
+
+},{"./workflows/follow_crossrefs":145,"./workflows/jump_to_top":146,"./workflows/toggle_resource_reference":147}],125:[function(require,module,exports){
+"use strict";
+
+var Application = require("substance-application");
+var LensController = require("./lens_controller");
+var LensConverter = require("lens-converter");
+var LensArticle = require("lens-article");
+var ResourcePanelViewFactory = require("./panels/resource_panel_viewfactory");
+var ReaderController = require('./reader_controller');
+var ReaderView = require('./reader_view');
+
+var Panel = require('./panels/panel');
+var PanelController = require('./panels/panel_controller');
+var PanelView = require('./panels/panel_view');
+var ContainerPanel = require('./panels/container_panel');
+var ContainerPanelController = require('./panels/container_panel_controller');
+var ContainerPanelView = require('./panels/container_panel_view');
+var Workflow = require('./workflows/workflow');
+
+var defaultPanels = require('./default_panels');
+var defaultWorkflows = require('./default_workflows');
+
+// The Lens Application
+// ========
+//
+
+var Lens = function(config) {
+  config = config || {};
+  config.routes = config.routes || this.getRoutes();
+  config.panels = config.panels || this.getPanels();
+  config.workflows = config.workflows || this.getWorkflows();
+
+  // All available converters
+  config.converters = this.getConverters(config.converterOptions);
+
+  // Note: call this after configuration, e.g., routes must be configured before
+  //   as they are used to setup a router
+  Application.call(this, config);
+
+  this.controller = config.controller || this.createController(config);
+};
+
+Lens.Prototype = function() {
+
+  this.determineDevice = function() {
+
+    // Check for devices
+    // --------
+    //
+
+    function isIOSDevice() {
+      var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+      var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+      return iPadAgent || iPodAgent;
+    }
+
+    function isIphone() {
+      var iPhoneAgent = navigator.userAgent.match(/iPhone/i) != null;
+      return true // iPhoneAgent;
+    }
+
+    function isMobile() {
+      var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+      var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+      var AndroidAgent = navigator.userAgent.match(/Android/i) != null;
+      var webOSAgent = navigator.userAgent.match(/webOS/i) != null;
+
+      return iPadAgent || iPodAgent || AndroidAgent || webOSAgent;
+    }
+
+    function isTouchDevice() {
+      return 'ontouchstart' in document.documentElement;
+    }
+
+    if (isTouchDevice()) {
+      $('#container').addClass('touchable');
+    }
+
+    if (isIOSDevice()) {
+      $('#container').addClass('ios');
+    }
+
+    if (isIphone()) {
+      $('#container').addClass('iphone');
+    }
+  };
+
+  this.start = function() {
+    Application.prototype.start.call(this);
+  };
+
+  // Start listening to routes
+  // --------
+
+  this.render = function() {
+    this.view = this.controller.createView();
+    this.$el.html(this.view.render().el);
+    this.determineDevice();
+  };
+
+  this.getRoutes = function() {
+    return Lens.getDefaultRoutes();
+  };
+
+  this.getPanels = function() {
+    return Lens.getDefaultPanels();
+  };
+
+  this.getWorkflows = function() {
+    return Lens.getDefaultWorkflows();
+  };
+
+  this.getConverters = function(converterConfig) {
+    return [ Lens.getDefaultConverter(converterConfig) ];
+  };
+
+  this.createController = function(config) {
+    return new LensController(config);
+  };
+};
+
+Lens.Prototype.prototype = Application.prototype;
+Lens.prototype = new Lens.Prototype();
+Lens.prototype.constructor = Lens;
+
+Lens.DEFAULT_ROUTES = [
+  {
+    "route": ":context/:focussedNode/:fullscreen",
+    "name": "document-focussed-fullscreen",
+    "command": "openReader"
+  },
+  {
+    "route": ":context/:focussedNode",
+    "name": "document-focussed",
+    "command": "openReader"
+  },
+  {
+    "route": ":context",
+    "name": "document-context",
+    "command": "openReader"
+  },
+  {
+    "route": "url/:url",
+    "name": "document",
+    "command": "openReader"
+  },
+  {
+    "route": "",
+    "name": "document",
+    "command": "openReader"
+  }
+];
+
+Lens.getDefaultRoutes = function() {
+  return Lens.DEFAULT_ROUTES;
+};
+
+Lens.getDefaultPanels = function() {
+  return defaultPanels.slice(0);
+};
+
+Lens.getDefaultWorkflows = function() {
+  return defaultWorkflows.slice(0);
+};
+
+Lens.getDefaultConverter = function(converterOptions) {
+  return new LensConverter(converterOptions);
+};
+
+Lens.Article = LensArticle;
+Lens.ReaderController = ReaderController;
+Lens.ReaderView = ReaderView;
+Lens.Controller = LensController;
+Lens.LensController = LensController;
+
+Lens.Panel = Panel;
+Lens.PanelController = PanelController;
+Lens.PanelView = PanelView;
+Lens.ContainerPanel = ContainerPanel;
+Lens.ContainerPanelController = ContainerPanelController;
+Lens.ContainerPanelView = ContainerPanelView;
+Lens.ResourcePanelViewFactory = ResourcePanelViewFactory;
+
+Lens.Workflow = Workflow;
+
+module.exports = Lens;
+
+},{"./default_panels":123,"./default_workflows":124,"./lens_controller":126,"./panels/container_panel":129,"./panels/container_panel_controller":130,"./panels/container_panel_view":131,"./panels/panel":138,"./panels/panel_controller":139,"./panels/panel_view":140,"./panels/resource_panel_viewfactory":141,"./reader_controller":143,"./reader_view":144,"./workflows/workflow":148,"lens-article":4,"lens-converter":120,"substance-application":149}],126:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Controller = require("substance-application").Controller;
+var LensView = require("./lens_view");
+var ReaderController = require("./reader_controller");
+var LensArticle = require("lens-article");
+var NLMConverter = require('lens-converter');
+
+// Lens.Controller
+// -----------------
+//
+// Main Application Controller
+
+var LensController = function(config) {
+  Controller.call(this);
+
+  this.config = config;
+  this.Article = config.articleClass || LensArticle;
+  this.converter = config.converter;
+  this.converters = config.converters;
+
+  this.converterOptions = _.extend({}, NLMConverter.DefaultOptions, config.converterOptions);
+
+  // Main controls
+  this.on('open:reader', this.openReader);
+};
+
+LensController.Prototype = function() {
+
+  // Initial view creation
+  // ===================================
+
+  this.createView = function() {
+    var view = new LensView(this);
+    this.view = view;
+    return view;
+  };
+
+  // After a file gets drag and dropped it will be remembered in Local Storage
+  // ---------
+
+  this.importXML = function(xmlData) {
+    var doc = this.convertDocument(xml);
+    this.createReader(doc, {
+      panel: 'toc'
+    });
+  };
+
+  // Update URL Fragment
+  // -------
+  //
+  // This will be obsolete once we have a proper router vs app state
+  // integration.
+
+  this.updatePath = function(state) {
+    var path = [];
+
+    path.push(state.panel);
+
+    if (state.focussedNode) {
+      path.push(state.focussedNode);
+    }
+
+    if (state.fullscreen) {
+      path.push('fullscreen');
+    }
+
+    window.app.router.navigate(path.join('/'), {
+      trigger: false,
+      replace: false
+    });
+  };
+
+  this.createReader = function(doc, state) {
+    var that = this;
+    // Create new reader controller instance
+    this.reader = new ReaderController(doc, state, this.config);
+    this.reader.on('state-changed', function() {
+      that.updatePath(that.reader.state);
+    });
+    this.modifyState({
+      context: 'reader'
+    });
+  };
+
+  this.convertDocument = function(data) {
+    var doc;
+    var i = 0;
+    while (!doc && i < this.converters.length) {
+      var converter = this.converters[i];
+      // First match will be used as the converter
+      if (converter.test(data, this.config.document_url)) {
+        doc = converter.import(data);
+      }
+      i += 1;
+    }
+
+    if (!doc) {
+      throw new Error("No suitable converter found for this document", data);
+    }
+
+    return doc;
+  };
+
+
+
+  this.openReader = function(panel, focussedNode, fullscreen) {
+    var that = this;
+
+    // The article view state
+    var state = {
+      panel: panel || "toc",
+      focussedNode: focussedNode,
+      fullscreen: !!fullscreen
+    };
+
+    // Already loaded?
+    if (this.reader) {
+      this.reader.modifyState(state);
+    } else if (this.config.document_url === "lens_article.xml") {
+      var doc = this.Article.describe();
+      that.createReader(doc, state);
+    } else {
+      this.trigger("loading:started", "Loading article");
+      $.get(this.config.document_url)
+      .done(function(data) {
+        var doc;
+
+        // Determine type of resource
+        if ($.isXMLDoc(data)) {
+          doc = that.convertDocument(data);
+        } else {
+          if(typeof data == 'string') data = $.parseJSON(data);
+          doc = that.Article.fromSnapshot(data);
+        }
+        // Extract headings
+        // TODO: this should be solved with an index on the document level
+        // This same code occurs in TOCView!
+        if (state.panel === "toc" && doc.getHeadings().length <= 2) {
+          state.panel = "info";
+        }
+        that.createReader(doc, state);
+      })
+      .fail(function(err) {
+        that.view.startLoading("Error during loading. Please try again.");
+        console.error(err);
+      });
+    }
+  };
+};
+
+// Exports
+// --------
+
+LensController.Prototype.prototype = Controller.prototype;
+LensController.prototype = new LensController.Prototype();
+_.extend(LensController.prototype, util.Events);
+
+module.exports = LensController;
+
+},{"./lens_view":128,"./reader_controller":143,"lens-article":4,"lens-converter":120,"substance-application":149,"substance-util":167,"underscore":175}],127:[function(require,module,exports){
+
+var _ = require('underscore');
+var Application = require('substance-application');
+var View = Application.View;
+
+// This class replaces substance-surface in a minimalistic way.
+// Substance.Surfance primarily is made for editing, which is not used in lens currently.
+// This stub implementation represents the minimal expected Surface interface for lens.
+var LensSurface = function(docCtrl, options) {
+  View.call(this, options);
+
+  this.docCtrl = docCtrl;
+  this.options = options;
+  this.document = docCtrl.getDocument();
+
+  if (this.options.viewFactory) {
+    this.viewFactory = this.options.viewFactory;
+  } else {
+    this.viewFactory = new this.document.constructor.ViewFactory(this.document.nodeTypes);
+  }
+
+  this.$el.addClass('surface');
+
+  this.$nodes = $('<div>').addClass("nodes");
+  this.$el.append(this.$nodes);
+};
+LensSurface.Prototype = function() {
+
+  this.render = function() {
+    this.$nodes.html(this.build());
+    return this;
+  };
+
+  this.findNodeView = function(nodeId) {
+    return this.el.querySelector('*[data-id='+nodeId+']');
+  };
+
+  this.build = function() {
+    var frag = document.createDocumentFragment();
+    _.each(this.nodes, function(nodeView) {
+      nodeView.dispose();
+    });
+    this.nodes = {};
+    var docNodes = this.docCtrl.container.getTopLevelNodes();
+    _.each(docNodes, function(n) {
+      var view = this.renderNodeView(n);
+      this.nodes[n.id] = view;
+      frag.appendChild(view.el);
+    }, this);
+    return frag;
+  };
+
+  this.renderNodeView = function(n) {
+    var view = this.viewFactory.createView(n, { topLevel: true });
+    view.render();
+    return view;
+  };
+
+};
+LensSurface.Prototype.prototype = View.prototype;
+LensSurface.prototype = new LensSurface.Prototype();
+LensSurface.prototype.constructor = LensSurface;
+
+module.exports = LensSurface;
+
+},{"substance-application":149,"underscore":175}],128:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+
+
+// Lens.View Constructor
+// ========
+//
+
+var LensView = function(controller) {
+  View.call(this);
+
+  this.controller = controller;
+  this.$el.attr({id: "container"});
+
+  // Handle state transitions
+  // --------
+
+  this.listenTo(this.controller, 'state-changed', this.onStateChanged);
+  this.listenTo(this.controller, 'loading:started', this.startLoading);
+
+  $(document).on('dragover', function () { return false; });
+  $(document).on('ondragend', function () { return false; });
+  $(document).on('drop', this.handleDroppedFile.bind(this));
+};
+
+LensView.Prototype = function() {
+
+
+  this.handleDroppedFile = function(/*e*/) {
+    var ctrl = this.controller;
+    var files = event.dataTransfer.files;
+    var file = files[0];
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      ctrl.importXML(e.target.result);
+    };
+
+    reader.readAsText(file);
+    return false;
+  };
+
+  // Session Event handlers
+  // --------
+  //
+
+  this.onStateChanged = function() {
+    var state = this.controller.state;
+    if (state.context === "reader") {
+      this.openReader();
+    } else {
+      console.log("Unknown application state: " + state);
+    }
+  };
+
+  this.startLoading = function(msg) {
+    if (!msg) msg = "Loading article";
+    $('.spinner-wrapper .message').html(msg);
+    $('body').addClass('loading');
+  };
+
+  this.stopLoading = function() {
+    $('body').removeClass('loading');
+  };
+
+
+  // Open the reader view
+  // ----------
+  //
+
+  this.openReader = function() {
+    var view = this.controller.reader.createView();
+    var that = this;
+
+    that.replaceMainView('reader', view);
+    that.startLoading("Typesetting");
+
+    this.$('#main').css({opacity: 0});
+
+    _.delay(function() {
+      that.stopLoading();
+      that.$('#main').css({opacity: 1});
+    }, 1000);
+  };
+
+  // Rendering
+  // ==========================================================================
+  //
+
+  this.replaceMainView = function(name, view) {
+    $('body').removeClass().addClass('current-view '+name);
+
+    if (this.mainView && this.mainView !== view) {
+      this.mainView.dispose();
+    }
+
+    this.mainView = view;
+    this.$('#main').html(view.render().el);
+  };
+
+  this.render = function() {
+    this.el.innerHTML = "";
+
+    // Browser not supported dialogue
+    // ------------
+
+    this.el.appendChild($$('.browser-not-supported', {
+      text: "Sorry, your browser is not supported.",
+      style: "display: none;"
+    }));
+
+    // Spinner
+    // ------------
+
+    this.el.appendChild($$('.spinner-wrapper', {
+      children: [
+        $$('.spinner'),
+        $$('.message', {html: 'Loading article'})
+      ]
+    }));
+
+    // Main container
+    // ------------
+
+    this.el.appendChild($$('#main'));
+    return this;
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+    if (this.mainView) this.mainView.dispose();
+  };
+};
+
+
+// Export
+// --------
+
+LensView.Prototype.prototype = View.prototype;
+LensView.prototype = new LensView.Prototype();
+
+module.exports = LensView;
+},{"substance-application":149,"underscore":175}],129:[function(require,module,exports){
+"use strict";
+
+var Panel = require('./panel');
+var ContainerPanelController = require('./container_panel_controller');
+
+var ContainerPanel = function( config ) {
+  Panel.call(this, config);
+};
+ContainerPanel.Prototype = function() {
+  this.createController = function(doc) {
+    return new ContainerPanelController(doc, this.config);
+  };
+};
+ContainerPanel.Prototype.prototype = Panel.prototype;
+ContainerPanel.prototype = new ContainerPanel.Prototype();
+
+module.exports = ContainerPanel;
+
+},{"./container_panel_controller":130,"./panel":138}],130:[function(require,module,exports){
+"use strict";
+
+var Document = require('substance-document');
+var PanelController = require('./panel_controller');
+var ResourcePanelViewFactory = require('./resource_panel_viewfactory');
+var ContainerPanelView = require('./container_panel_view');
+
+var ContainerPanelController = function( doc, config ) {
+  PanelController.call(this, doc, config);
+  this.docCtrl = new Document.Controller( doc, { view: config.container } );
+};
+ContainerPanelController.Prototype = function() {
+
+  this.createView = function() {
+    var doc = this.getDocument();
+    var viewFactory;
+    if (this.config.type === 'resource') {
+      if (this.config.createViewFactory) {
+        viewFactory = this.config.createViewFactory(doc, this.config);
+      } else {
+        viewFactory = new ResourcePanelViewFactory(doc.nodeTypes, this.config);
+      }
+    } else {
+      var DefaultViewFactory = doc.constructor.ViewFactory;
+      viewFactory = new DefaultViewFactory(doc.nodeTypes, this.config);
+    }
+    return new ContainerPanelView(this, viewFactory, this.config);
+  };
+
+  this.getContainer = function() {
+    return this.docCtrl.getContainer();
+  };
+
+};
+ContainerPanelController.Prototype.prototype = PanelController.prototype;
+ContainerPanelController.prototype = new ContainerPanelController.Prototype();
+
+module.exports = ContainerPanelController;
+
+},{"./container_panel_view":131,"./panel_controller":139,"./resource_panel_viewfactory":141,"substance-document":160}],131:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Scrollbar = require("./surface_scrollbar");
+
+var Surface = require("../lens_surface");
+var PanelView = require("./panel_view");
+
+// TODO: try to get rid of DocumentController and use the Container node instead
+var ContainerPanelView = function( panelCtrl, viewFactory, config ) {
+  PanelView.call(this, panelCtrl, config);
+
+  this.surface = new Surface( panelCtrl.docCtrl, {
+    editable: false,
+    viewFactory: viewFactory
+  });
+  this.docCtrl = panelCtrl.docCtrl;
+
+  this.scrollbar = new Scrollbar(this.surface);
+
+  this._onScroll = _.bind(this.onScroll, this);
+  this.surface.$el.on('scroll', this._onScroll );
+
+  this.surface.$el.addClass('resource-view').addClass(config.container);
+
+  this.el.appendChild(this.surface.el);
+  this.el.appendChild(this.scrollbar.el);
+
+  this.$activeResource = null;
+  this.lastScrollPos = 0;
+};
+
+ContainerPanelView.Prototype = function() {
+
+  this.render = function() {
+    // Hide the whole tab if there is no content
+    if (this.getContainer().getLength() === 0) {
+      this.hideToggle();
+      this.hide();
+    } else {
+      this.surface.render();
+      this.scrollbar.render();
+    }
+    return this;
+  };
+
+  this.getContainer = function() {
+    return this.docCtrl.container;
+  };
+
+  this.onScroll = function() {
+    this.scrollbar.onScroll();
+  };
+
+  this.hasScrollbar = function() {
+    return true;
+  };
+
+  this.scrollTo = function(nodeId) {
+    var n = this.findNodeView(nodeId);
+    if (n) {
+      var $n = $(n);
+
+      var windowHeight = $(window).height();
+      var panelHeight = this.surface.$el.height();
+      var scrollTop;
+      var mobileView = windowHeight < panelHeight
+
+      // In the mobile view we don't relative positioning / absolute.
+      // Everything is in flow of the body element.
+      // This affects how to compute the top offset of a content-node
+      // offset (dependent on scrollpos) vs position (independent of scrollpos)
+      if (mobileView) {
+        scrollTop = $(document).scrollTop();
+
+        var elTop = $n.position().top; // offset from top of panel (either panel-view or document)
+        var elHeight = $n.height();
+        var topOffset;
+
+        // Do not scroll if the element is fully visible
+        if (elTop > scrollTop && elTop < scrollTop + windowHeight) {
+          // everything fine
+          return;
+        } else {
+          topOffset = elTop;
+          $(document).scrollTop(topOffset);
+        }
+
+      } else {
+        scrollTop = this.surface.$el.scrollTop();
+        var elTop = $n.offset().top;
+        var elHeight = $n.height();
+        var topOffset;
+        // Do not scroll if the element is fully visible
+        if ((elTop > 0 && elTop + elHeight < panelHeight) || (elTop >= 0 && elTop < panelHeight)) {
+          // everything fine
+          return;
+        }
+        // In all other cases scroll to the top of the element
+        else {
+          topOffset = scrollTop + elTop;
+        }
+        this.surface.$el.scrollTop(topOffset);
+      }
+
+      this.scrollbar.update();
+    } else {
+      console.info("ContainerPanelView.scrollTo(): Unknown resource '%s'", nodeId);
+    }
+  };
+
+  this.findNodeView = function(nodeId) {
+    return this.surface.findNodeView(nodeId);
+  };
+
+  this.addHighlight = function(id, classes) {
+    PanelView.prototype.addHighlight.call(this, id, classes);
+    var node = this.getDocument().get(id);
+    if (node) this.scrollbar.addHighlight(id, classes + " " + node.type);
+  };
+
+  this.removeHighlights = function() {
+    PanelView.prototype.removeHighlights.call(this);
+    this.scrollbar.removeHighlights();
+    this.scrollbar.update();
+  };
+
+  // call this after you finsihed adding/removing highlights
+  this.update = function() {
+    this.scrollbar.update();
+  };
+
+  // Note: scrollpos recovery not working atm (only relevant to mobile view)
+  this.hide = function() {
+    if (this.hidden) return;
+    this.lastScrollPos = $(document).scrollTop();
+    PanelView.prototype.hide.call(this);
+  };
+
+  // Note: scrollpos recovery not working atm (only relevant to mobile view)
+  this.show = function() {
+    this.scrollbar.update();
+    PanelView.prototype.show.call(this);
+    $(document).scrollTop(this.lastScrollPos);
+  };
+
+};
+
+ContainerPanelView.Prototype.prototype = PanelView.prototype;
+ContainerPanelView.prototype = new ContainerPanelView.Prototype();
+ContainerPanelView.prototype.constructor = ContainerPanelView;
+
+module.exports = ContainerPanelView;
+
+},{"../lens_surface":127,"./panel_view":140,"./surface_scrollbar":142,"underscore":175}],132:[function(require,module,exports){
+"use strict";
+
+var ContainerPanel = require('../container_panel');
+var ContentPanelController = require('./content_panel_controller');
+
+var ContentPanel = function() {
+  ContainerPanel.call(this, {
+    name: "content",
+    type: "document",
+    container: "content",
+    label: 'Content',
+    title: 'Content',
+    icon: 'fa-align-left',
+  });
+};
+ContentPanel.Prototype = function() {
+  this.createController = function(doc) {
+    return new ContentPanelController(doc, this.config);
+  };
+};
+ContentPanel.Prototype.prototype = ContainerPanel.prototype;
+ContentPanel.prototype = new ContentPanel.Prototype();
+
+module.exports = ContentPanel;
+
+},{"../container_panel":129,"./content_panel_controller":133}],133:[function(require,module,exports){
+"use strict";
+
+var ContainerPanelController = require('../container_panel_controller');
+var ContentPanelView = require('./content_panel_view');
+
+var ContentPanelController = function(doc, config) {
+  ContainerPanelController.call(this, doc, config);
+};
+ContentPanelController.Prototype = function() {
+  this.createView = function() {
+    if (!this.view) {
+      var doc = this.getDocument();
+      var DefaultViewFactory = doc.constructor.ViewFactory;
+      var viewFactory = new DefaultViewFactory(doc.nodeTypes, this.config);
+      this.view = new ContentPanelView(this, viewFactory, this.config);
+    }
+    return this.view;
+  };
+};
+ContentPanelController.Prototype.prototype = ContainerPanelController.prototype;
+ContentPanelController.prototype = new ContentPanelController.Prototype();
+
+module.exports = ContentPanelController;
+
+},{"../container_panel_controller":130,"./content_panel_view":134}],134:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var ContainerPanelView = require('../container_panel_view');
+var TocPanelView = require("./toc_panel_view");
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+
+var CORRECTION = 0; // Extra offset from the top
+
+var ContentPanelView = function( panelCtrl, viewFactory, config ) {
+  ContainerPanelView.call(this, panelCtrl, viewFactory, config);
+
+  this.tocView = new TocPanelView(panelCtrl, viewFactory, _.extend({}, config, { type: 'resource', name: 'toc' }));
+
+  this._onTocItemSelected = _.bind( this.onTocItemSelected, this );
+
+  // TODO: we should provide this index 'by default', as it is required by other (node/panel) views, too
+  this.resources = panelCtrl.getDocument().addIndex('referenceByTarget', {
+    types: ["resource_reference"],
+    property: "target"
+  });
+
+  this.tocView.toc.on('toc-item-selected', this._onTocItemSelected);
+
+  this.$el.addClass('document');
+};
+
+ContentPanelView.Prototype = function() {
+
+  this.dispose = function() {
+    this.tocView.toc.off('toc-item-selected', this._onTocItemSelected);
+    this.stopListening();
+  };
+
+  this.getTocView = function() {
+    return this.tocView;
+  };
+
+  // On Scroll update outline and mark active heading
+  // --------
+  //
+
+  this.onScroll = function() {
+    var scrollTop = this.surface.$el.scrollTop();
+    this.scrollbar.update();
+    this.markActiveHeading(scrollTop);
+  };
+
+  // Jump to the given node id
+  // --------
+  //
+
+  this.onTocItemSelected = function(nodeId) {
+    var n = this.findNodeView(nodeId);
+    if (n) {
+      var topOffset = $(n).position().top+CORRECTION;
+      this.surface.$el.scrollTop(topOffset);
+    }
+  };
+
+  // Mark active heading
+  // --------
+  //
+
+  this.markActiveHeading = function(scrollTop) {
+    var contentHeight = $('.nodes').height();
+    var headings = this.getDocument().getHeadings();
+
+    // No headings?
+    if (headings.length === 0) return;
+    // Use first heading as default
+    var activeNode = _.first(headings).id;
+
+    this.$('.content-node.heading').each(function() {
+      if (scrollTop >= $(this).position().top + CORRECTION) {
+        activeNode = this.dataset.id;
+      }
+    });
+
+    // Edge case: select last item (once we reach the end of the doc)
+    if (scrollTop + this.$el.height() >= contentHeight) {
+      activeNode = _.last(headings).id;
+    }
+    this.tocView.setActiveNode(activeNode);
+  };
+
+  this.markReferencesTo = function(target) {
+    // Mark all annotations that reference the resource
+    var annotations = this.resources.get(target);
+    _.each(annotations, function(a) {
+      $(this.findNodeView(a.id)).addClass('active');
+    }, this);
+  };
+
+  this.removeHighlights = function() {
+    ContainerPanelView.prototype.removeHighlights.call(this);
+    this.$el.find('.content-node.active').removeClass('active');
+    this.$el.find('.annotation.active').removeClass('active');
+  };
+
+};
+ContentPanelView.Prototype.prototype = ContainerPanelView.prototype;
+ContentPanelView.prototype = new ContentPanelView.Prototype();
+ContentPanelView.prototype.constructor = ContentPanelView;
+
+module.exports = ContentPanelView;
+
+},{"../container_panel_view":131,"./toc_panel_view":136,"substance-data":155,"underscore":175}],135:[function(require,module,exports){
+
+module.exports = require('./content_panel');
+
+},{"./content_panel":132}],136:[function(require,module,exports){
+"use strict";
+
+var TOCView = require("./toc_view");
+var PanelView = require("../panel_view");
+
+var TocPanelView = function( panelCtrl, viewFactory, config ) {
+  PanelView.call(this, panelCtrl, config);
+  this.toc = new TOCView(panelCtrl.getDocument(), viewFactory);
+};
+TocPanelView.Prototype = function() {
+
+  this.render = function() {
+    this.el.appendChild(this.toc.render().el);
+    return this;
+  };
+
+  // Delegate
+  this.setActiveNode = function(nodeId) {
+    this.toc.setActiveNode(nodeId);
+  };
+
+  this.onToggle = function(e) {
+    this.trigger('toggle', "toc");
+    e.preventDefault();
+    e.stopPropagation();
+  };
+};
+TocPanelView.Prototype.prototype = PanelView.prototype;
+TocPanelView.prototype = new TocPanelView.Prototype();
+TocPanelView.prototype.constructor = TocPanelView;
+
+module.exports =  TocPanelView;
+
+},{"../panel_view":140,"./toc_view":137}],137:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+var _ = require("underscore");
+
+// Substance.TOC.View
+// ==========================================================================
+
+var TOCView = function(doc, viewFactory) {
+  View.call(this);
+  this.doc = doc;
+  this.viewFactory = viewFactory;
+  this.$el.addClass("toc");
+};
+
+TOCView.Prototype = function() {
+
+  // Renderer
+  // --------
+
+  this.render = function() {
+    var lastLevel = -1;
+    var tocNodes = this.doc.getTocNodes();
+    // don't render if only 2 sections
+    // TODO: this should be decided by the toc panel
+    if (tocNodes.length < 2) return this;
+
+    _.each(tocNodes, function(node) {
+      var nodeView = this.viewFactory.createView(node);
+      var level = node.getLevel();
+      if (level === -1) {
+        level = lastLevel + 1;
+      } else {
+        lastLevel = level;
+      }
+      var el = nodeView.renderTocItem();
+      var $el = $(el);
+      el.id = "toc_"+node.id;
+      // TODO: change 'heading-ref' to 'toc-node'
+      $el.addClass('heading-ref');
+      $el.addClass('level-' + level);
+      $el.click( _.bind( this.onClick, this, node.id ) );
+      this.el.appendChild(el);
+    }, this);
+
+    return this;
+  };
+
+  // Renderer
+  // --------
+  //
+
+  this.setActiveNode = function(nodeId) {
+    this.$('.heading-ref.active').removeClass('active');
+    this.$('#toc_'+nodeId).addClass('active');
+  };
+
+  this.onClick = function(headingId) {
+    this.trigger('toc-item-selected', headingId)
+  };
+};
+
+TOCView.Prototype.prototype = View.prototype;
+TOCView.prototype = new TOCView.Prototype();
+
+module.exports = TOCView;
+
+},{"substance-application":149,"substance-data":155,"underscore":175}],138:[function(require,module,exports){
+"use strict";
+
+var Panel = function(config) {
+  this.config = config;
+  this.config.label = config.title;
+};
+
+Panel.Prototype = function() {
+
+  /* jshint unused:false */
+
+  this.createController = function(doc) {
+    throw new Error("this method is abstract");
+  };
+
+  this.getName = function() {
+    return this.config.name;
+  };
+
+  this.getConfig = function() {
+    return this.config;
+  };
+
+};
+Panel.prototype = new Panel.Prototype();
+Panel.prototype.constructor = Panel;
+
+module.exports = Panel;
+
+},{}],139:[function(require,module,exports){
+"use strict";
+var Controller = require("substance-application").Controller;
+var _ = require("underscore");
+var util = require("substance-util");
+
+
+// Panel.Controller
+// -----------------
+//
+// Controls a panel
+
+var PanelController = function(document, config) {
+  this.document = document;
+  this.config = config;
+};
+
+PanelController.Prototype = function() {
+  var __super__ = Controller.prototype;
+
+  this.createView = function() {
+    throw new Error("this is an abstract method");
+  };
+
+  this.getConfig = function() {
+    return this.config;
+  };
+
+  this.getName = function() {
+    return this.config.name;
+  };
+
+  this.getDocument = function() {
+    return this.document;
+  };
+
+};
+
+PanelController.Prototype.prototype = Controller.prototype;
+PanelController.prototype = new PanelController.Prototype();
+
+module.exports = PanelController;
+
+},{"substance-application":149,"substance-util":167,"underscore":175}],140:[function(require,module,exports){
+var _ = require('underscore');
+
+var Application = require("substance-application");
+var $$ = Application.$$;
+var View = Application.View;
+
+var PanelView = function(panelController, config) {
+  View.call(this);
+
+  this.controller = panelController;
+  this.config = config;
+  this.doc = panelController.getDocument();
+
+  this.name = config.name;
+
+  this.toggleEl = $$('a.context-toggle.' + this.name, {
+    'title': this.config.title,
+    'html': '<i class="fa ' + this.config.icon + '"></i><div class="label">'+this.config.label+'</div><span> '+this.config.label+'</span>'
+  });
+  this.$toggleEl = $(this.toggleEl);
+
+  this.$el.addClass('panel').addClass(this.name);
+
+  // For legacy add 'resource-view' class
+  if (this.config.type === 'resource') {
+    this.$el.addClass('resource-view');
+  }
+
+  // Events
+
+  this._onToggle = _.bind( this.onToggle, this );
+  this._onToggleResource = _.bind( this.onToggleResource, this );
+  this._onToggleResourceReference = _.bind( this.onToggleResourceReference, this );
+  this._onToggleFullscreen = _.bind( this.onToggleFullscreen, this);
+
+  this.$toggleEl.click( this._onToggle );
+  this.$el.on('click', '.action-toggle-resource', this._onToggleResource);
+  this.$el.on('click', '.toggle-fullscreen', this._onToggleFullscreen);
+  this.$el.on('click', '.annotation.resource-reference', this._onToggleResourceReference);
+
+  // we always keep track of nodes that have are highlighted ('active', 'focussed')
+  this.highlightedNodes = [];
+};
+
+PanelView.Prototype = function() {
+
+  this.dispose = function() {
+    this.$toggleEl.off('click', this._onClick);
+    this.$el.off('scroll', this._onScroll);
+    this.$el.off('click', '.a.action-toggle-resource', this._onToggleResource);
+    this.$el.off('click', '.a.toggle-fullscreen', this._onToggleFullscreen);
+    this.$el.off('click', '.annotation.reference', this._onToggleResourceReference);
+    this.stopListening();
+  };
+
+  this.onToggle = function(e) {
+    this.trigger('toggle', this.name);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  this.getToggleControl = function() {
+    return this.toggleEl;
+  };
+
+  this.hasScrollbar = function() {
+    return false;
+  };
+
+  this.show = function() {
+    this.$el.removeClass('hidden');
+    this.hidden = false;
+  };
+
+  this.hide = function() {
+    if (this.hidden) return;
+    this.$el.addClass('hidden');
+    this.$toggleEl.removeClass('active');
+    this.hidden = true;
+  };
+
+  this.isHidden = function() {
+    return this.hidden;
+  };
+
+  this.activate = function() {
+    this.show();
+    $('#main .article')[0].dataset.context = this.name;
+    this.$toggleEl.addClass('active');
+  };
+
+  this.addHighlight = function(id, cssClass) {
+    // console.log("Add highlight for", id, cssClass);
+    var nodeEl = this.findNodeView(id);
+    if (nodeEl) {
+      var $nodeEl = $(nodeEl);
+      $nodeEl.addClass(cssClass);
+      this.highlightedNodes.push({
+        $el: $nodeEl,
+        cssClass: cssClass
+      });
+    }
+  };
+
+  this.removeHighlights = function() {
+    // console.log("Removing highlights from panel ", this.name);
+    for (var i = 0; i < this.highlightedNodes.length; i++) {
+      var highlighted = this.highlightedNodes[i];
+      highlighted.$el.removeClass(highlighted.cssClass);
+    }
+    this.highlightedNodes = [];
+  };
+
+  this.showToggle = function() {
+    this.$toggleEl.removeClass('hidden');
+  };
+
+  this.hideToggle = function() {
+    this.$toggleEl.addClass('hidden');
+  };
+
+  this.getDocument = function() {
+    return this.doc;
+  };
+
+  this.findNodeView = function(nodeId) {
+    return this.el.querySelector('*[data-id='+nodeId+']');
+  };
+
+
+  // Event handling
+  // --------
+  //
+
+  this.onToggleResource = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var element = $(event.currentTarget).parents('.content-node')[0];
+    var id = element.dataset.id;
+    this.trigger("toggle-resource", this.name, id, element);
+  };
+
+  this.onToggleResourceReference = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var element = event.currentTarget;
+    var refId = event.currentTarget.dataset.id;
+    this.trigger("toggle-resource-reference", this.name, refId, element);
+  };
+
+  this.onToggleFullscreen = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    var element = $(event.currentTarget).parents('.content-node')[0];
+    var id = element.dataset.id;
+    this.trigger("toggle-fullscreen", this.name, id, element);
+  };
+
+};
+
+PanelView.Prototype.prototype = View.prototype;
+PanelView.prototype = new PanelView.Prototype();
+PanelView.prototype.constructor = PanelView;
+
+module.exports = PanelView;
+
+},{"substance-application":149,"underscore":175}],141:[function(require,module,exports){
+
+var ViewFactory = require('lens-article').ViewFactory;
+
+var ResourcePanelViewFactory = function(nodeTypes, options) {
+  ViewFactory.call(this, nodeTypes);
+  this.options = options || {};
+
+  if (this.options.header === undefined) this.options.header = true;
+  if (this.options.zoom === undefined) this.options.zoom = ResourcePanelViewFactory.enableZoom;
+
+};
+
+ResourcePanelViewFactory.Prototype = function() {
+
+  this.createView = function(node, options, type) {
+    options = options || {};
+    var NodeView = this.getNodeViewClass(node, type);
+    if (options.topLevel && NodeView.prototype.isResourceView && this.options.header) {
+      options.header = true;
+      if (NodeView.prototype.isZoomable && this.options.zoom) {
+        options.zoom = true;
+      }
+    }
+    // Note: passing the factory to the node views
+    // to allow creation of nested views
+    var nodeView = new NodeView(node, this, options);
+    return nodeView;
+  };
+
+};
+ResourcePanelViewFactory.Prototype.prototype = ViewFactory.prototype;
+ResourcePanelViewFactory.prototype = new ResourcePanelViewFactory.Prototype();
+
+ResourcePanelViewFactory.enableZoom = false;
+
+module.exports = ResourcePanelViewFactory;
+
+},{"lens-article":4}],142:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+var _ = require("underscore");
+
+// Lens.Scrollbar
+// ==========================================================================
+//
+// A custom scrollbar which allows to add overlays which are rendered at the same
+// y-position as their reference elements in the surface.
+
+var Scrollbar = function(surface) {
+  View.call(this);
+
+  this.surface = surface;
+
+  // initialized on first update
+  this.$nodes = this.surface.$nodes;
+
+  this.$el.addClass('surface-scrollbar');
+  this.$el.addClass(surface.docCtrl.getContainer().id);
+
+  this.overlays = [];
+
+  _.bindAll(this, 'mouseDown', 'mouseUp', 'mouseMove', 'updateVisibleArea');
+
+  // Mouse event handlers
+  // --------
+
+  this.$el.mousedown(this.mouseDown);
+
+  $(window).mousemove(this.mouseMove);
+  $(window).mouseup(this.mouseUp);
+};
+
+Scrollbar.Prototype = function() {
+
+  // Render Document Scrollbar
+  // -------------
+  //
+  // Renders outline and calculates bounds
+
+  this.render = function() {
+    var contentHeight = this.$nodes.height();
+    var panelHeight = this.surface.$el.height();
+    this.factor = (contentHeight / panelHeight);
+    this.visibleArea = $$('.visible-area');
+    // Init scroll pos
+    this.scrollTop = this.surface.$el.scrollTop();
+    this.el.innerHTML = "";
+    this.el.appendChild(this.visibleArea);
+    this.updateVisibleArea();
+    return this;
+  };
+
+
+  // Update visible area
+  // -------------
+  //
+  // Should get called from the user when the content area is scrolled
+
+  this.updateVisibleArea = function() {
+    $(this.visibleArea).css({
+      "top": this.scrollTop / this.factor,
+      "height": this.surface.$el.height() / this.factor
+    });
+  };
+
+  this.addOverlay = function(el) {
+    // We need to store the surface node element together with overlay element
+    //
+    var $overlay = $('<div>').addClass('node overlay');
+    this.overlays.push({ el: el, $overlay: $overlay });
+    this.$el.append($overlay);
+    return $overlay;
+  };
+
+  this.updateOverlay = function(el, $overlay) {
+    var $el = $(el);
+    var height = $el.outerHeight(true) / this.factor;
+    var top = ($el.offset().top - this.surfaceTop) / this.factor;
+    // HACK: make all highlights at least 3 pxls high, and centered around the desired top pos
+    if (height < Scrollbar.OverlayMinHeight) {
+      height = Scrollbar.OverlayMinHeight;
+      top = top - 0.5 * Scrollbar.OverlayMinHeight;
+    }
+    $overlay.css({
+        "height": height,
+        "top": top
+      });
+  };
+
+  // Add highlights to scrollbar
+  // -------------
+  //
+
+  this.addHighlight = function(nodeId, classes) {
+    var nodeEl = this.surface.findNodeView(nodeId);
+    if (!nodeEl) {
+      // Note: this happens on a regular basis, as very often we ask e.g. the index to give
+      // all annotation targeting to a resource. But the reference itself does not necessarily be part of
+      // this surface
+      return;
+    }
+    var $overlay = this.addOverlay(nodeEl);
+    this.updateOverlay(nodeEl, $overlay);
+    $overlay.addClass(classes);
+    return $overlay[0];
+  };
+
+  this.addHighlights = function(nodeIds, classes) {
+    var overlayEls = [];
+    for (var i = 0; i < nodeIds.length; i++) {
+      var overlayEl = this.addHighlight(nodeIds[i], classes);
+      overlayEls.push(overlayEl);
+    }
+    this.update();
+    return overlayEls;
+  };
+
+  this.removeHighlights = function() {
+    for (var i = 0; i < this.overlays.length; i++) {
+      var overlay = this.overlays[i];
+      overlay.$overlay.remove();
+    }
+  };
+
+  this.update = function() {
+    // initialized lazily as this element is not accessible earlier (e.g. during construction)
+    // get the new dimensions
+    var contentHeight = this.$nodes.height();
+    var panelHeight = this.surface.$el.height();
+
+    if (contentHeight > panelHeight) {
+      $(this.el).removeClass('hidden');
+    } else {
+      $(this.el).addClass('hidden');
+    }
+
+    // console.log("Scrollbar.update()", contentHeight, panelHeight);
+    this.factor = (contentHeight / panelHeight);
+    this.surfaceTop = this.$nodes.offset().top;
+    this.scrollTop = this.surface.$el.scrollTop();
+    this.updateVisibleArea();
+    for (var i = 0; i < this.overlays.length; i++) {
+      var overlay = this.overlays[i];
+      this.updateOverlay(overlay.el, overlay.$overlay);
+    }
+  };
+
+  // Handle Mouse down event
+  // -----------------
+  //
+
+  this.mouseDown = function(e) {
+    this._mouseDown = true;
+    var y = e.pageY;
+    if (e.target !== this.visibleArea) {
+      // Jump to mousedown position
+      this.offset = $(this.visibleArea).height()/2;
+      this.mouseMove(e);
+    } else {
+      this.offset = y - $(this.visibleArea).position().top;
+    }
+    return false;
+  };
+
+  // Handle Mouse Up
+  // -----------------
+  //
+  // Mouse lifted, no scroll anymore
+
+  this.mouseUp = function() {
+    this._mouseDown = false;
+  };
+
+  // Handle Scroll
+  // -----------------
+  //
+  // Handle scroll event
+  // .visible-area handle
+
+  this.mouseMove = function(e) {
+    if (this._mouseDown) {
+      var y = e.pageY;
+      // find offset to visible-area.top
+      var scroll = (y-this.offset)*this.factor;
+      this.scrollTop = this.surface.$el.scrollTop(scroll);
+      this.updateVisibleArea();
+    }
+  };
+
+  this.onScroll = function() {
+    if (this.surface) {
+      this.scrollTop = this.surface.$el.scrollTop();
+      this.updateVisibleArea();
+    }
+  };
+
+};
+
+Scrollbar.Prototype.prototype = View.prototype;
+Scrollbar.prototype = new Scrollbar.Prototype();
+
+Scrollbar.OverlayMinHeight = 5;
+
+module.exports = Scrollbar;
+
+},{"substance-application":149,"underscore":175}],143:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var Controller = require("substance-application").Controller;
+var ReaderView = require("./reader_view");
+var ContentPanel = require("./panels/content");
+
+// Reader.Controller
+// -----------------
+//
+// Controls the Reader.View
+
+var ReaderController = function(doc, state, options) {
+
+  // Private reference to the document
+  this.__document = doc;
+
+  this.options = options || {};
+
+  this.panels = options.panels;
+  this.contentPanel = new ContentPanel(doc);
+
+  // create panel controllers
+  this.panelCtrls = {};
+  this.panelCtrls['content'] = this.contentPanel.createController(doc);
+  _.each(this.panels, function(panel) {
+    this.panelCtrls[panel.getName()] = panel.createController(doc);
+  }, this);
+
+  this.workflows = options.workflows || [];
+
+  this.state = state;
+
+  // Current explicitly set panel
+  this.currentPanel = "toc";
+};
+
+ReaderController.Prototype = function() {
+
+  this.createView = function() {
+    if (!this.view) this.view = new ReaderView(this);
+    return this.view;
+  };
+
+  // Explicit panel switch
+  // --------
+  //
+
+  this.switchPanel = function(panel) {
+    this.currentPanel = panel;
+    this.modifyState({
+      panel: panel,
+      focussedNode: null,
+      fullscreen: false
+    });
+  };
+
+  this.getDocument = function() {
+    return this.__document;
+  };
+};
+
+ReaderController.Prototype.prototype = Controller.prototype;
+ReaderController.prototype = new ReaderController.Prototype();
+
+module.exports = ReaderController;
+
+},{"./panels/content":135,"./reader_view":144,"substance-application":149,"underscore":175}],144:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var View = require("substance-application").View;
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+var $$ = require("substance-application").$$;
+
+// Lens.Reader.View
+// ==========================================================================
+//
+
+var ReaderView = function(readerCtrl) {
+  View.call(this);
+
+  // Controllers
+  // --------
+
+  this.readerCtrl = readerCtrl;
+  this.doc = this.readerCtrl.getDocument();
+
+  this.$el.addClass('article');
+  this.$el.addClass(this.doc.schema.id); // Substance article or lens article?
+
+  // Stores latest body scroll positions per panel
+
+  this.bodyScroll = {};
+
+  // Panels
+  // ------
+  // Note: ATM, it is not possible to override the content panel + toc via panelSpecification
+  this.contentView = readerCtrl.panelCtrls.content.createView();
+  this.tocView = this.contentView.getTocView();
+
+
+  this.panelViews = {};
+  // mapping to associate reference types to panels
+  // NB, in Lens each resource type has one dedicated panel;
+  // clicking on a reference opens this panel
+  this.panelForRef = {};
+
+  _.each(readerCtrl.panels, function(panel) {
+    var name = panel.getName();
+    var panelCtrl = readerCtrl.panelCtrls[name];
+    this.panelViews[name] = panelCtrl.createView();
+    _.each(panel.config.references, function(refType) {
+      this.panelForRef[refType] = name;
+    }, this);
+  }, this);
+  this.panelViews['toc'] = this.tocView;
+
+  // Keep an index for resources
+  this.resources = new Index(this.readerCtrl.getDocument(), {
+    types: ["resource_reference"],
+    property: "target"
+  });
+
+  // whenever a workflow takes control set this variable
+  // to be able to call it a last time when switching to another
+  // workflow
+  this.lastWorkflow = null;
+  this.lastPanel = "toc";
+
+  // Events
+  // --------
+  //
+
+  this._onTogglePanel = _.bind( this.switchPanel, this );
+
+  // Whenever a state change happens (e.g. user navigates somewhere)
+  // the interface gets updated accordingly
+  this.listenTo(this.readerCtrl, "state-changed", this.updateState);
+
+  this.listenTo(this.tocView,'toggle', this._onTogglePanel);
+  _.each(this.panelViews, function(panelView) {
+    this.listenTo(panelView, "toggle", this._onTogglePanel);
+    this.listenTo(panelView, "toggle-resource", this.onToggleResource);
+    this.listenTo(panelView, "toggle-resource-reference", this.onToggleResourceReference);
+    this.listenTo(panelView, "toggle-fullscreen", this.onToggleFullscreen);
+  }, this);
+  // TODO: treat content panel as panelView and delegate to tocView where necessary
+  this.listenTo(this.contentView, "toggle", this._onTogglePanel);
+  this.listenTo(this.contentView, "toggle-resource", this.onToggleResource);
+  this.listenTo(this.contentView, "toggle-resource-reference", this.onToggleResourceReference);
+  this.listenTo(this.contentView, "toggle-fullscreen", this.onToggleFullscreen);
+
+  // attach workflows
+  _.each(this.readerCtrl.workflows, function(workflow) {
+    workflow.attach(this.readerCtrl, this);
+  }, this);
+
+
+  // attach a lazy/debounced handler for resize events
+  // that updates the outline of the currently active panels
+  $(window).resize(_.debounce(_.bind(function() {
+    this.contentView.scrollbar.update();
+    var currentPanel = this.panelViews[this.readerCtrl.state.panel];
+    if (currentPanel && currentPanel.hasScrollbar()) {
+      currentPanel.scrollbar.update();
+    }
+    this.detectRenderMode();
+  }, this), 1));
+
+};
+
+ReaderView.Prototype = function() {
+
+  // Mobile or desktop?
+  this.detectRenderMode = function() {
+    if ($(window).width()<=850) {
+      this.renderMode = "mobile";
+    } else {
+      this.renderMode = "desktop";
+    }
+  };
+
+  // Rendering
+  // --------
+  //
+
+  this.render = function() {
+    var frag = document.createDocumentFragment();
+
+    // Prepare doc view
+    // --------
+
+    frag.appendChild(this.contentView.render().el);
+
+    // Prepare panel toggles
+    // --------
+
+    var panelToggles = $$('.context-toggles');
+    panelToggles.appendChild(this.tocView.getToggleControl());
+    this.tocView.on('toggle', this._onClickPanel);
+    _.each(this.readerCtrl.panels, function(panel) {
+      var panelView = this.panelViews[panel.getName()];
+      var toggleEl = panelView.getToggleControl();
+      panelToggles.appendChild(toggleEl);
+      panelView.on('toggle', this._onClickPanel);
+    }, this);
+
+    var medialStrip = $$('.medial-strip');
+    medialStrip.appendChild($$('.separator-line'));
+    medialStrip.appendChild(panelToggles);
+    frag.appendChild(medialStrip);
+
+    // Prepare panel views
+    // -------
+
+    // Wrap everything within resources view
+    var resourcesViewEl = $$('.resources');
+    resourcesViewEl.appendChild(this.tocView.render().el);
+    _.each(this.readerCtrl.panels, function(panel) {
+      var panelView = this.panelViews[panel.getName()];
+      // console.log('Rendering panel "%s"', name);
+      resourcesViewEl.appendChild(panelView.render().el);
+    }, this);
+    frag.appendChild(resourcesViewEl);
+
+    this.el.appendChild(frag);
+
+    // TODO: also update the outline after image (et al.) are loaded
+
+    // Postpone things that expect this view has been inserted into the DOM already.
+    _.delay(_.bind( function() {
+      // initial state update here as scrollTo would not work out of DOM
+      this.updateState();
+
+      var self = this;
+      // MathJax requires the processed elements to be in the DOM
+      window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub]);
+      window.MathJax.Hub.Queue(function () {
+        console.log('Updating after MathJax has finished.');
+        // HACK: using updateState() instead of updateScrollbars() as it also knows how to scroll
+        self.updateState();
+      });
+    }, this), 1);
+
+    this.detectRenderMode();
+
+    return this;
+  };
+
+  // Free the memory.
+  // --------
+  //
+
+  this.dispose = function() {
+    _.each(this.workflows, function(workflow) {
+      workflow.detach();
+    });
+
+    this.contentView.dispose();
+    _.each(this.panelViews, function(panelView) {
+      panelView.off('toggle', this._onClickPanel);
+      panelView.dispose();
+    });
+    this.resources.dispose();
+    this.stopListening();
+  };
+
+  this.getState = function() {
+    return this.readerCtrl.state;
+  };
+
+  // Explicit panel switch
+  // --------
+  //
+  // Only triggered by the explicit switch
+  // Implicit panel switches happen when someone clicks a figure reference
+
+  this.switchPanel = function(panel) {
+    this.readerCtrl.switchPanel(panel);
+    // keep this so that it gets opened when leaving another panel (toggling reference)
+    this.lastPanel = panel;
+  };
+
+  // Update Reader State
+  // --------
+  //
+  // Called every time the controller state has been modified
+  // Search for readerCtrl.modifyState occurences
+
+  this.updateState = function() {
+    var self = this;
+    var state = this.readerCtrl.state;
+
+    var handled;
+
+    // EXPERIMENTAL: introducing workflows to handle state updates
+    // we extract some info to make it easier for workflows to detect if they
+    // need to handle the state update.
+    var stateInfo = {
+      focussedNode: state.focussedNode ? this.doc.get(state.focussedNode) : null
+    };
+
+    var currentPanelView = state.panel === "content" ? this.contentView : this.panelViews[state.panel];
+
+    _.each(this.panelViews, function(panelView) {
+      if (!panelView.isHidden()) panelView.hide();
+    });
+
+    // Always deactivate previous highlights
+    this.contentView.removeHighlights();
+
+    // and also remove highlights from resource panels
+    _.each(this.panelViews, function(panelView) {
+      panelView.removeHighlights();
+    });
+
+    // Highlight the focussed node
+    if (state.focussedNode) {
+      var classes = ["focussed", "highlighted"];
+      // HACK: abusing addHighlight for adding the fullscreen class
+      // instead I would prefer to handle such focussing explicitely in a workflow
+      if (state.fullscreen) classes.push("fullscreen");
+      currentPanelView.addHighlight(state.focussedNode, classes.join(' '));
+      currentPanelView.scrollTo(state.focussedNode);
+    }
+
+    // A workflow needs to take care of
+    // 1. showing the correct panel
+    // 2. setting highlights in the content panel
+    // 3. setting highlights in the resource panel
+    // 4. scroll panels
+    // A workflow should have Workflow.handlesStateUpdates = true if it is interested in state updates
+    // and should override Workflow.handleStateUpdate(state, info) to perform the update.
+    // In case it has been responsible for the update it should return 'true'.
+
+    // TODO: what is this exactly for?
+    if (this.lastWorkflow) {
+      handled = this.lastWorkflow.handleStateUpdate(state, stateInfo);
+    }
+
+    if (!handled) {
+      // Go through all workflows and let them try to handle the state update.
+      // Stop after the first hit.
+      for (var i = 0; i < this.readerCtrl.workflows.length; i++) {
+        var workflow = this.readerCtrl.workflows[i];
+        // lastWorkflow had its chance already, so skip it here
+        if (workflow !== this.lastWorkflow && workflow.handlesStateUpdate) {
+          handled = workflow.handleStateUpdate(state, stateInfo);
+          if (handled) {
+            this.lastWorkflow = workflow;
+            break;
+          }
+        }
+      }
+    }
+
+    // If not handled above, we at least show the correct panel
+    if (!handled) {
+      // Default implementation for states with a panel set
+      if (state.panel !== "content") {
+        var panelView = this.panelViews[state.panel];
+        this.showPanel(state.panel);
+        // if there is a resource focussed in the panel, activate the resource, and highlight all references to it in the content panel
+        if (state.focussedNode) {
+          // get all references that point to the focussedNode and highlight them
+          var refs = this.resources.get(state.focussedNode);
+          _.each(refs, function(ref) {
+            this.contentView.addHighlight(ref.id, "highlighted ");
+          }, this);
+          // TODO: Jumps to wrong position esp. for figures, because content like images has not completed loading
+          // at that stage. WE should make corrections afterwards
+          if (panelView.hasScrollbar()) panelView.scrollTo(state.focussedNode);
+        }
+      } else {
+        this.showPanel("toc");
+      }
+    }
+
+    // HACK: Update the scrollbar after short delay
+    // This was necessary after we went back to using display: none for hiding panels,
+    // instead of visibility: hidden (caused problems with scrolling on iPad)
+    // This hack should not be necessary if we can ensure that
+    // - panel is shown first (so scrollbar can grab the dimensions)
+    // - whenever the contentHeight changes scrollbars should be updated
+    // - e.g. when an image completed loading
+
+    self.updateScrollbars();
+    _.delay(function() {
+      self.updateScrollbars();        
+    }, 2000);
+  };
+
+  this.updateScrollbars = function() {
+    var state = this.readerCtrl.state;
+    // var currentPanelView = state.panel === "content" ? this.contentView : this.panelViews[state.panel];
+    this.contentView.scrollbar.update();
+
+    _.each(this.panelViews, function(panelView) {
+      if (panelView.hasScrollbar()) panelView.scrollbar.update();
+    });
+    // if (currentPanelView && currentPanelView.hasScrollbar()) currentPanelView.scrollbar.update();
+  };
+
+  this.showPanel = function(name) {
+    if (this.panelViews[name]) {
+      this.panelViews[name].activate();
+      this.el.dataset.context = name;
+    } else if (name === "content") {
+      this.panelViews.toc.activate();
+      this.el.dataset.context = name;
+    }
+  };
+
+  this.getPanelView = function(name) {
+    return this.panelViews[name];
+  };
+
+  // Toggle (off) a resource
+  // --------
+  //
+
+  this.onToggleResource = function(panel, id, element) {
+    if (element.classList.contains('highlighted')) {
+      this.readerCtrl.modifyState({
+        panel: this.lastPanel,
+        focussedNode: null,
+        fullscreen: false
+      });
+    } else {
+      this.readerCtrl.modifyState({
+        panel: panel,
+        focussedNode: id
+      });
+    }
+  };
+
+  // Toggle (off) a reference
+  // --------
+
+  this.onToggleResourceReference = function(panel, id, element) {
+    if (element.classList.contains('highlighted')) {
+      this.readerCtrl.modifyState({
+        panel: this.lastPanel,
+        focussedNode: null,
+        fullscreen: false
+      });
+    } else {
+      // FIXME: ATM the state always assumes 'content' as the containing panel
+      // Instead, we also let the panel catch the event and then delegate to ReaderView providing the context as done with onToggleResource
+      this.readerCtrl.modifyState({
+        panel: "content",
+        focussedNode: id,
+        fullscreen: false
+      });
+    }
+  };
+
+  this.onToggleFullscreen = function(panel, id) {
+    var fullscreen = !this.readerCtrl.state.fullscreen;
+    this.readerCtrl.modifyState({
+      panel: panel,
+      focussedNode: id,
+      fullscreen: fullscreen
+    });
+  };
+
+};
+
+ReaderView.Prototype.prototype = View.prototype;
+ReaderView.prototype = new ReaderView.Prototype();
+ReaderView.prototype.constructor = ReaderView;
+
+module.exports = ReaderView;
+
+},{"substance-application":149,"substance-data":155,"underscore":175}],145:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var Workflow = require('./workflow');
+
+var FollowCrossrefs = function() {
+  Workflow.apply(this, arguments);
+
+  this._followCrossReference = _.bind(this.followCrossReference, this);
+};
+
+FollowCrossrefs.Prototype = function() {
+
+  this.registerHandlers = function() {
+    this.readerView.$el.on('click', '.annotation.cross_reference', this._followCrossReference);
+  };
+
+  this.unRegisterHandlers = function() {
+    this.readerView.$el.off('click', '.annotation.cross_reference', this._followCrossReference);
+  };
+
+  this.followCrossReference = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var refId = e.currentTarget.dataset.id;
+    var crossRef = this.readerCtrl.getDocument().get(refId);
+    this.readerView.contentView.scrollTo(crossRef.target);
+  };
+
+};
+FollowCrossrefs.Prototype.prototype = Workflow.prototype;
+FollowCrossrefs.prototype = new FollowCrossrefs.Prototype();
+
+module.exports = FollowCrossrefs;
+
+},{"./workflow":148,"underscore":175}],146:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var Workflow = require('./workflow');
+
+var JumpToTop = function() {
+  Workflow.apply(this, arguments);
+
+  this._gotoTop = _.bind(this.gotoTop, this);
+};
+
+JumpToTop.Prototype = function() {
+
+  this.registerHandlers = function() {
+    this.readerView.$el.on('click', '.document .content-node.heading .top', this._gotoTop);
+  };
+
+  this.unRegisterHandlers = function() {
+    this.readerView.$el.off('click', '.document .content-node.heading .top', this._gotoTop);
+  };
+
+  this.gotoTop = function() {
+    e.preventDefault();
+    e.stopPropagation();
+    // Jump to cover node as that's easiest
+    this.readerCtrl.contentView.jumpToNode("cover");
+    // Note: this is for mobile view only
+    $(document).scrollTop(0);
+  };
+
+};
+JumpToTop.Prototype.prototype = Workflow.prototype;
+JumpToTop.prototype = new JumpToTop.Prototype();
+
+module.exports = JumpToTop;
+
+},{"./workflow":148,"underscore":175}],147:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var Workflow = require('./workflow');
+
+var ToggleResourceReference = function() {
+  Workflow.apply(this, arguments);
+};
+
+ToggleResourceReference.Prototype = function() {
+
+  this.registerHandlers = function() {
+  };
+
+  this.unRegisterHandlers = function() {
+  };
+
+  this.handlesStateUpdate = true;
+
+  this.handleStateUpdate = function(state, stateInfo) {
+    // if the reference type is registered with this workflow
+    // open the panel and show highlights
+    if (stateInfo.focussedNode && this.readerView.panelForRef[stateInfo.focussedNode.type]) {
+      var ref = stateInfo.focussedNode;
+      var panelName = this.readerView.panelForRef[ref.type];
+      var panelView = this.readerView.panelViews[panelName];
+      var contentView = this.readerView.contentView;
+      var resourceId = ref.target;
+      // show the associated panel, hihglight the resource and scroll to its position
+      panelView.activate();
+      var classes = ["highlighted"];
+      panelView.addHighlight(resourceId, classes.join(" "));
+      panelView.scrollTo(resourceId);
+      // panelView.scrollbar.update();
+      // highlight all other references in the content panel for the same resource
+      var refs = this.readerView.resources.get(resourceId);
+      delete refs[ref.id];
+      _.each(refs, function(ref) {
+        contentView.addHighlight(ref.id, "highlighted");
+      }, this);
+      return true;
+    }
+    return false;
+  };
+
+};
+ToggleResourceReference.Prototype.prototype = Workflow.prototype;
+ToggleResourceReference.prototype = new ToggleResourceReference.Prototype();
+
+module.exports = ToggleResourceReference;
+
+},{"./workflow":148,"underscore":175}],148:[function(require,module,exports){
+"use strict";
+
+var Workflow = function() {
+  this.readerController = null;
+  this.readerView = null;
+};
+
+Workflow.Prototype = function() {
+
+  /* jshint unused:false */
+
+  this.attach = function(readerController, readerView) {
+    this.readerCtrl = readerController;
+    this.readerView = readerView;
+    this.registerHandlers();
+  };
+
+  this.detach = function() {
+    this.unRegisterHandlers();
+    this.readerView = null;
+    this.readerController = null;
+  };
+
+  this.registerHandlers = function() {
+    throw new Error('This method is abstract');
+  };
+
+  this.unRegisterHandlers = function() {
+    throw new Error('This method is abstract');
+  };
+
+  // override this if state changes are relevant
+  this.handlesStateUpdate = false;
+
+  // override this method and return true if the state update is handled by this workflow
+  this.handleStateUpdate = function(state, stateInfo) {
+    throw new Error('This method is abstract');
+  };
+
+};
+Workflow.prototype = new Workflow.Prototype();
+
+module.exports = Workflow;
+
+},{}],149:[function(require,module,exports){
+"use strict";
+
+var Application = require("./src/application");
+Application.View = require("./src/view");
+Application.Router = require("./src/router");
+Application.Controller = require("./src/controller");
+Application.ElementRenderer = require("./src/renderers/element_renderer");
+Application.$$ = Application.ElementRenderer.$$;
+
+module.exports = Application;
+
+},{"./src/application":150,"./src/controller":151,"./src/renderers/element_renderer":152,"./src/router":153,"./src/view":154}],150:[function(require,module,exports){
+"use strict";
+
+var View = require("./view");
+var Router = require("./router");
+var util = require("substance-util");
+var _ = require("underscore");
+
+// Substance.Application
+// ==========================================================================
+//
+// Application abstraction suggesting strict MVC
+
+var Application = function(config) {
+  View.call(this);
+  this.config = config;
+};
+
+Application.Prototype = function() {
+  
+  // Init router
+  // ----------
+
+  this.initRouter = function() {
+    this.router = new Router();
+
+    _.each(this.config.routes, function(route) {
+      this.router.route(route.route, route.name, _.bind(this.controller[route.command], this.controller));
+    }, this);
+
+    Router.history.start();
+  };
+
+  // Start Application
+  // ----------
+  //
+
+  this.start = function() {
+    // First setup the top level view
+    this.$el = $('body');
+    this.el = this.$el[0];
+    this.render();
+
+    // Now the normal app lifecycle can begin
+    // Because app state changes require the main view to be present
+    // Triggers an initial app state change according to url hash fragment
+    this.initRouter();
+  };
+};
+
+// Setup prototype chain
+
+Application.Prototype.prototype = View.prototype;
+Application.prototype = new Application.Prototype();
+
+module.exports = Application;
+
+},{"./router":153,"./view":154,"substance-util":167,"underscore":175}],151:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+
+// Substance.Application.Controller
+// ==========================================================================
+//
+// Application Controller abstraction suggesting strict MVC
+
+var Controller = function(options) {
+  this.state = {};
+  this.context = null;
+};
+
+Controller.Prototype = function() {
+
+  // Finalize state transition
+  // -----------------
+  //
+  // Editor View listens on state-changed events:
+  //
+  // Maybe this should updateContext, so it can't be confused with the app state
+  // which might be more than just the current context
+  // 
+
+  this.updateState = function(context, state) {
+    console.error('updateState is deprecated, use modifyState. State is now a rich object where context replaces the old state variable');
+    var oldContext = this.context;
+    this.context = context;
+    this.state = state;
+    this.trigger('state-changed', this.context, oldContext, state);
+  };
+
+  // Inrementally updates the controller state
+  // -----------------
+  //
+
+  this.modifyState = function(state) {
+    var prevContext = this.state.context;
+    _.extend(this.state, state);
+
+    if (state.context && state.context !== prevContext) {
+      this.trigger('context-changed', state.context);
+    }
+    
+    this.trigger('state-changed', this.state.context);
+  };
+};
+
+
+// Setup prototype chain
+Controller.Prototype.prototype = util.Events;
+Controller.prototype = new Controller.Prototype();
+
+module.exports = Controller;
+},{"substance-util":167,"underscore":175}],152:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var SRegExp = util.RegExp;
+
+// Substance.Application.ElementRenderer
+// ==========================================================================
+//
+// This is just a simple helper that allows us to create DOM elements
+// in a data-driven way
+
+var ElementRenderer = function(attributes) {
+  this.attributes = attributes;
+
+  // Pull off preserved properties from attributes
+  // --------
+
+  this.tagName = attributes.tag;
+  this.children = attributes.children || [];
+  this.text = attributes.text || "";
+  this.html = attributes.html;
+
+  delete attributes.children;
+  delete attributes.text;
+  delete attributes.html;
+  delete attributes.tag;
+
+  return this.render();
+};
+
+
+ElementRenderer.Prototype = function() {
+
+  // Do the actual rendering
+  // --------
+
+  this.render = function() {
+    var el = document.createElement(this.tagName);
+    if (this.html) {
+      el.innerHTML = this.html;
+    } else {
+      el.textContent = this.text;
+    }
+
+    // Set attributes based on element spec
+    for(var attrName in this.attributes) {
+      var val = this.attributes[attrName];
+      el.setAttribute(attrName, val);
+    }
+
+    // Append childs
+    for (var i=0; i<this.children.length; i++) {
+      var child = this.children[i];
+      el.appendChild(child);
+    }
+
+    // Remember element
+    // Probably we should ditch this
+    this.el = el;
+    return el;
+  };
+};
+
+
+// Provides a shortcut syntax interface to ElementRenderer
+// --------
+
+var $$ = function(descriptor, options) {
+  var options = options  || {};
+
+  // Extract tagName, defaults to 'div'
+  var tagName = /^([a-zA-Z0-9]*)/.exec(descriptor);
+  options.tag = tagName && tagName[1] ? tagName[1] : 'div';
+
+  // Any occurence of #some_chars
+  var id = /#([a-zA-Z0-9_]*)/.exec(descriptor);
+  if (id && id[1]) options.id = id[1];
+
+  // Any occurence of .some-chars
+  // if (!options.class) {
+  //   var re = new RegExp(/\.([a-zA-Z0-9_-]*)/g);
+  //   var classes = [];
+  //   var classMatch;
+  //   while (classMatch = re.exec(descriptor)) {
+  //     classes.push(classMatch[1]);
+  //   }
+  //   options.class = classes.join(' ');
+  // }
+
+  // Any occurence of .some-chars
+  var matchClasses = new SRegExp(/\.([a-zA-Z0-9_-]*)/g);
+  // options.class = options.class ? options.class+' ' : '';
+  if (!options.class) {
+    options.class = matchClasses.match(descriptor).map(function(m) {
+      return m.match[1];
+    }).join(' ');
+  }
+
+  return new ElementRenderer(options);
+};
+
+
+
+ElementRenderer.$$ = $$;
+
+// Setup prototype chain
+ElementRenderer.Prototype.prototype = util.Events;
+ElementRenderer.prototype = new ElementRenderer.Prototype();
+
+module.exports = ElementRenderer;
+},{"substance-util":167}],153:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+
+// Application.Router
+// ---------------
+//
+// Implementation borrowed from Backbone.js
+
+// Routers map faux-URLs to actions, and fire events when routes are
+// matched. Creating a new one sets its `routes` hash, if not set statically.
+var Router = function(options) {
+  options || (options = {});
+  if (options.routes) this.routes = options.routes;
+  this._bindRoutes();
+  this.initialize.apply(this, arguments);
+};
+
+// Cached regular expressions for matching named param parts and splatted
+// parts of route strings.
+var optionalParam = /\((.*?)\)/g;
+var namedParam    = /(\(\?)?:\w+/g;
+var splatParam    = /\*\w+/g;
+var escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+
+// Set up all inheritable **Application.Router** properties and methods.
+_.extend(Router.prototype, util.Events, {
+
+  // Initialize is an empty function by default. Override it with your own
+  // initialization logic.
+  initialize: function(){},
+
+  // Manually bind a single named route to a callback. For example:
+  //
+  //     this.route('search/:query/p:num', 'search', function(query, num) {
+  //       ...
+  //     });
+  //
+  route: function(route, name, callback) {
+    if (!_.isRegExp(route)) route = this._routeToRegExp(route);
+    if (_.isFunction(name)) {
+      callback = name;
+      name = '';
+    }
+    if (!callback) callback = this[name];
+    var router = this;
+    Router.history.route(route, function(fragment) {
+      var args = router._extractParameters(route, fragment);
+      callback && callback.apply(router, args);
+      router.trigger.apply(router, ['route:' + name].concat(args));
+      router.trigger('route', name, args);
+      Router.history.trigger('route', router, name, args);
+    });
+    return this;
+  },
+
+  // Simple proxy to `Router.history` to save a fragment into the history.
+  navigate: function(fragment, options) {
+    Router.history.navigate(fragment, options);
+    return this;
+  },
+
+  // Bind all defined routes to `Router.history`. We have to reverse the
+  // order of the routes here to support behavior where the most general
+  // routes can be defined at the bottom of the route map.
+  _bindRoutes: function() {
+    if (!this.routes) return;
+    this.routes = _.result(this, 'routes');
+    var route, routes = _.keys(this.routes);
+    while ((route = routes.pop()) != null) {
+      this.route(route, this.routes[route]);
+    }
+  },
+
+  // Convert a route string into a regular expression, suitable for matching
+  // against the current location hash.
+  _routeToRegExp: function(route) {
+    route = route.replace(escapeRegExp, '\\$&')
+                 .replace(optionalParam, '(?:$1)?')
+                 .replace(namedParam, function(match, optional){
+                   return optional ? match : '([^\/]+)';
+                 })
+                 .replace(splatParam, '(.*?)');
+    return new RegExp('^' + route + '$');
+  },
+
+  // Given a route, and a URL fragment that it matches, return the array of
+  // extracted decoded parameters. Empty or unmatched parameters will be
+  // treated as `null` to normalize cross-browser behavior.
+  _extractParameters: function(route, fragment) {
+    var params = route.exec(fragment).slice(1);
+    return _.map(params, function(param) {
+      return param ? decodeURIComponent(param) : null;
+    });
+  }
+});
+
+
+
+
+// Router.History
+// ----------------
+
+// Handles cross-browser history management, based on either
+// [pushState](http://diveintohtml5.info/history.html) and real URLs, or
+// [onhashchange](https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange)
+// and URL fragments. If the browser supports neither (old IE, natch),
+// falls back to polling.
+var History = Router.History = function() {
+  this.handlers = [];
+  _.bindAll(this, 'checkUrl');
+
+  // Ensure that `History` can be used outside of the browser.
+  if (typeof window !== 'undefined') {
+    this.location = window.location;
+    this.history = window.history;
+  }
+};
+
+// Cached regex for stripping a leading hash/slash and trailing space.
+var routeStripper = /^[#\/]|\s+$/g;
+
+// Cached regex for stripping leading and trailing slashes.
+var rootStripper = /^\/+|\/+$/g;
+
+// Cached regex for detecting MSIE.
+var isExplorer = /msie [\w.]+/;
+
+// Cached regex for removing a trailing slash.
+var trailingSlash = /\/$/;
+
+// Has the history handling already been started?
+History.started = false;
+
+// Set up all inheritable **Router.History** properties and methods.
+_.extend(History.prototype, util.Events, {
+
+  // The default interval to poll for hash changes, if necessary, is
+  // twenty times a second.
+  interval: 50,
+
+  // Gets the true hash value. Cannot use location.hash directly due to bug
+  // in Firefox where location.hash will always be decoded.
+  getHash: function(window) {
+    var match = (window || this).location.href.match(/#(.*)$/);
+    return match ? match[1] : '';
+  },
+
+  // Get the cross-browser normalized URL fragment, either from the URL,
+  // the hash, or the override.
+  getFragment: function(fragment, forcePushState) {
+    if (fragment == null) {
+      if (this._hasPushState || !this._wantsHashChange || forcePushState) {
+        fragment = this.location.pathname;
+        var root = this.root.replace(trailingSlash, '');
+        if (!fragment.indexOf(root)) fragment = fragment.substr(root.length);
+      } else {
+        fragment = this.getHash();
+      }
+    }
+    return fragment.replace(routeStripper, '');
+  },
+
+  // Start the hash change handling, returning `true` if the current URL matches
+  // an existing route, and `false` otherwise.
+  start: function(options) {
+    if (History.started) throw new Error("Router.history has already been started");
+    History.started = true;
+
+    // Figure out the initial configuration. Do we need an iframe?
+    // Is pushState desired ... is it available?
+    this.options          = _.extend({}, {root: '/'}, this.options, options);
+    this.root             = this.options.root;
+    this._wantsHashChange = this.options.hashChange !== false;
+    this._wantsPushState  = !!this.options.pushState;
+    this._hasPushState    = !!(this.options.pushState && this.history && this.history.pushState);
+    var fragment          = this.getFragment();
+    var docMode           = document.documentMode;
+    var oldIE             = (isExplorer.exec(navigator.userAgent.toLowerCase()) && (!docMode || docMode <= 7));
+
+    // Normalize root to always include a leading and trailing slash.
+    this.root = ('/' + this.root + '/').replace(rootStripper, '/');
+
+    if (oldIE && this._wantsHashChange) {
+      this.iframe = $('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo('body')[0].contentWindow;
+      this.navigate(fragment);
+    }
+
+    // Depending on whether we're using pushState or hashes, and whether
+    // 'onhashchange' is supported, determine how we check the URL state.
+    if (this._hasPushState) {
+      $(window).on('popstate', this.checkUrl);
+    } else if (this._wantsHashChange && ('onhashchange' in window) && !oldIE) {
+      $(window).on('hashchange', this.checkUrl);
+    } else if (this._wantsHashChange) {
+      this._checkUrlInterval = setInterval(this.checkUrl, this.interval);
+    }
+
+    // Determine if we need to change the base url, for a pushState link
+    // opened by a non-pushState browser.
+    this.fragment = fragment;
+    var loc = this.location;
+    var atRoot = loc.pathname.replace(/[^\/]$/, '$&/') === this.root;
+
+    // If we've started off with a route from a `pushState`-enabled browser,
+    // but we're currently in a browser that doesn't support it...
+    if (this._wantsHashChange && this._wantsPushState && !this._hasPushState && !atRoot) {
+      this.fragment = this.getFragment(null, true);
+      this.location.replace(this.root + this.location.search + '#' + this.fragment);
+      // Return immediately as browser will do redirect to new url
+      return true;
+
+    // Or if we've started out with a hash-based route, but we're currently
+    // in a browser where it could be `pushState`-based instead...
+    } else if (this._wantsPushState && this._hasPushState && atRoot && loc.hash) {
+      this.fragment = this.getHash().replace(routeStripper, '');
+      this.history.replaceState({}, document.title, this.root + this.fragment + loc.search);
+    }
+
+    if (!this.options.silent) return this.loadUrl();
+  },
+
+  // Disable Router.history, perhaps temporarily. Not useful in a real app,
+  // but possibly useful for unit testing Routers.
+  stop: function() {
+    $(window).off('popstate', this.checkUrl).off('hashchange', this.checkUrl);
+    clearInterval(this._checkUrlInterval);
+    History.started = false;
+  },
+
+  // Add a route to be tested when the fragment changes. Routes added later
+  // may override previous routes.
+  route: function(route, callback) {
+    this.handlers.unshift({route: route, callback: callback});
+  },
+
+  // Checks the current URL to see if it has changed, and if it has,
+  // calls `loadUrl`, normalizing across the hidden iframe.
+  checkUrl: function(e) {
+    var current = this.getFragment();
+    if (current === this.fragment && this.iframe) {
+      current = this.getFragment(this.getHash(this.iframe));
+    }
+    if (current === this.fragment) return false;
+    if (this.iframe) this.navigate(current);
+    this.loadUrl() || this.loadUrl(this.getHash());
+  },
+
+  // Attempt to load the current URL fragment. If a route succeeds with a
+  // match, returns `true`. If no defined routes matches the fragment,
+  // returns `false`.
+  loadUrl: function(fragmentOverride) {
+    var fragment = this.fragment = this.getFragment(fragmentOverride);
+    var matched = _.any(this.handlers, function(handler) {
+      if (handler.route.test(fragment)) {
+        handler.callback(fragment);
+        return true;
+      }
+    });
+    return matched;
+  },
+
+  // Save a fragment into the hash history, or replace the URL state if the
+  // 'replace' option is passed. You are responsible for properly URL-encoding
+  // the fragment in advance.
+  //
+  // The options object can contain `trigger: true` if you wish to have the
+  // route callback be fired (not usually desirable), or `replace: true`, if
+  // you wish to modify the current URL without adding an entry to the history.
+  navigate: function(fragment, options) {
+    if (!History.started) return false;
+    if (!options || options === true) options = {trigger: options};
+    fragment = this.getFragment(fragment || '');
+    if (this.fragment === fragment) return;
+    this.fragment = fragment;
+    var url = this.root + fragment;
+
+    // If pushState is available, we use it to set the fragment as a real URL.
+    if (this._hasPushState) {
+      this.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, url);
+
+    // If hash changes haven't been explicitly disabled, update the hash
+    // fragment to store history.
+    } else if (this._wantsHashChange) {
+      this._updateHash(this.location, fragment, options.replace);
+      if (this.iframe && (fragment !== this.getFragment(this.getHash(this.iframe)))) {
+        // Opening and closing the iframe tricks IE7 and earlier to push a
+        // history entry on hash-tag change.  When replace is true, we don't
+        // want this.
+        if(!options.replace) this.iframe.document.open().close();
+        this._updateHash(this.iframe.location, fragment, options.replace);
+      }
+
+    // If you've told us that you explicitly don't want fallback hashchange-
+    // based history, then `navigate` becomes a page refresh.
+    } else {
+      return this.location.assign(url);
+    }
+    if (options.trigger) this.loadUrl(fragment);
+  },
+
+  // Update the hash location, either replacing the current entry, or adding
+  // a new one to the browser history.
+  _updateHash: function(location, fragment, replace) {
+    if (replace) {
+      var href = location.href.replace(/(javascript:|#).*$/, '');
+      location.replace(href + '#' + fragment);
+    } else {
+      // Some browsers require that `hash` contains a leading #.
+      location.hash = '#' + fragment;
+    }
+  }
+});
+
+Router.history = new History;
+
+
+module.exports = Router;
+},{"substance-util":167,"underscore":175}],154:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+
+// Substance.View
+// ==========================================================================
+//
+// Application View abstraction, inspired by Backbone.js
+
+var View = function(options) {
+  options = options || {};
+  var that = this;
+  // Either use the provided element or make up a new element
+  this.el = options.el || window.document.createElement(options.elementType || 'div');
+  this.$el = $(this.el);
+
+  this.dispatchDOMEvents();
+};
+
+
+View.Prototype = function() {
+
+
+  // Shorthand for selecting elements within the view
+  // ----------
+  //
+
+  this.$ = function(selector) {
+    return this.$el.find(selector);
+  };
+
+  this.render = function() {
+    return this;
+  };
+
+  // Dispatching DOM events (like clicks)
+  // ----------
+  //
+
+  this.dispatchDOMEvents = function() {
+
+    var that = this;
+
+    // showReport(foo) => ["showReport(foo)", "showReport", "foo"]
+    // showReport(12) => ["showReport(12)", "showReport", "12"]
+    function extractFunctionCall(str) {
+      var match = /(\w+)\((.*)\)/.exec(str);
+      if (!match) throw new Error("Invalid click handler '"+str+"'");
+
+      return {
+        "method": match[1],
+        "args": match[2].split(',')
+      };
+    }
+
+    this.$el.delegate('[sbs-click]', 'click', function(e) {
+      console.error("FIXME: sbs-click is deprecated. Use jquery handlers with selectors instead.");
+
+      // Matches things like this
+      // showReport(foo) => ["showReport(foo)", "showReport", "foo"]
+      // showReport(12) => ["showReport(12)", "showReport", "12"]
+      var fnCall = extractFunctionCall($(e.currentTarget).attr('sbs-click'));
+
+      // Event bubbles up if there is no handler
+      var method = that[fnCall.method];
+      if (method) {
+        e.stopPropagation();
+        e.preventDefault();
+        method.apply(that, fnCall.args);
+        return false;
+      }
+    });
+  };
+};
+
+
+View.Prototype.prototype = util.Events;
+View.prototype = new View.Prototype();
+
+module.exports = View;
+
+},{"substance-util":167}],155:[function(require,module,exports){
+"use strict";
+
+var Data = {};
+
+// Current version of the library. Keep in sync with `package.json`.
+Data.VERSION = '0.8.0';
+
+Data.Graph = require('./src/graph');
+
+module.exports = Data;
+
+},{"./src/graph":156}],156:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+
+var Schema = require('./schema');
+var Property = require('./property');
+var Index = require('./graph_index');
+
+var GraphError = errors.define("GraphError");
+
+// Data types registry
+// -------------------
+// Available data types for graph properties.
+
+var VALUE_TYPES = [
+  'object',
+  'array',
+  'string',
+  'number',
+  'boolean',
+  'date'
+];
+
+
+// Check if composite type is in types registry.
+// The actual type of a composite type is the first entry
+// I.e., ["array", "string"] is an array in first place.
+var isValueType = function (type) {
+  if (_.isArray(type)) {
+    type = type[0];
+  }
+  return VALUE_TYPES.indexOf(type) >= 0;
+};
+
+// Graph
+// =====
+
+// A `Graph` can be used for representing arbitrary complex object
+// graphs. Relations between objects are expressed through links that
+// point to referred objects. Graphs can be traversed in various ways.
+// See the testsuite for usage.
+//
+// Need to be documented:
+// @options (mode,seed,chronicle,store,load,graph)
+var Graph = function(schema, options) {
+  options = options || {};
+
+  // Initialization
+  this.schema = new Schema(schema);
+
+  // Check if provided seed conforms to the given schema
+  // Only when schema has an id and seed is provided
+
+  if (this.schema.id && options.seed && options.seed.schema) {
+    if (!_.isEqual(options.seed.schema, [this.schema.id, this.schema.version])) {
+      throw new GraphError([
+        "Graph does not conform to schema. Expected: ",
+        this.schema.id+"@"+this.schema.version,
+        " Actual: ",
+        options.seed.schema[0]+"@"+options.seed.schema[1]
+      ].join(''));
+    }
+  }
+
+  this.nodes = {};
+  this.indexes = {};
+
+  this.__seed__ = options.seed;
+
+  this.init();
+};
+
+Graph.Prototype = function() {
+
+  // Graph manipulation API
+  // ======================
+
+  // Add a new node
+  // --------------
+  // Adds a new node to the graph
+  // Only properties that are specified in the schema are taken:
+  //     var node = {
+  //       id: "apple",
+  //       type: "fruit",
+  //       name: "My Apple",
+  //       color: "red",
+  //       val: { size: "big" }
+  //     };
+  // Create new node:
+  //     Data.Graph.create(node);
+  // Note: graph create operation should reject creation of duplicate nodes.
+
+  _.extend(this, util.Events);
+
+  this.create = function(node) {
+    this.nodes[node.id] = node;
+    this._updateIndexes({
+      type: 'create',
+      path: [node.id],
+      val: node
+    });
+  };
+
+  // Remove a node
+  // -------------
+  // Removes a node with given id and key (optional):
+  //     Data.Graph.delete(this.graph.get('apple'));
+  this.delete = function(id) {
+    var oldVal = this.nodes[id];
+    delete this.nodes[id];
+    this._updateIndexes({
+      type: 'delete',
+      path: [id],
+      val: oldVal
+    });
+  };
+
+  // Set the property
+  // ----------------
+  //
+  // Sets the property to a given value:
+  // Data.Graph.set(["fruit_2", "val", "size"], "too small");
+  // Let's see what happened with node:
+  //     var blueberry = this.graph.get("fruit_2");
+  //     console.log(blueberry.val.size);
+  //     = > 'too small'
+
+  this.set = function(path, newValue) {
+    var prop = this.resolve(path);
+    if (!prop) {
+      throw new GraphError("Could not resolve property with path "+JSON.stringify(path));
+    }
+    var oldVal = prop.get();
+    prop.set(newValue);
+    this._updateIndexes({
+      type: 'set',
+      path: path,
+      val: newValue,
+      original: oldVal
+    });
+  };
+
+  // Get the node [property]
+  // -----------------------
+  //
+  // Gets specified graph node using id:
+  //  var apple = this.graph.get("apple");
+  //  console.log(apple);
+  //  =>
+  //  {
+  //    id: "apple",
+  //    type: "fruit",
+  //    name: "My Apple",
+  //    color: "red",
+  //    val: { size: "big" }
+  //  }
+  // or get node's property:
+  //  var apple = this.graph.get(["apple","color"]);
+  //  console.log(apple);
+  //  => 'red'
+
+  this.get = function(path) {
+    if (!_.isArray(path) && !_.isString(path)) {
+      throw new GraphError("Invalid argument path. Must be String or Array");
+    }
+
+    if (arguments.length > 1) path = _.toArray(arguments);
+    if (_.isString(path)) return this.nodes[path];
+
+    var prop = this.resolve(path);
+    return prop.get();
+  };
+
+  // Query graph data
+  // ----------------
+  //
+  // Perform smart querying on graph
+  //     graph.create({
+  //       id: "apple-tree",
+  //       type: "tree",
+  //       name: "Apple tree"
+  //     });
+  //     var apple = this.graph.get("apple");
+  //     apple.set({["apple","tree"], "apple-tree"});
+  // let's perform query:
+  //     var result = graph.query(["apple", "tree"]);
+  //     console.log(result);
+  //     => [{id: "apple-tree", type: "tree", name: "Apple tree"}]
+
+  this.query = function(path) {
+    var prop = this.resolve(path);
+
+    var type = prop.type;
+    var baseType = prop.baseType;
+    var val = prop.get();
+
+    // resolve referenced nodes in array types
+    if (baseType === "array") {
+      return this._queryArray.call(this, val, type);
+    } else if (!isValueType(baseType)) {
+      return this.get(val);
+    } else {
+      return val;
+    }
+  };
+
+  // Serialize current state
+  // -----------------------
+  //
+  // Convert current graph state to JSON object
+
+  this.toJSON = function() {
+    return {
+      id: this.id,
+      schema: [this.schema.id, this.schema.version],
+      nodes: util.deepclone(this.nodes)
+    };
+  };
+
+  // Check node existing
+  // -------------------
+  //
+  // Checks if a node with given id exists
+  //     this.graph.contains("apple");
+  //     => true
+  //     this.graph.contains("orange");
+  //     => false
+
+  this.contains = function(id) {
+    return (!!this.nodes[id]);
+  };
+
+  // Resolve a property
+  // ------------------
+  // Resolves a property with a given path
+
+  this.resolve = function(path) {
+    return new Property(this, path);
+  };
+
+  // Reset to initial state
+  // ----------------------
+  // Resets the graph to its initial state.
+  // Note: This clears all nodes and calls `init()` which may seed the graph.
+
+  this.reset = function() {
+    this.init();
+    this.trigger("graph:reset");
+  };
+
+  // Graph initialization.
+  this.init = function() {
+    this.__is_initializing__ = true;
+
+    if (this.__seed__) {
+      this.nodes = util.clone(this.__seed__.nodes);
+    } else {
+      this.nodes = {};
+    }
+
+    _.each(this.indexes, function(index) {
+      index.reset();
+    });
+
+    delete this.__is_initializing__;
+  };
+
+  this.addIndex = function(name, options) {
+    if (this.indexes[name]) {
+      throw new GraphError("Index with name " + name + "already exists.");
+    }
+    var index = new Index(this, options);
+    this.indexes[name] = index;
+
+    return index;
+  };
+
+  this.removeIndex = function(name) {
+    delete this.indexes[name];
+  };
+
+  this._updateIndexes = function(op) {
+    _.each(this.indexes, function(index) {
+      if (!op) {
+        index.rebuild();
+      } else {
+        index.onGraphChange(op);
+      }
+    }, this);
+  };
+
+  this._queryArray = function(arr, type) {
+    if (!_.isArray(type)) {
+      throw new GraphError("Illegal argument: array types must be specified as ['array'(, 'array')*, <type>]");
+    }
+    var result, idx;
+    if (type[1] === "array") {
+      result = [];
+      for (idx = 0; idx < arr.length; idx++) {
+        result.push(this._queryArray(arr[idx], type.slice(1)));
+      }
+    } else if (!isValueType(type[1])) {
+      result = [];
+      for (idx = 0; idx < arr.length; idx++) {
+        result.push(this.get(arr[idx]));
+      }
+    } else {
+      result = arr;
+    }
+    return result;
+  };
+
+};
+
+// Index Modes
+// ----------
+
+Graph.STRICT_INDEXING = 1 << 1;
+Graph.DEFAULT_MODE = Graph.STRICT_INDEXING;
+
+
+Graph.prototype = new Graph.Prototype();
+
+Graph.Schema = Schema;
+Graph.Property = Property;
+Graph.Index = Index;
+
+// Exports
+// ========
+
+module.exports = Graph;
+
+},{"./graph_index":157,"./property":158,"./schema":159,"substance-util":167,"underscore":175}],157:[function(require,module,exports){
+var _ = require("underscore");
+var util = require("substance-util");
+
+// Creates an index for the document applying a given node filter function
+// and grouping using a given key function
+// --------
+//
+// - document: a document instance
+// - filter: a function that takes a node and returns true if the node should be indexed
+// - key: a function that provides a path for scoped indexing (default: returns empty path)
+//
+
+var Index = function(graph, options) {
+  options = options || {};
+
+  this.graph = graph;
+
+  this.nodes = {};
+  this.scopes = {};
+
+  if (options.filter) {
+    this.filter = options.filter;
+  } else if (options.types) {
+    this.filter = Index.typeFilter(graph.schema, options.types);
+  }
+
+  if (options.property) {
+    this.property = options.property;
+  }
+
+  this.createIndex();
+};
+
+Index.Prototype = function() {
+
+  // Resolves a sub-hierarchy of the index via a given path
+  // --------
+  //
+
+  var _resolve = function(path) {
+    var index = this;
+    if (path !== null) {
+      for (var i = 0; i < path.length; i++) {
+        var id = path[i];
+        index.scopes[id] = index.scopes[id] || { nodes: {}, scopes: {} };
+        index = index.scopes[id];
+      }
+    }
+    return index;
+  };
+
+  var _getKey = function(node) {
+    if (!this.property) return null;
+    var key = node[this.property] ? node[this.property] : null;
+    if (_.isString(key)) key = [key];
+    return key;
+  };
+
+  // Accumulates all indexed children of the given (sub-)index
+  var _collect = function(index) {
+    var result = _.extend({}, index.nodes);
+    _.each(index.scopes, function(child, name) {
+      if (name !== "nodes") {
+        _.extend(result, _collect(child));
+      }
+    });
+    return result;
+  };
+
+  // Keeps the index up-to-date when the graph changes.
+  // --------
+  //
+
+  this.onGraphChange = function(op) {
+    this.applyOp(op);
+  };
+
+  this._add = function(node) {
+    if (!this.filter || this.filter(node)) {
+      var key = _getKey.call(this, node);
+      var index = _resolve.call(this, key);
+      index.nodes[node.id] = node.id;
+    }
+  };
+
+  this._remove = function(node) {
+    if (!this.filter || this.filter(node)) {
+      var key = _getKey.call(this, node);
+      var index = _resolve.call(this, key);
+      delete index.nodes[node.id];
+    }
+  };
+
+  this._update = function(node, property, newValue, oldValue) {
+    if ((this.property === property) && (!this.filter || this.filter(node))) {
+      var key = oldValue;
+      if (_.isString(key)) key = [key];
+      var index = _resolve.call(this, key);
+      delete index.nodes[node.id];
+      key = newValue;
+      index.nodes[node.id] = node.id;
+    }
+  };
+
+
+  this.applyOp = function(op) {
+    if (op.type === "create") {
+      this._add(op.val);
+    }
+    else if (op.type === "delete") {
+      this._remove(op.val);
+    }
+    // type = 'update' or 'set'
+    else {
+      var prop = this.graph.resolve(this, op.path);
+      var value = prop.get();
+      var oldValue;
+      if (value === undefined) {
+        return;
+      }
+      if (op.type === "set") {
+        oldValue = op.original;
+      } else {
+        console.error("Operational updates are not supported in this implementation");
+      }
+      this._update(prop.node, prop.key, value, oldValue);
+    }
+  };
+
+  // Initializes the index
+  // --------
+  //
+
+  this.createIndex = function() {
+    this.reset();
+
+    var nodes = this.graph.nodes;
+    _.each(nodes, function(node) {
+      if (!this.filter || this.filter(node)) {
+        var key = _getKey.call(this, node);
+        var index = _resolve.call(this, key);
+        index.nodes[node.id] = node.id;
+      }
+    }, this);
+  };
+
+  // Collects all indexed nodes using a given path for scoping
+  // --------
+  //
+
+  this.get = function(path) {
+    if (arguments.length === 0) {
+      path = null;
+    } else if (_.isString(path)) {
+      path = [path];
+    }
+
+    var index = _resolve.call(this, path);
+
+    // EXPERIMENTAL: do we need the ability to retrieve indexed elements non-recursively
+    // for now...
+    // if so... we would need an paramater to prevent recursion
+    // E.g.:
+    //     if (shallow) {
+    //       result = index.nodes;
+    //     }
+    var collected = _collect(index);
+    var result = new Index.Result();
+
+    _.each(collected, function(id) {
+      result[id] = this.graph.get(id);
+    }, this);
+
+    return result;
+  };
+
+  this.reset = function() {
+    this.nodes = {};
+    this.scopes = {};
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+
+  this.rebuild = function() {
+    this.reset();
+    this.createIndex();
+  };
+};
+
+Index.prototype = _.extend(new Index.Prototype(), util.Events.Listener);
+
+Index.typeFilter = function(schema, types) {
+  return function(node) {
+    var typeChain = schema.typeChain(node.type);
+    for (var i = 0; i < types.length; i++) {
+      if (typeChain.indexOf(types[i]) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+};
+
+Index.Result = function() {};
+Index.Result.prototype.asList = function() {
+  var list = [];
+  for (var key in this) {
+    list.push(this[key]);
+  }
+};
+Index.Result.prototype.getLength = function() {
+  return Object.keys(this).length;
+};
+
+module.exports = Index;
+
+},{"substance-util":167,"underscore":175}],158:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var Property = function(graph, path) {
+  if (!path) {
+    throw new Error("Illegal argument: path is null/undefined.");
+  }
+
+  this.graph = graph;
+  this.schema = graph.schema;
+
+  _.extend(this, this.resolve(path));
+};
+
+Property.Prototype = function() {
+
+  this.resolve = function(path) {
+    var node = this.graph;
+    var parent = node;
+    var type = "graph";
+
+    var key;
+    var value;
+
+    var idx = 0;
+    for (; idx < path.length; idx++) {
+
+      // TODO: check if the property references a node type
+      if (type === "graph" || this.schema.types[type] !== undefined) {
+        // remember the last node type
+        parent = this.graph.get(path[idx]);
+
+        if (parent === undefined) {
+          //throw new Error("Key error: could not find element for path " + JSON.stringify(path));
+          return undefined;
+        }
+
+        node = parent;
+        type = this.schema.properties(parent.type);
+        value = node;
+        key = undefined;
+      } else {
+        if (parent === undefined) {
+          //throw new Error("Key error: could not find element for path " + JSON.stringify(path));
+          return undefined;
+        }
+        key = path[idx];
+        var propName = path[idx];
+        type = type[propName];
+        value = parent[key];
+
+        if (idx < path.length-1) {
+          parent = parent[propName];
+        }
+      }
+    }
+
+    return {
+      node: node,
+      parent: parent,
+      type: type,
+      key: key,
+      value: value
+    };
+
+  };
+
+  this.get = function() {
+    if (this.key !== undefined) {
+      return this.parent[this.key];
+    } else {
+      return this.node;
+    }
+  };
+
+  this.set = function(value) {
+    if (this.key !== undefined) {
+      this.parent[this.key] = this.schema.parseValue(this.baseType, value);
+    } else {
+      throw new Error("'set' is only supported for node properties.");
+    }
+  };
+
+};
+Property.prototype = new Property.Prototype();
+Object.defineProperties(Property.prototype, {
+  baseType: {
+    get: function() {
+      if (_.isArray(this.type)) return this.type[0];
+      else return this.type;
+    }
+  },
+  path: {
+    get: function() {
+      return [this.node.id, this.key];
+    }
+  }
+});
+
+module.exports = Property;
+
+},{"underscore":175}],159:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+
+// Data.Schema
+// ========
+//
+// Provides a schema inspection API
+
+var Schema = function(schema) {
+  _.extend(this, schema);
+};
+
+Schema.Prototype = function() {
+
+  // Return Default value for a given type
+  // --------
+  //
+
+  this.defaultValue = function(valueType) {
+    if (valueType === "object") return {};
+    if (valueType === "array") return [];
+    if (valueType === "string") return "";
+    if (valueType === "number") return 0;
+    if (valueType === "boolean") return false;
+    if (valueType === "date") return new Date();
+
+    return null;
+    // throw new Error("Unknown value type: " + valueType);
+  };
+
+  // Return type object for a given type id
+  // --------
+  //
+
+  this.parseValue = function(valueType, value) {
+    if (value === null) {
+      return value;
+    }
+
+    if (_.isString(value)) {
+      if (valueType === "object") return JSON.parse(value);
+      if (valueType === "array") return JSON.parse(value);
+      if (valueType === "string") return value;
+      if (valueType === "number") return parseInt(value, 10);
+      if (valueType === "boolean") {
+        if (value === "true") return true;
+        else if (value === "false") return false;
+        else throw new Error("Can not parse boolean value from: " + value);
+      }
+      if (valueType === "date") return new Date(value);
+
+      // all other types must be string compatible ??
+      return value;
+
+    } else {
+      if (valueType === 'array') {
+        if (!_.isArray(value)) {
+          throw new Error("Illegal value type: expected array.");
+        }
+        value = util.deepclone(value);
+      }
+      else if (valueType === 'string') {
+        if (!_.isString(value)) {
+          throw new Error("Illegal value type: expected string.");
+        }
+      }
+      else if (valueType === 'object') {
+        if (!_.isObject(value)) {
+          throw new Error("Illegal value type: expected object.");
+        }
+        value = util.deepclone(value);
+      }
+      else if (valueType === 'number') {
+        if (!_.isNumber(value)) {
+          throw new Error("Illegal value type: expected number.");
+        }
+      }
+      else if (valueType === 'boolean') {
+        if (!_.isBoolean(value)) {
+          throw new Error("Illegal value type: expected boolean.");
+        }
+      }
+      else if (valueType === 'date') {
+        value = new Date(value);
+      }
+      else {
+        throw new Error("Unsupported value type: " + valueType);
+      }
+      return value;
+    }
+  };
+
+  // Return type object for a given type id
+  // --------
+  //
+
+  this.type = function(typeId) {
+    return this.types[typeId];
+  };
+
+  // For a given type id return the type hierarchy
+  // --------
+  //
+  // => ["base_type", "specific_type"]
+
+  this.typeChain = function(typeId) {
+    var type = this.types[typeId];
+    if (!type) {
+      throw new Error('Type ' + typeId + ' not found in schema');
+    }
+
+    var chain = (type.parent) ? this.typeChain(type.parent) : [];
+    chain.push(typeId);
+    return chain;
+  };
+
+  this.isInstanceOf = function(type, parentType) {
+    var typeChain = this.typeChain(type);
+    if (typeChain && typeChain.indexOf(parentType) >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  // Provides the top-most parent type of a given type.
+  // --------
+  //
+
+  this.baseType = function(typeId) {
+    return this.typeChain(typeId)[0];
+  };
+
+  // Return all properties for a given type
+  // --------
+  //
+
+  this.properties = function(type) {
+    type = _.isObject(type) ? type : this.type(type);
+    var result = (type.parent) ? this.properties(type.parent) : {};
+    _.extend(result, type.properties);
+    return result;
+  };
+
+  // Returns the full type for a given property
+  // --------
+  //
+  // => ["array", "string"]
+
+  this.propertyType = function(type, property) {
+    var properties = this.properties(type);
+    var propertyType = properties[property];
+    if (!propertyType) throw new Error("Property not found for" + type +'.'+property);
+    return _.isArray(propertyType) ? propertyType : [propertyType];
+  };
+
+  // Returns the base type for a given property
+  // --------
+  //
+  //  ["string"] => "string"
+  //  ["array", "string"] => "array"
+
+  this.propertyBaseType = function(type, property) {
+    return this.propertyType(type, property)[0];
+  };
+};
+
+Schema.prototype = new Schema.Prototype();
+
+module.exports = Schema;
+
+},{"substance-util":167,"underscore":175}],160:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var Document = require('./src/document');
+Document.Container = require('./src/container');
+Document.Controller = require('./src/controller');
+Document.Node = require('./src/node');
+Document.Composite = require('./src/composite');
+// TODO: this should also be moved to 'substance-nodes'
+// However, currently there is too much useful in it that is also necessary for the test-suite
+// Maybe, we should extract such things into helper functions so that it is easier to
+// create custom text based, annotatable nodes.
+Document.TextNode = require('./src/text_node');
+
+module.exports = Document;
+
+},{"./src/composite":161,"./src/container":162,"./src/controller":163,"./src/document":164,"./src/node":165,"./src/text_node":166,"underscore":175}],161:[function(require,module,exports){
+var DocumentNode = require("./node");
+
+var Composite = function(node, doc) {
+  DocumentNode.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Composite.type = {
+  "id": "composite",
+  "parent": "content",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Composite.description = {
+  "name": "Composite",
+  "remarks": [
+    "A file reference to an external resource.",
+  ],
+  "properties": {
+  }
+};
+
+// Example File
+// -----------------
+//
+
+Composite.example = {
+  "no_example": "yet"
+};
+
+Composite.Prototype = function() {
+
+  this.getLength = function() {
+    throw new Error("Composite.getLength() is abstract.");
+  };
+
+  // Provides the ids of all referenced sub-nodes.
+  // -------
+  //
+
+  // Only for legacy reasons
+  this.getNodes = function() {
+    return this.getChildrenIds();
+  };
+
+  this.getChildrenIds = function() {
+    throw new Error("Composite.getChildrenIds() is abstract.");
+  };
+
+  // Tells if this composite is can be changed with respect to its children
+  // --------
+  //
+
+  this.isMutable = function() {
+    return false;
+  };
+
+  this.insertOperation = function(/*charPos, text*/) {
+    return null;
+  };
+
+  this.deleteOperation = function(/*startChar, endChar*/) {
+    return null;
+  };
+
+  // Inserts reference(s) at the given position
+  // --------
+  //
+
+  this.insertChild = function(/*doc, pos, nodeId*/) {
+    throw new Error("This composite is immutable.");
+  };
+
+  // Removes a reference from this composite.
+  // --------
+
+  this.deleteChild = function(/*doc, nodeId*/) {
+    throw new Error("This composite is immutable.");
+  };
+
+  // Provides the index of the affected node.
+  // --------
+  //
+
+  this.getChangePosition = function(op) {
+    return 0;
+  };
+
+};
+
+Composite.Prototype.prototype = DocumentNode.prototype;
+Composite.prototype = new Composite.Prototype();
+
+module.exports = Composite;
+
+},{"./node":165}],162:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Composite = require("./composite");
+
+var Container = function(document, view) {
+  this.document = document;
+  this.view = view;
+
+  this.treeView = [];
+  this.listView = [];
+
+  this.__parents = {};
+  this.__composites = {};
+
+  this.rebuild();
+};
+
+Container.Prototype = function() {
+
+  var _each = function(iterator, context) {
+    var queue = [];
+    var i;
+
+    for (i = this.treeView.length - 1; i >= 0; i--) {
+      queue.unshift({
+        id: this.treeView[i],
+        parent: null
+      });
+    }
+
+    var item, node;
+    while(queue.length > 0) {
+      item = queue.shift();
+      node = this.document.get(item.id);
+      if (node instanceof Composite) {
+        var children = node.getNodes();
+        for (i = children.length - 1; i >= 0; i--) {
+          queue.unshift({
+            id: children[i],
+            parent: node.id,
+          });
+        }
+      }
+      iterator.call(context, node, item.parent);
+    }
+  };
+
+  this.rebuild = function() {
+
+    // clear the list view
+    this.treeView.splice(0, this.treeView.length);
+    this.listView.splice(0, this.listView.length);
+
+    this.treeView = _.clone(this.view.nodes);
+    for (var i = 0; i < this.view.length; i++) {
+      this.treeView.push(this.view[i]);
+    }
+
+    this.__parents = {};
+    this.__composites = {};
+    _each.call(this, function(node, parent) {
+      if (node instanceof Composite) {
+        this.__parents[node.id] = parent;
+        this.__composites[parent] = parent;
+      } else {
+        this.listView.push(node.id);
+        if (this.__parents[node.id]) {
+          throw new Error("Nodes must be unique in one view.");
+        }
+        this.__parents[node.id] = parent;
+        this.__composites[parent] = parent;
+      }
+    }, this);
+  };
+
+  this.getTopLevelNodes = function() {
+    return _.map(this.treeView, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+  this.getNodes = function(idsOnly) {
+    var nodeIds = this.listView;
+    if (idsOnly) {
+      return _.clone(nodeIds);
+    }
+    else {
+      var result = [];
+      for (var i = 0; i < nodeIds.length; i++) {
+        result.push(this.document.get(nodeIds[i]));
+      }
+      return result;
+    }
+  };
+
+  this.getPosition = function(nodeId) {
+    var nodeIds = this.listView;
+    return nodeIds.indexOf(nodeId);
+  };
+
+  this.getNodeFromPosition = function(pos) {
+    var nodeIds = this.listView;
+    var id = nodeIds[pos];
+    if (id !== undefined) {
+      return this.document.get(id);
+    } else {
+      return null;
+    }
+  };
+
+  this.getParent = function(nodeId) {
+    return this.__parents[nodeId];
+  };
+
+  // Get top level parent of given nodeId
+  this.getRoot = function(nodeId) {
+    var parent = nodeId;
+
+    // Always use top level element for referenceing the node
+    while (parent) {
+      nodeId = parent;
+      parent = this.getParent(nodeId);
+    }
+    return nodeId;
+  };
+
+  this.update = function(op) {
+    var path = op.path;
+    var needRebuild = (path[0] === this.view.id ||  this.__composites[path[0]] !== undefined);
+    if (needRebuild) this.rebuild();
+  };
+
+  this.getLength = function() {
+    return this.listView.length;
+  };
+
+  // Returns true if there is another node after a given position.
+  // --------
+  //
+
+  this.hasSuccessor = function(nodePos) {
+    var l = this.getLength();
+    return nodePos < l - 1;
+  };
+
+  // Returns true if given view and node pos has a predecessor
+  // --------
+  //
+
+  this.hasPredecessor = function(nodePos) {
+    return nodePos > 0;
+  };
+
+  // Get predecessor node for a given view and node id
+  // --------
+  //
+
+  this.getPredecessor = function(id) {
+    var pos = this.getPosition(id);
+    if (pos <= 0) return null;
+    return this.getNodeFromPosition(pos-1);
+  };
+
+  // Get successor node for a given view and node id
+  // --------
+  //
+
+  this.getSuccessor = function(id) {
+    var pos = this.getPosition(id);
+    if (pos >= this.getLength() - 1) return null;
+    return this.getNodeFromPosition(pos+1);
+  };
+
+  this.firstChild = function(node) {
+    if (node instanceof Composite) {
+      var first = this.document.get(node.getNodes()[0]);
+      return this.firstChild(first);
+    } else {
+      return node;
+    }
+  };
+
+  this.lastChild = function(node) {
+    if (node instanceof Composite) {
+      var last = this.document.get(_.last(node.getNodes()));
+      return this.lastChild(last);
+    } else {
+      return node;
+    }
+  };
+
+  // Provides a document position which addresses begin of a given node
+  // --------
+  //
+
+  this.before = function(node) {
+    var child = this.firstChild(node);
+    var nodePos = this.getPosition(child.id);
+    return [nodePos, 0];
+  };
+
+  // Provides a document position which addresses the end of a given node
+  // --------
+  //
+
+  this.after = function(node) {
+    var child = this.lastChild(node);
+    var nodePos = this.getPosition(child.id);
+    var charPos = child.getLength();
+    return [nodePos, charPos];
+  };
+
+};
+
+Container.prototype = _.extend(new Container.Prototype(), util.Events.Listener);
+
+Object.defineProperties(Container.prototype, {
+  "id": {
+    get: function() { return this.view.id; }
+  },
+  "type": {
+    get: function() { return this.view.type; }
+  },
+  "nodes": {
+    get: function() { return this.view.nodes; },
+    set: function(val) { this.view.nodes = val; }
+  }
+});
+
+module.exports = Container;
+
+},{"./composite":161,"substance-util":167,"underscore":175}],163:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+// Document.Controller
+// -----------------
+//
+// Provides means for editing and viewing a Substance.Document. It introduces
+// a Selection API in order to move a cursor through the document, support
+// copy and paste, etc.
+//
+// Note: it is quite intentional not to expose the full Substance.Document interface
+//       to force us to explicitely take care of model adaptations.
+//
+// Example usage:
+//
+//     var doc = new Substance.Document();
+//     var editor = new Substance.Document.Controller(doc);
+//     var editor.insert("Hello World");
+
+var Controller = function(document, options) {
+  options = options || {};
+  this.view = options.view || 'content';
+  this.__document = document;
+  this.container = document.get(this.view);
+};
+
+Controller.Prototype = function() {
+
+  // Document Facette
+  // --------
+
+  this.getNodes = function(idsOnly) {
+    return this.container.getNodes(idsOnly);
+  };
+
+  this.getContainer = function() {
+    return this.container;
+  };
+
+  // Given a node id, get position in the document
+  // --------
+  //
+
+  this.getPosition = function(id, flat) {
+    return this.container.getPosition(id, flat);
+  };
+
+  this.getNodeFromPosition = function(nodePos) {
+    return this.container.getNodeFromPosition(nodePos);
+  };
+
+  // See Annotator
+  // --------
+  //
+
+  this.getAnnotations = function(options) {
+    options = options || {};
+    options.view = this.view;
+    return this.annotator.getAnnotations(options);
+  };
+
+  // Delegate getter
+  this.get = function() {
+    return this.__document.get.apply(this.__document, arguments);
+  };
+
+  this.on = function() {
+    return this.__document.on.apply(this.__document, arguments);
+  };
+
+  this.off = function() {
+    return this.__document.off.apply(this.__document, arguments);
+  };
+
+  this.getDocument = function() {
+    return this.__document;
+  };
+
+};
+
+// Inherit the prototype of Substance.Document which extends util.Events
+Controller.prototype = _.extend(new Controller.Prototype(), util.Events.Listener);
+
+// Property accessors for convenient access of primary properties
+Object.defineProperties(Controller.prototype, {
+  id: {
+    get: function() {
+      return this.__document.id;
+    },
+    set: function() { throw "immutable property"; }
+  },
+  nodeTypes: {
+    get: function() {
+      return this.__document.nodeTypes;
+    },
+    set: function() { throw "immutable property"; }
+  },
+  title: {
+    get: function() {
+      return this.__document.get('document').title;
+    },
+    set: function() { throw "immutable property"; }
+  },
+  updated_at: {
+    get: function() {
+      return this.__document.get('document').updated_at;
+    },
+    set: function() { throw "immutable property"; }
+  },
+  creator: {
+    get: function() {
+      return this.__document.get('document').creator;
+    },
+    set: function() { throw "immutable property"; }
+  }
+});
+
+module.exports = Controller;
+
+},{"substance-util":167,"underscore":175}],164:[function(require,module,exports){
+"use strict";
+
+// Substance.Document 0.5.0
+// (c) 2010-2013 Michael Aufreiter
+// Substance.Document may be freely distributed under the MIT license.
+// For all details and documentation:
+// http://interior.substance.io/modules/document.html
+
+
+// Import
+// ========
+
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+var Data = require("substance-data");
+//var Operator = require("substance-operator");
+//var Chronicle = require("substance-chronicle");
+var Container = require("./container");
+
+// Module
+// ========
+
+var DocumentError = errors.define("DocumentError");
+
+
+// Document
+// --------
+//
+// A generic model for representing and transforming digital documents
+
+var Document = function(options) {
+  Data.Graph.call(this, options.schema, options);
+
+  this.containers = {};
+
+  this.addIndex("annotations", {
+    types: ["annotation"],
+    property: "path"
+  });
+};
+
+// Default Document Schema
+// --------
+
+Document.schema = {
+  // Static indexes
+  "indexes": {
+  },
+
+  "types": {
+    // Specific type for substance documents, holding all content elements
+    "content": {
+      "properties": {
+      }
+    },
+
+    "view": {
+      "properties": {
+        "nodes": ["array", "content"]
+      }
+    }
+  }
+};
+
+
+Document.Prototype = function() {
+  var __super__ = util.prototype(this);
+
+  this.getIndex = function(name) {
+    return this.indexes[name];
+  };
+
+  this.getSchema = function() {
+    return this.schema;
+  };
+
+  this.create = function(node) {
+    __super__.create.call(this, node);
+    return this.get(node.id);
+  };
+
+  // Delegates to Graph.get but wraps the result in the particular node constructor
+  // --------
+  //
+
+  this.get = function(path) {
+    var node = __super__.get.call(this, path);
+
+    if (!node) return node;
+
+    // Wrap all views in Container instances
+    if (node.type === "view") {
+      if (!this.containers[node.id]) {
+        this.containers[node.id] = new Container(this, node);
+      }
+      return this.containers[node.id];
+    }
+
+    // Wrap all nodes in an appropriate Node instance
+    else {
+      var nodeSpec = this.nodeTypes[node.type];
+      var NodeType = (nodeSpec !== undefined) ? nodeSpec.Model : null;
+      if (NodeType && !(node instanceof NodeType)) {
+        node = new NodeType(node, this);
+        this.nodes[node.id] = node;
+      }
+
+      return node;
+    }
+  };
+
+  // Serialize to JSON
+  // --------
+  //
+  // The command is converted into a sequence of graph commands
+
+  this.toJSON = function() {
+    var res = __super__.toJSON.call(this);
+    res.id = this.id;
+    return res;
+  };
+
+  // Hide elements from provided view
+  // --------
+  //
+
+  this.hide = function(viewId, nodes) {
+    var view = this.get(viewId);
+
+    if (!view) {
+      throw new DocumentError("Invalid view id: "+ viewId);
+    }
+
+    if (_.isString(nodes)) {
+      nodes = [nodes];
+    }
+
+    var indexes = [];
+    _.each(nodes, function(n) {
+      var i = view.nodes.indexOf(n);
+      if (i>=0) indexes.push(i);
+    }, this);
+
+    if (indexes.length === 0) return;
+
+    indexes = indexes.sort().reverse();
+    indexes = _.uniq(indexes);
+
+    var container = this.nodes[viewId];
+    for (var i = 0; i < indexes.length; i++) {
+      container.nodes.splice(indexes[i], 1);
+    }
+  };
+
+  // Adds nodes to a view
+  // --------
+  //
+
+  this.show = function(viewId, nodeId, target) {
+    if (target === undefined) target = -1;
+
+    var view = this.get(viewId);
+    if (!view) {
+      throw new DocumentError("Invalid view id: " + viewId);
+    }
+
+    var l = view.nodes.length;
+
+    // target index can be given as negative number (as known from python/ruby)
+    target = Math.min(target, l);
+    if (target<0) target = Math.max(0, l+target+1);
+
+    view.nodes.splice(target, 0, nodeId);
+  };
+
+  this.fromSnapshot = function(data, options) {
+    return Document.fromSnapshot(data, options);
+  };
+
+  this.uuid = function(type) {
+    return type + "_" + util.uuid();
+  };
+};
+
+Document.Prototype.prototype = Data.Graph.prototype;
+Document.prototype = new Document.Prototype();
+
+Document.fromSnapshot = function(data, options) {
+  options = options || {};
+  options.seed = data;
+  return new Document(options);
+};
+
+
+Document.DocumentError = DocumentError;
+
+// Export
+// ========
+
+module.exports = Document;
+
+},{"./container":162,"substance-data":155,"substance-util":167,"underscore":175}],165:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+// Substance.Node
+// -----------------
+
+var Node = function(node, document) {
+  this.document = document;
+  this.properties = node;
+};
+
+// Type definition
+// --------
+//
+
+Node.type = {
+  "parent": "content",
+  "properties": {
+  }
+};
+
+// Define node behavior
+// --------
+// These properties define the default behavior of a node, e.g., used when manipulating the document.
+// Sub-types override these settings
+// Note: it is quite experimental, and we will consolidate them soon.
+
+Node.properties = {
+  abstract: true,
+  immutable: true,
+  mergeableWith: [],
+  preventEmpty: true,
+  allowedAnnotations: []
+};
+
+Node.Prototype = function() {
+
+  this.toJSON = function() {
+    return _.clone(this.properties);
+  };
+
+  // Provides the number of characters contained by this node.
+  // --------
+  // We use characters as a general concept, i.e., they do not
+  // necessarily map to real characters.
+  // Basically it is used for navigation and positioning.
+
+  this.getLength = function() {
+    throw new Error("Node.getLength() is abstract.");
+  };
+
+  // Provides how a cursor would change by an operation
+  // --------
+  //
+
+  this.getChangePosition = function(op) {
+    throw new Error("Node.getCharPosition() is abstract.");
+  };
+
+  // Provides an operation that can be used to insert
+  // text at the given position.
+  // --------
+  //
+
+  this.insertOperation = function(charPos, text) {
+    throw new Error("Node.insertOperation() is abstract.");
+  };
+
+  // Provides an operation that can be used to delete a given range.
+  // --------
+  //
+
+  this.deleteOperation = function(startChar, endChar) {
+    throw new Error("Node.deleteOperation() is abstract.");
+  };
+
+  // Note: this API is rather experimental
+  // It is used to dynamically control the behavior for modifications
+  // e.g., via an editor
+
+  // Can this node be joined with another one?
+  // --------
+
+  this.canJoin = function(other) {
+    return false;
+  };
+
+  // Appends the content of another node
+  // --------
+
+  this.join = function(other) {
+    throw new Error("Node.join() is abstract.");
+  };
+
+  // Can a 'hard-break' be applied to this node?
+  // --------
+
+  this.isBreakable = function() {
+    return false;
+  };
+
+  // Breaks this node at a given position
+  // --------
+
+  this.break = function(doc, pos) {
+    throw new Error("Node.split() is abstract.");
+  };
+
+  this.getAnnotations = function() {
+    return this.document.getIndex("annotations").get(this.properties.id);
+  };
+
+  this.includeInToc = function() {
+    return false;
+  };
+};
+
+Node.prototype = new Node.Prototype();
+Node.prototype.constructor = Node;
+
+Node.defineProperties = function(NodeClassOrNodePrototype, properties, readonly) {
+  var NodePrototype = NodeClassOrNodePrototype;
+
+  if (arguments.length === 1) {
+    var NodeClass = NodeClassOrNodePrototype;
+    NodePrototype = NodeClass.prototype;
+    if (!NodePrototype || !NodeClass.type) {
+      throw new Error("Illegal argument: expected NodeClass");
+    }
+    properties = Object.keys(NodeClass.type.properties);
+  }
+
+  _.each(properties, function(name) {
+    var spec = {
+      get: function() {
+        return this.properties[name];
+      }
+    }
+    if (!readonly) {
+      spec["set"] = function(val) {
+        this.properties[name] = val;
+        return this;
+      }
+    }
+    Object.defineProperty(NodePrototype, name, spec);
+  });
+};
+
+Node.defineProperties(Node.prototype, ["id", "type"]);
+
+module.exports = Node;
+
+},{"underscore":175}],166:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require("./node");
+
+// Substance.Text
+// -----------------
+//
+
+var Text = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+
+Text.type = {
+  "id": "text",
+  "parent": "content",
+  "properties": {
+    "source_id": "Text element source id",
+    "content": "string"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Text.description = {
+  "name": "Text",
+  "remarks": [
+    "A simple text fragement that can be annotated. Usually text nodes are combined in a paragraph.",
+  ],
+  "properties": {
+    "content": "Content",
+  }
+};
+
+
+// Example Paragraph
+// -----------------
+//
+
+Text.example = {
+  "type": "paragraph",
+  "id": "paragraph_1",
+  "content": "Lorem ipsum dolor sit amet, adipiscing elit.",
+};
+
+
+Text.Prototype = function() {
+  this.getLength = function() {
+    return this.properties.content.length;
+  };
+};
+
+Text.Prototype.prototype = DocumentNode.prototype;
+Text.prototype = new Text.Prototype();
+Text.prototype.constructor = Text;
+
+DocumentNode.defineProperties(Text.prototype, ["content"]);
+
+module.exports = Text;
+
+},{"./node":165}],167:[function(require,module,exports){
+"use strict";
+
+var util = require("./src/util");
+
+util.async = require("./src/async");
+util.errors = require("./src/errors");
+util.html = require("./src/html");
+util.dom = require("./src/dom");
+util.RegExp = require("./src/regexp");
+util.Fragmenter = require("./src/fragmenter");
+
+module.exports = util;
+
+},{"./src/async":168,"./src/dom":169,"./src/errors":170,"./src/fragmenter":171,"./src/html":172,"./src/regexp":173,"./src/util":174}],168:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("./util.js");
+
+// Helpers for Asynchronous Control Flow
+// --------
+
+var async = {};
+
+function callAsynchronousChain(options, cb) {
+  var _finally = options["finally"] || function(err, data) { cb(err, data); };
+  _finally = _.once(_finally);
+  var data = options.data || {};
+  var functions = options.functions;
+
+  if (!_.isFunction(cb)) {
+    return cb("Illegal arguments: a callback function must be provided");
+  }
+
+  var index = 0;
+  var stopOnError = (options.stopOnError===undefined) ? true : options.stopOnError;
+  var errors = [];
+
+  function process(data) {
+    var func = functions[index];
+
+    // stop if no function is left
+    if (!func) {
+      if (errors.length > 0) {
+        return _finally(new Error("Multiple errors occurred.", data));
+      } else {
+        return _finally(null, data);
+      }
+    }
+
+    // A function that is used as call back for each function
+    // which does the progression in the chain via recursion.
+    // On errors the given callback will be called and recursion is stopped.
+    var recursiveCallback = _.once(function(err, data) {
+      // stop on error
+      if (err) {
+        if (stopOnError) {
+          return _finally(err, null);
+        } else {
+          errors.push(err);
+        }
+      }
+
+      index += 1;
+      process(data);
+    });
+
+    // catch exceptions and propagat
+    try {
+      if (func.length === 0) {
+        func();
+        recursiveCallback(null, data);
+      }
+      else if (func.length === 1) {
+        func(recursiveCallback);
+      }
+      else {
+        func(data, recursiveCallback);
+      }
+    } catch (err) {
+      console.log("util.async caught error:", err);
+      util.printStackTrace(err);
+      _finally(err);
+    }
+  }
+
+  // start processing
+  process(data);
+}
+
+// Calls a given list of asynchronous functions sequentially
+// -------------------
+// options:
+//    functions:  an array of functions of the form f(data,cb)
+//    data:       data provided to the first function; optional
+//    finally:    a function that will always be called at the end, also on errors; optional
+
+async.sequential = function(options, cb) {
+  // allow to call this with an array of functions instead of options
+  if(_.isArray(options)) {
+    options = { functions: options };
+  }
+  callAsynchronousChain(options, cb);
+};
+
+function asynchronousIterator(options) {
+  return function(data, cb) {
+    // retrieve items via selector if a selector function is given
+    var items = options.selector ? options.selector(data) : options.items;
+    var _finally = options["finally"] || function(err, data) { cb(err, data); };
+    _finally = _.once(_finally);
+
+    // don't do nothing if no items are given
+    if (!items) {
+      return _finally(null, data);
+    }
+
+    var isArray = _.isArray(items);
+
+    if (options.before) {
+      options.before(data);
+    }
+
+    var funcs = [];
+    var iterator = options.iterator;
+
+    // TODO: discuss convention for iterator function signatures.
+    // trying to achieve a combination of underscore and node.js callback style
+    function arrayFunction(item, index) {
+      return function(data, cb) {
+        if (iterator.length === 2) {
+          iterator(item, cb);
+        } else if (iterator.length === 3) {
+          iterator(item, index, cb);
+        } else {
+          iterator(item, index, data, cb);
+        }
+      };
+    }
+
+    function objectFunction(value, key) {
+      return function(data, cb) {
+        if (iterator.length === 2) {
+          iterator(value, cb);
+        } else if (iterator.length === 3) {
+          iterator(value, key, cb);
+        } else {
+          iterator(value, key, data, cb);
+        }
+      };
+    }
+
+    if (isArray) {
+      for (var idx = 0; idx < items.length; idx++) {
+        funcs.push(arrayFunction(items[idx], idx));
+      }
+    } else {
+      for (var key in items) {
+        funcs.push(objectFunction(items[key], key));
+      }
+    }
+
+    //console.log("Iterator:", iterator, "Funcs:", funcs);
+    var chainOptions = {
+      functions: funcs,
+      data: data,
+      finally: _finally,
+      stopOnError: options.stopOnError
+    };
+    callAsynchronousChain(chainOptions, cb);
+  };
+}
+
+// Creates an each-iterator for util.async chains
+// -----------
+//
+//     var func = util.async.each(items, function(item, [idx, [data,]] cb) { ... });
+//     var func = util.async.each(options)
+//
+// options:
+//    items:    the items to be iterated
+//    selector: used to select items dynamically from the data provided by the previous function in the chain
+//    before:   an extra function called before iteration
+//    iterator: the iterator function (item, [idx, [data,]] cb)
+//       with item: the iterated item,
+//            data: the propagated data (optional)
+//            cb:   the callback
+
+// TODO: support only one version and add another function
+async.iterator = function(options_or_items, iterator) {
+  var options;
+  if (arguments.length == 1) {
+    options = options_or_items;
+  } else {
+    options = {
+      items: options_or_items,
+      iterator: iterator
+    };
+  }
+  return asynchronousIterator(options);
+};
+
+async.each = function(options, cb) {
+  // create the iterator and call instantly
+  var f = asynchronousIterator(options);
+  f(null, cb);
+};
+
+module.exports = async;
+
+},{"./util.js":174,"underscore":175}],169:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+// Helpers for working with the DOM
+
+var dom = {};
+
+dom.ChildNodeIterator = function(arg) {
+  if(_.isArray(arg)) {
+    this.nodes = arg;
+  } else {
+    this.nodes = arg.childNodes;
+  }
+  this.length = this.nodes.length;
+  this.pos = -1;
+};
+
+dom.ChildNodeIterator.prototype = {
+  hasNext: function() {
+    return this.pos < this.length - 1;
+  },
+
+  next: function() {
+    this.pos += 1;
+    return this.nodes[this.pos];
+  },
+
+  back: function() {
+    if (this.pos >= 0) {
+      this.pos -= 1;
+    }
+    return this;
+  }
+};
+
+// Note: it is not safe regarding browser in-compatibilities
+// to access el.children directly.
+dom.getChildren = function(el) {
+  if (el.children !== undefined) return el.children;
+  var children = [];
+  var child = el.firstElementChild;
+  while (child) {
+    children.push(child);
+    child = child.nextElementSibling;
+  }
+  return children;
+};
+
+dom.getNodeType = function(el) {
+  if (el.nodeType === window.Node.TEXT_NODE) {
+    return "text";
+  } else if (el.nodeType === window.Node.COMMENT_NODE) {
+    return "comment";
+  } else if (el.tagName) {
+    return el.tagName.toLowerCase();
+  } else {
+    console.error("Can't get node type for ", el);
+    return "unknown";
+  }
+};
+
+module.exports = dom;
+
+},{"underscore":175}],170:[function(require,module,exports){
+"use strict";
+
+var util = require('./util');
+
+var errors = {};
+
+// The base class for Substance Errors
+// -------
+// We have been not so happy with the native error as it is really poor with respect to
+// stack information and presentation.
+// This implementation has a more usable stack trace which is rendered using `err.printStacktrace()`.
+// Moreover, it provides error codes and error chaining.
+var SubstanceError = function(message, rootError) {
+
+  // If a root error is given try to take over as much information as possible
+  if (rootError) {
+    Error.call(this, message, rootError.fileName, rootError.lineNumber);
+
+    if (rootError instanceof SubstanceError) {
+      this.__stack = rootError.__stack;
+    } else if (rootError.stack) {
+      this.__stack = util.parseStackTrace(rootError);
+    } else {
+      this.__stack = util.callstack(1);
+    }
+
+  }
+
+  // otherwise create a new stacktrace
+  else {
+    Error.call(this, message);
+    this.__stack = util.callstack(1);
+  }
+
+  this.message = message;
+};
+
+SubstanceError.Prototype = function() {
+
+  this.name = "SubstanceError";
+  this.code = -1;
+
+  this.toString = function() {
+    return this.name+":"+this.message;
+  };
+
+  this.toJSON = function() {
+    return {
+      name: this.name,
+      message: this.message,
+      code: this.code,
+      stack: this.stack
+    };
+  };
+
+  this.printStackTrace = function() {
+    util.printStackTrace(this);
+  };
+};
+
+SubstanceError.Prototype.prototype = Error.prototype;
+SubstanceError.prototype = new SubstanceError.Prototype();
+
+Object.defineProperty(SubstanceError.prototype, "stack", {
+  get: function() {
+    var str = [];
+    for (var idx = 0; idx < this.__stack.length; idx++) {
+      var s = this.__stack[idx];
+      str.push(s.file+":"+s.line+":"+s.col+" ("+s.func+")");
+    }
+    return str.join("\n");
+  },
+  set: function() { throw new Error("SubstanceError.stack is read-only."); }
+});
+
+errors.SubstanceError = SubstanceError;
+
+
+var createSubstanceErrorSubclass = function(parent, name, code) {
+  return function(message) {
+    parent.call(this, message);
+    this.name = name;
+    this.code = code;
+  };
+};
+
+errors.define = function(className, code, parent) {
+  if (!className) throw new SubstanceError("Name is required.");
+  if (code === undefined) code = -1;
+
+  parent = parent || SubstanceError;
+  var ErrorClass = createSubstanceErrorSubclass(parent, className, code);
+  var ErrorClassPrototype = function() {};
+  ErrorClassPrototype.prototype = parent.prototype;
+  ErrorClass.prototype = new ErrorClassPrototype();
+  ErrorClass.prototype.constructor = ErrorClass;
+
+  errors[className] = ErrorClass;
+  return ErrorClass;
+};
+
+module.exports = errors;
+
+},{"./util":174}],171:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var ENTER = 1;
+var EXIT = -1;
+
+// Fragmenter
+// --------
+//
+// An algorithm that is used to fragment overlapping structure elements
+// following a priority rule set.
+// E.g., we use this for creating DOM elements for annotations. The annotations
+// can partially be overlapping. However this is not allowed in general for DOM elements
+// or other hierarchical structures.
+//
+// Example: For the Annotation use casec consider a 'comment' spanning partially
+// over an 'emphasis' annotation.
+// 'The <comment>quick brown <bold>fox</comment> jumps over</bold> the lazy dog.'
+// We want to be able to create a valid XML structure:
+// 'The <comment>quick brown <bold>fox</bold></comment><bold> jumps over</bold> the lazy dog.'
+//
+// For that one would choose
+//
+//     {
+//        'comment': 0,
+//        'bold': 1
+//     }
+//
+// as priority levels.
+// In case of structural violations as in the example, elements with a higher level
+// would be fragmented and those with lower levels would be preserved as one piece.
+//
+// TODO: If a violation for nodes of the same level occurs an Error should be thrown.
+// Currently, in such cases the first element that is opened earlier is preserved.
+
+var Fragmenter = function(levels) {
+  this.levels = levels || {};
+};
+
+Fragmenter.Prototype = function() {
+
+  // This is a sweep algorithm wich uses a set of ENTER/EXIT entries
+  // to manage a stack of active elements.
+  // Whenever a new element is entered it will be appended to its parent element.
+  // The stack is ordered by the annotation types.
+  //
+  // Examples:
+  //
+  // - simple case:
+  //
+  //       [top] -> ENTER(idea1) -> [top, idea1]
+  //
+  //   Creates a new 'idea' element and appends it to 'top'
+  //
+  // - stacked ENTER:
+  //
+  //       [top, idea1] -> ENTER(bold1) -> [top, idea1, bold1]
+  //
+  //   Creates a new 'bold' element and appends it to 'idea1'
+  //
+  // - simple EXIT:
+  //
+  //       [top, idea1] -> EXIT(idea1) -> [top]
+  //
+  //   Removes 'idea1' from stack.
+  //
+  // - reordering ENTER:
+  //
+  //       [top, bold1] -> ENTER(idea1) -> [top, idea1, bold1]
+  //
+  //   Inserts 'idea1' at 2nd position, creates a new 'bold1', and appends itself to 'top'
+  //
+  // - reordering EXIT
+  //
+  //       [top, idea1, bold1] -> EXIT(idea1)) -> [top, bold1]
+  //
+  //   Removes 'idea1' from stack and creates a new 'bold1'
+  //
+
+  // Orders sweep events according to following precedences:
+  //
+  // 1. pos
+  // 2. EXIT < ENTER
+  // 3. if both ENTER: ascending level
+  // 4. if both EXIT: descending level
+
+  var _compare = function(a, b) {
+    if (a.pos < b.pos) return -1;
+    if (a.pos > b.pos) return 1;
+
+    if (a.mode < b.mode) return -1;
+    if (a.mode > b.mode) return 1;
+
+    if (a.mode === ENTER) {
+      if (a.level < b.level) return -1;
+      if (a.level > b.level) return 1;
+    }
+
+    if (a.mode === EXIT) {
+      if (a.level > b.level) return -1;
+      if (a.level < b.level) return 1;
+    }
+
+    return 0;
+  };
+
+  var extractEntries = function(annotations) {
+    var entries = [];
+    _.each(annotations, function(a) {
+      // use a weak default level when not given
+      var l = this.levels[a.type] || 1000;
+
+      // ignore annotations that are not registered
+      if (l === undefined) {
+        return;
+      }
+
+      entries.push({ pos : a.range[0], mode: ENTER, level: l, id: a.id, type: a.type, node: a });
+      entries.push({ pos : a.range[1], mode: EXIT, level: l, id: a.id, type: a.type, node: a });
+    }, this);
+    return entries;
+  };
+
+  this.onText = function(/*context, text*/) {};
+
+  // should return the created user context
+  this.onEnter = function(/*entry, parentContext*/) {
+    return null;
+  };
+  this.onExit = function(/*entry, parentContext*/) {};
+
+  this.enter = function(entry, parentContext) {
+    return this.onEnter(entry, parentContext);
+  };
+
+  this.exit = function(entry, parentContext) {
+    this.onExit(entry, parentContext);
+  };
+
+  this.createText = function(context, text) {
+    this.onText(context, text);
+  };
+
+  this.start = function(rootContext, text, annotations) {
+    var entries = extractEntries.call(this, annotations);
+    entries.sort(_compare.bind(this));
+
+    var stack = [{context: rootContext, entry: null}];
+
+    var pos = 0;
+
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+
+      // in any case we add the last text to the current element
+      this.createText(stack[stack.length-1].context, text.substring(pos, entry.pos));
+
+      pos = entry.pos;
+      var level = 1;
+
+      var idx;
+
+      if (entry.mode === ENTER) {
+        // find the correct position and insert an entry
+        for (; level < stack.length; level++) {
+          if (entry.level < stack[level].entry.level) {
+            break;
+          }
+        }
+        stack.splice(level, 0, {entry: entry});
+      }
+      else if (entry.mode === EXIT) {
+        // find the according entry and remove it from the stack
+        for (; level < stack.length; level++) {
+          if (stack[level].entry.id === entry.id) {
+            break;
+          }
+        }
+        for (idx = level; idx < stack.length; idx++) {
+          this.exit(stack[idx].entry, stack[idx-1].context);
+        }
+        stack.splice(level, 1);
+      }
+
+      // create new elements for all lower entries
+      for (idx = level; idx < stack.length; idx++) {
+        stack[idx].context = this.enter(stack[idx].entry, stack[idx-1].context);
+      }
+    }
+
+    // Finally append a trailing text node
+    this.createText(rootContext, text.substring(pos));
+  };
+
+};
+Fragmenter.prototype = new Fragmenter.Prototype();
+
+module.exports = Fragmenter;
+
+},{"underscore":175}],172:[function(require,module,exports){
+"use strict";
+
+var html = {};
+var _ = require("underscore");
+
+html.templates = {};
+
+// html.compileTemplate = function(tplName) {
+//   var rawTemplate = $('script[name='+tplName+']').html();
+//   html.templates[tplName] = Handlebars.compile(rawTemplate);
+// };
+
+html.renderTemplate = function(tplName, data) {
+  return html.templates[tplName](data);
+};
+
+// Handlebars.registerHelper('ifelse', function(cond, textIf, textElse) {
+//   textIf = Handlebars.Utils.escapeExpression(textIf);
+//   textElse  = Handlebars.Utils.escapeExpression(textElse);
+//   return new Handlebars.SafeString(cond ? textIf : textElse);
+// });
+
+if (typeof window !== "undefined") {
+  // A fake console to calm down some browsers.
+  if (!window.console) {
+    window.console = {
+      log: function() {
+        // No-op
+      }
+    };
+  }
+}
+
+// Render Underscore templates
+html.tpl = function (tpl, ctx) {
+  ctx = ctx || {};
+  var source = window.$('script[name='+tpl+']').html();
+  return _.template(source, ctx);
+};
+
+// Exports
+// ====
+
+module.exports = html;
+
+},{"underscore":175}],173:[function(require,module,exports){
+"use strict";
+
+// Substanc.RegExp.Match
+// ================
+//
+// Regular expressions in Javascript they way they should be.
+
+var Match = function(match) {
+  this.index = match.index;
+  this.match = [];
+
+  for (var i=0; i < match.length; i++) {
+    this.match.push(match[i]);
+  }
+};
+
+Match.Prototype = function() {
+
+  // Returns the capture groups
+  // --------
+  //
+
+  this.captures = function() {
+    return this.match.slice(1);
+  };
+
+  // Serialize to string
+  // --------
+  //
+
+  this.toString = function() {
+    return this.match[0];
+  };
+};
+
+Match.prototype = new Match.Prototype();
+
+// Substance.RegExp
+// ================
+//
+
+var RegExp = function(exp) {
+  this.exp = exp;
+};
+
+RegExp.Prototype = function() {
+
+  this.match = function(str) {
+    if (str === undefined) throw new Error('No string given');
+
+    if (!this.exp.global) {
+      return this.exp.exec(str);
+    } else {
+      var matches = [];
+      var match;
+      // Reset the state of the expression
+      this.exp.compile(this.exp);
+
+      // Execute until last match has been found
+
+      while ((match = this.exp.exec(str)) !== null) {
+        matches.push(new Match(match));
+      }
+      return matches;
+    }
+  };
+};
+
+RegExp.prototype = new RegExp.Prototype();
+
+RegExp.Match = Match;
+
+
+// Export
+// ========
+
+module.exports = RegExp;
+
+},{}],174:[function(require,module,exports){
+"use strict";
+
+// Imports
+// ====
+
+var _ = require('underscore');
+
+// Module
+// ====
+
+var util = {};
+
+// UUID Generator
+// -----------------
+
+/*!
+Math.uuid.js (v1.4)
+http://www.broofa.com
+mailto:robert@broofa.com
+
+Copyright (c) 2010 Robert Kieffer
+Dual licensed under the MIT and GPL licenses.
+*/
+
+util.uuid = function (prefix, len) {
+  var chars = '0123456789abcdefghijklmnopqrstuvwxyz'.split(''),
+      uuid = [],
+      radix = 16,
+      idx;
+  len = len || 32;
+
+  if (len) {
+    // Compact form
+    for (idx = 0; idx < len; idx++) uuid[idx] = chars[0 | Math.random()*radix];
+  } else {
+    // rfc4122, version 4 form
+    var r;
+
+    // rfc4122 requires these characters
+    uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+    uuid[14] = '4';
+
+    // Fill in random data.  At i==19 set the high bits of clock sequence as
+    // per rfc4122, sec. 4.1.5
+    for (idx = 0; idx < 36; idx++) {
+      if (!uuid[idx]) {
+        r = 0 | Math.random()*16;
+        uuid[idx] = chars[(idx == 19) ? (r & 0x3) | 0x8 : r];
+      }
+    }
+  }
+  return (prefix ? prefix : "") + uuid.join('');
+};
+
+// creates a uuid function that generates counting uuids
+util.uuidGen = function(defaultPrefix) {
+  var id = 1;
+  defaultPrefix = (defaultPrefix !== undefined) ? defaultPrefix : "uuid_";
+  return function(prefix) {
+    prefix = prefix || defaultPrefix;
+    return prefix+(id++);
+  };
+};
+
+
+// Events
+// ---------------
+
+// Taken from Backbone.js
+//
+// A module that can be mixed in to *any object* in order to provide it with
+// custom events. You may bind with `on` or remove with `off` callback
+// functions to an event; `trigger`-ing an event fires all callbacks in
+// succession.
+//
+//     var object = {};
+//     _.extend(object, util.Events);
+//     object.on('expand', function(){ alert('expanded'); });
+//     object.trigger('expand');
+//
+
+// A difficult-to-believe, but optimized internal dispatch function for
+// triggering events. Tries to keep the usual cases speedy (most internal
+// Backbone events have 3 arguments).
+var triggerEvents = function(events, args) {
+  var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
+  switch (args.length) {
+    case 0: while (++i < l) (ev = events[i]).callback.call(ev.ctx); return;
+    case 1: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1); return;
+    case 2: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2); return;
+    case 3: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); return;
+    default: while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args);
+  }
+};
+
+// Regular expression used to split event strings.
+var eventSplitter = /\s+/;
+
+// Implement fancy features of the Events API such as multiple event
+// names `"change blur"` and jQuery-style event maps `{change: action}`
+// in terms of the existing API.
+var eventsApi = function(obj, action, name, rest) {
+  if (!name) return true;
+
+  // Handle event maps.
+  if (typeof name === 'object') {
+    for (var key in name) {
+      obj[action].apply(obj, [key, name[key]].concat(rest));
+    }
+    return false;
+  }
+
+  // Handle space separated event names.
+  if (eventSplitter.test(name)) {
+    var names = name.split(eventSplitter);
+    for (var i = 0, l = names.length; i < l; i++) {
+      obj[action].apply(obj, [names[i]].concat(rest));
+    }
+    return false;
+  }
+
+  return true;
+};
+
+util.Events = {
+
+  // Bind an event to a `callback` function. Passing `"all"` will bind
+  // the callback to all events fired.
+  on: function(name, callback, context) {
+    if (!eventsApi(this, 'on', name, [callback, context]) || !callback) return this;
+    this._events =  this._events || {};
+    var events = this._events[name] || (this._events[name] = []);
+    events.push({callback: callback, context: context, ctx: context || this});
+    return this;
+  },
+
+  // Bind an event to only be triggered a single time. After the first time
+  // the callback is invoked, it will be removed.
+  once: function(name, callback, context) {
+    if (!eventsApi(this, 'once', name, [callback, context]) || !callback) return this;
+    var self = this;
+    var once = _.once(function() {
+      self.off(name, once);
+      callback.apply(this, arguments);
+    });
+    once._callback = callback;
+    return this.on(name, once, context);
+  },
+
+  // Remove one or many callbacks. If `context` is null, removes all
+  // callbacks with that function. If `callback` is null, removes all
+  // callbacks for the event. If `name` is null, removes all bound
+  // callbacks for all events.
+  off: function(name, callback, context) {
+    var retain, ev, events, names, i, l, j, k;
+    if (!this._events || !eventsApi(this, 'off', name, [callback, context])) return this;
+    if (!name && !callback && !context) {
+      this._events = {};
+      return this;
+    }
+
+    names = name ? [name] : _.keys(this._events);
+    for (i = 0, l = names.length; i < l; i++) {
+      name = names[i];
+      events = this._events[name];
+      if (events) {
+        this._events[name] = retain = [];
+        if (callback || context) {
+          for (j = 0, k = events.length; j < k; j++) {
+            ev = events[j];
+            if ((callback && callback !== ev.callback && callback !== ev.callback._callback) ||
+                (context && context !== ev.context)) {
+              retain.push(ev);
+            }
+          }
+        }
+        if (!retain.length) delete this._events[name];
+      }
+    }
+
+    return this;
+  },
+
+  // Trigger one or many events, firing all bound callbacks. Callbacks are
+  // passed the same arguments as `trigger` is, apart from the event name
+  // (unless you're listening on `"all"`, which will cause your callback to
+  // receive the true name of the event as the first argument).
+  trigger: function(name) {
+    if (!this._events) return this;
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (!eventsApi(this, 'trigger', name, args)) return this;
+    var events = this._events[name];
+    var allEvents = this._events.all;
+    if (events) triggerEvents(events, args);
+    if (allEvents) triggerEvents(allEvents, arguments);
+    return this;
+  },
+
+  triggerLater: function() {
+    var self = this;
+    var _arguments = arguments;
+    window.setTimeout(function() {
+      self.trigger.apply(self, _arguments);
+    }, 0);
+  },
+
+  // Tell this object to stop listening to either specific events ... or
+  // to every object it's currently listening to.
+  stopListening: function(obj, name, callback) {
+    var listeners = this._listeners;
+    if (!listeners) return this;
+    var deleteListener = !name && !callback;
+    if (typeof name === 'object') callback = this;
+    if (obj) (listeners = {})[obj._listenerId] = obj;
+    for (var id in listeners) {
+      listeners[id].off(name, callback, this);
+      if (deleteListener) delete this._listeners[id];
+    }
+    return this;
+  }
+
+};
+
+var listenMethods = {listenTo: 'on', listenToOnce: 'once'};
+
+// Inversion-of-control versions of `on` and `once`. Tell *this* object to
+// listen to an event in another object ... keeping track of what it's
+// listening to.
+_.each(listenMethods, function(implementation, method) {
+  util.Events[method] = function(obj, name, callback) {
+    var listeners = this._listeners || (this._listeners = {});
+    var id = obj._listenerId || (obj._listenerId = _.uniqueId('l'));
+    listeners[id] = obj;
+    if (typeof name === 'object') callback = this;
+    obj[implementation](name, callback, this);
+    return this;
+  };
+});
+
+// Aliases for backwards compatibility.
+util.Events.bind   = util.Events.on;
+util.Events.unbind = util.Events.off;
+
+util.Events.Listener = {
+
+  listenTo: function(obj, name, callback) {
+    if (!_.isFunction(callback)) {
+      throw new Error("Illegal argument: expecting function as callback, was: " + callback);
+    }
+
+    // initialize container for keeping handlers to unbind later
+    this._handlers = this._handlers || [];
+
+    obj.on(name, callback, this);
+
+    this._handlers.push({
+      unbind: function() {
+        obj.off(name, callback);
+      }
+    });
+
+    return this;
+  },
+
+  stopListening: function() {
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        this._handlers[i].unbind();
+      }
+    }
+  }
+
+};
+
+util.propagate = function(data, cb) {
+  if(!_.isFunction(cb)) {
+    throw "Illegal argument: provided callback is not a function";
+  }
+  return function(err) {
+    if (err) return cb(err);
+    cb(null, data);
+  };
+};
+
+// shamelessly stolen from backbone.js:
+// Helper function to correctly set up the prototype chain, for subclasses.
+// Similar to `goog.inherits`, but uses a hash of prototype properties and
+// class properties to be extended.
+var ctor = function(){};
+util.inherits = function(parent, protoProps, staticProps) {
+  var child;
+
+  // The constructor function for the new subclass is either defined by you
+  // (the "constructor" property in your `extend` definition), or defaulted
+  // by us to simply call the parent's constructor.
+  if (protoProps && protoProps.hasOwnProperty('constructor')) {
+    child = protoProps.constructor;
+  } else {
+    child = function(){ parent.apply(this, arguments); };
+  }
+
+  // Inherit class (static) properties from parent.
+  _.extend(child, parent);
+
+  // Set the prototype chain to inherit from `parent`, without calling
+  // `parent`'s constructor function.
+  ctor.prototype = parent.prototype;
+  child.prototype = new ctor();
+
+  // Add prototype properties (instance properties) to the subclass,
+  // if supplied.
+  if (protoProps) _.extend(child.prototype, protoProps);
+
+  // Add static properties to the constructor function, if supplied.
+  if (staticProps) _.extend(child, staticProps);
+
+  // Correctly set child's `prototype.constructor`.
+  child.prototype.constructor = child;
+
+  // Set a convenience property in case the parent's prototype is needed later.
+  child.__super__ = parent.prototype;
+
+  return child;
+};
+
+// Util to read seed data from file system
+// ----------
+
+util.getJSON = function(resource, cb) {
+  if (typeof window === 'undefined' || typeof nwglobal !== 'undefined') {
+    var fs = require('fs');
+    var obj = JSON.parse(fs.readFileSync(resource, 'utf8'));
+    cb(null, obj);
+  } else {
+    //console.log("util.getJSON", resource);
+    var $ = window.$;
+    $.getJSON(resource)
+      .done(function(obj) { cb(null, obj); })
+      .error(function(err) { cb(err, null); });
+  }
+};
+
+util.prototype = function(that) {
+  /*jshint proto: true*/ // supressing a warning about using deprecated __proto__.
+  return Object.getPrototypeOf ? Object.getPrototypeOf(that) : that.__proto__;
+};
+
+util.inherit = function(Super, Self) {
+  var super_proto = _.isFunction(Super) ? new Super() : Super;
+  var proto;
+  if (_.isFunction(Self)) {
+    Self.prototype = super_proto;
+    proto = new Self();
+  } else {
+    var TmpClass = function(){};
+    TmpClass.prototype = super_proto;
+    proto = _.extend(new TmpClass(), Self);
+  }
+  return proto;
+};
+
+util.pimpl = function(pimpl) {
+  var Pimpl = function(self) {
+    this.self = self;
+  };
+  Pimpl.prototype = pimpl;
+  return function(self) { self = self || this; return new Pimpl(self); };
+};
+
+util.parseStackTrace = function(err) {
+  var SAFARI_STACK_ELEM = /([^@]*)@(.*):(\d+)/;
+  var CHROME_STACK_ELEM = /\s*at ([^(]*)[(](.*):(\d+):(\d+)[)]/;
+
+  var idx;
+  var stackTrace = err.stack.split('\n');
+
+  // parse the stack trace: each line is a tuple (function, file, lineNumber)
+  // Note: unfortunately this is interpreter specific
+  // safari: "<function>@<file>:<lineNumber>"
+  // chrome: "at <function>(<file>:<line>:<col>"
+
+  var stack = [];
+  for (idx = 0; idx < stackTrace.length; idx++) {
+    var match = SAFARI_STACK_ELEM.exec(stackTrace[idx]);
+    if (!match) match = CHROME_STACK_ELEM.exec(stackTrace[idx]);
+    var entry;
+    if (match) {
+      entry = {
+        func: match[1],
+        file: match[2],
+        line: match[3],
+        col: match[4] || 0
+      };
+      if (entry.func === "") entry.func = "<anonymous>";
+    } else {
+      entry = {
+        func: "",
+        file: stackTrace[idx],
+        line: "",
+        col: ""
+      };
+    }
+    stack.push(entry);
+  }
+
+  return stack;
+};
+
+util.callstack = function(k) {
+  var err;
+  try { throw new Error(); } catch (_err) { err = _err; }
+  var stack = util.parseStackTrace(err);
+  k = k || 0;
+  return stack.splice(k+1);
+};
+
+util.stacktrace = function (err) {
+  var stack = (arguments.length === 0) ? util.callstack().splice(1) : util.parseStackTrace(err);
+  var str = [];
+  _.each(stack, function(s) {
+    str.push(s.file+":"+s.line+":"+s.col+" ("+s.func+")");
+  });
+  return str.join("\n");
+};
+
+util.printStackTrace = function(err, N) {
+  if (!err.stack) return;
+
+  var stack;
+
+  // Substance errors have a nice stack already
+  if (err.__stack !== undefined) {
+    stack = err.__stack;
+  }
+  // built-in errors have the stack trace as one string
+  else if (_.isString(err.stack)) {
+    stack = util.parseStackTrace(err);
+  }
+  else return;
+
+  N = N || stack.length;
+  N = Math.min(N, stack.length);
+
+  for (var idx = 0; idx < N; idx++) {
+    var s = stack[idx];
+    console.log(s.file+":"+s.line+":"+s.col, "("+s.func+")");
+  }
+};
+
+// computes the difference of obj1 to obj2
+util.diff = function(obj1, obj2) {
+  var diff;
+  if (_.isArray(obj1) && _.isArray(obj2)) {
+    diff = _.difference(obj2, obj1);
+    // return null in case of equality
+    if (diff.length === 0) return null;
+    else return diff;
+  }
+  if (_.isObject(obj1) && _.isObject(obj2)) {
+    diff = {};
+    _.each(Object.keys(obj2), function(key) {
+      var d = util.diff(obj1[key], obj2[key]);
+      if (d) diff[key] = d;
+    });
+    // return null in case of equality
+    if (_.isEmpty(diff)) return null;
+    else return diff;
+  }
+  if(obj1 !== obj2) return obj2;
+};
+
+// Deep-Clone a given object
+// --------
+// Note: this is currently done via JSON.parse(JSON.stringify(obj))
+//       which is in fact not optimal, as it depends on `toJSON` implementation.
+util.deepclone = function(obj) {
+  if (obj === undefined) return undefined;
+  if (obj === null) return null;
+  return JSON.parse(JSON.stringify(obj));
+};
+
+// Clones a given object
+// --------
+// Calls obj's `clone` function if available,
+// otherwise clones the obj using `util.deepclone()`.
+util.clone = function(obj) {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  if (_.isFunction(obj.clone)) {
+    return obj.clone();
+  }
+  return util.deepclone(obj);
+};
+
+util.freeze = function(obj) {
+  var idx;
+  if (_.isObject(obj)) {
+    if (Object.isFrozen(obj)) return obj;
+
+    var keys = Object.keys(obj);
+    for (idx = 0; idx < keys.length; idx++) {
+      var key = keys[idx];
+      obj[key] = util.freeze(obj[key]);
+    }
+    return Object.freeze(obj);
+  } else if (_.isArray(obj)) {
+    var arr = obj;
+    for (idx = 0; idx < arr.length; idx++) {
+      arr[idx] = util.freeze(arr[idx]);
+    }
+    return Object.freeze(arr);
+  } else {
+    return obj; // Object.freeze(obj);
+  }
+};
+
+util.later = function(f, context) {
+  return function() {
+    var _args = arguments;
+    window.setTimeout(function() {
+      f.apply(context, _args);
+    }, 0);
+  };
+};
+
+
+// Returns true if a string doesn't contain any real content
+
+util.isEmpty = function(str) {
+  return !str.match(/\w/);
+};
+
+// Create a human readable, but URL-compatible slug from a string
+
+util.slug = function(str) {
+  str = str.replace(/^\s+|\s+$/g, ''); // trim
+  str = str.toLowerCase();
+
+  // remove accents, swap ñ for n, etc
+  var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+  var to   = "aaaaeeeeiiiioooouuuunc------";
+  for (var i=0, l=from.length ; i<l ; i++) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+  }
+
+  str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+    .replace(/-+/g, '-'); // collapse dashes
+
+  return str;
+};
+
+
+util.getReadableFileSizeString = function(fileSizeInBytes) {
+
+    var i = -1;
+    var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+    do {
+        fileSizeInBytes = fileSizeInBytes / 1024;
+        i++;
+    } while (fileSizeInBytes > 1024);
+
+    return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+};
+
+// Export
+// ====
+
+module.exports = util;
+
+},{"fs":177,"underscore":175}],175:[function(require,module,exports){
+//     Underscore.js 1.5.2
+//     http://underscorejs.org
+//     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+//     Underscore may be freely distributed under the MIT license.
+
+(function() {
+
+  // Baseline setup
+  // --------------
+
+  // Establish the root object, `window` in the browser, or `exports` on the server.
+  var root = this;
+
+  // Save the previous value of the `_` variable.
+  var previousUnderscore = root._;
+
+  // Establish the object that gets returned to break out of a loop iteration.
+  var breaker = {};
+
+  // Save bytes in the minified (but not gzipped) version:
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  // Create quick reference variables for speed access to core prototypes.
+  var
+    push             = ArrayProto.push,
+    slice            = ArrayProto.slice,
+    concat           = ArrayProto.concat,
+    toString         = ObjProto.toString,
+    hasOwnProperty   = ObjProto.hasOwnProperty;
+
+  // All **ECMAScript 5** native function implementations that we hope to use
+  // are declared here.
+  var
+    nativeForEach      = ArrayProto.forEach,
+    nativeMap          = ArrayProto.map,
+    nativeReduce       = ArrayProto.reduce,
+    nativeReduceRight  = ArrayProto.reduceRight,
+    nativeFilter       = ArrayProto.filter,
+    nativeEvery        = ArrayProto.every,
+    nativeSome         = ArrayProto.some,
+    nativeIndexOf      = ArrayProto.indexOf,
+    nativeLastIndexOf  = ArrayProto.lastIndexOf,
+    nativeIsArray      = Array.isArray,
+    nativeKeys         = Object.keys,
+    nativeBind         = FuncProto.bind;
+
+  // Create a safe reference to the Underscore object for use below.
+  var _ = function(obj) {
+    if (obj instanceof _) return obj;
+    if (!(this instanceof _)) return new _(obj);
+    this._wrapped = obj;
+  };
+
+  // Export the Underscore object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, add `_` as a global object via a string identifier,
+  // for Closure Compiler "advanced" mode.
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = _;
+    }
+    exports._ = _;
+  } else {
+    root._ = _;
+  }
+
+  // Current version.
+  _.VERSION = '1.5.2';
+
+  // Collection Functions
+  // --------------------
+
+  // The cornerstone, an `each` implementation, aka `forEach`.
+  // Handles objects with the built-in `forEach`, arrays, and raw objects.
+  // Delegates to **ECMAScript 5**'s native `forEach` if available.
+  var each = _.each = _.forEach = function(obj, iterator, context) {
+    if (obj == null) return;
+    if (nativeForEach && obj.forEach === nativeForEach) {
+      obj.forEach(iterator, context);
+    } else if (obj.length === +obj.length) {
+      for (var i = 0, length = obj.length; i < length; i++) {
+        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      var keys = _.keys(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+      }
+    }
+  };
+
+  // Return the results of applying the iterator to each element.
+  // Delegates to **ECMAScript 5**'s native `map` if available.
+  _.map = _.collect = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+    each(obj, function(value, index, list) {
+      results.push(iterator.call(context, value, index, list));
+    });
+    return results;
+  };
+
+  var reduceError = 'Reduce of empty array with no initial value';
+
+  // **Reduce** builds up a single result from a list of values, aka `inject`,
+  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
+  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduce && obj.reduce === nativeReduce) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
+    }
+    each(obj, function(value, index, list) {
+      if (!initial) {
+        memo = value;
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, value, index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // The right-associative version of reduce, also known as `foldr`.
+  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
+  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
+    }
+    var length = obj.length;
+    if (length !== +length) {
+      var keys = _.keys(obj);
+      length = keys.length;
+    }
+    each(obj, function(value, index, list) {
+      index = keys ? keys[--length] : --length;
+      if (!initial) {
+        memo = obj[index];
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, obj[index], index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  _.find = _.detect = function(obj, iterator, context) {
+    var result;
+    any(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  // Return all the elements that pass a truth test.
+  // Delegates to **ECMAScript 5**'s native `filter` if available.
+  // Aliased as `select`.
+  _.filter = _.select = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
+    each(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) results.push(value);
+    });
+    return results;
+  };
+
+  // Return all the elements for which a truth test fails.
+  _.reject = function(obj, iterator, context) {
+    return _.filter(obj, function(value, index, list) {
+      return !iterator.call(context, value, index, list);
+    }, context);
+  };
+
+  // Determine whether all of the elements match a truth test.
+  // Delegates to **ECMAScript 5**'s native `every` if available.
+  // Aliased as `all`.
+  _.every = _.all = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = true;
+    if (obj == null) return result;
+    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
+    each(obj, function(value, index, list) {
+      if (!(result = result && iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if at least one element in the object matches a truth test.
+  // Delegates to **ECMAScript 5**'s native `some` if available.
+  // Aliased as `any`.
+  var any = _.some = _.any = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = false;
+    if (obj == null) return result;
+    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
+    each(obj, function(value, index, list) {
+      if (result || (result = iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if the array or object contains a given value (using `===`).
+  // Aliased as `include`.
+  _.contains = _.include = function(obj, target) {
+    if (obj == null) return false;
+    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    return any(obj, function(value) {
+      return value === target;
+    });
+  };
+
+  // Invoke a method (with arguments) on every item in a collection.
+  _.invoke = function(obj, method) {
+    var args = slice.call(arguments, 2);
+    var isFunc = _.isFunction(method);
+    return _.map(obj, function(value) {
+      return (isFunc ? method : value[method]).apply(value, args);
+    });
+  };
+
+  // Convenience version of a common use case of `map`: fetching a property.
+  _.pluck = function(obj, key) {
+    return _.map(obj, function(value){ return value[key]; });
+  };
+
+  // Convenience version of a common use case of `filter`: selecting only objects
+  // containing specific `key:value` pairs.
+  _.where = function(obj, attrs, first) {
+    if (_.isEmpty(attrs)) return first ? void 0 : [];
+    return _[first ? 'find' : 'filter'](obj, function(value) {
+      for (var key in attrs) {
+        if (attrs[key] !== value[key]) return false;
+      }
+      return true;
+    });
+  };
+
+  // Convenience version of a common use case of `find`: getting the first object
+  // containing specific `key:value` pairs.
+  _.findWhere = function(obj, attrs) {
+    return _.where(obj, attrs, true);
+  };
+
+  // Return the maximum element or (element-based computation).
+  // Can't optimize arrays of integers longer than 65,535 elements.
+  // See [WebKit Bug 80797](https://bugs.webkit.org/show_bug.cgi?id=80797)
+  _.max = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.max.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return -Infinity;
+    var result = {computed : -Infinity, value: -Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed > result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Return the minimum element (or element-based computation).
+  _.min = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.min.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return Infinity;
+    var result = {computed : Infinity, value: Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed < result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Shuffle an array, using the modern version of the 
+  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
+  _.shuffle = function(obj) {
+    var rand;
+    var index = 0;
+    var shuffled = [];
+    each(obj, function(value) {
+      rand = _.random(index++);
+      shuffled[index - 1] = shuffled[rand];
+      shuffled[rand] = value;
+    });
+    return shuffled;
+  };
+
+  // Sample **n** random values from an array.
+  // If **n** is not specified, returns a single random element from the array.
+  // The internal `guard` argument allows it to work with `map`.
+  _.sample = function(obj, n, guard) {
+    if (arguments.length < 2 || guard) {
+      return obj[_.random(obj.length - 1)];
+    }
+    return _.shuffle(obj).slice(0, Math.max(0, n));
+  };
+
+  // An internal function to generate lookup iterators.
+  var lookupIterator = function(value) {
+    return _.isFunction(value) ? value : function(obj){ return obj[value]; };
+  };
+
+  // Sort the object's values by a criterion produced by an iterator.
+  _.sortBy = function(obj, value, context) {
+    var iterator = lookupIterator(value);
+    return _.pluck(_.map(obj, function(value, index, list) {
+      return {
+        value: value,
+        index: index,
+        criteria: iterator.call(context, value, index, list)
+      };
+    }).sort(function(left, right) {
+      var a = left.criteria;
+      var b = right.criteria;
+      if (a !== b) {
+        if (a > b || a === void 0) return 1;
+        if (a < b || b === void 0) return -1;
+      }
+      return left.index - right.index;
+    }), 'value');
+  };
+
+  // An internal function used for aggregate "group by" operations.
+  var group = function(behavior) {
+    return function(obj, value, context) {
+      var result = {};
+      var iterator = value == null ? _.identity : lookupIterator(value);
+      each(obj, function(value, index) {
+        var key = iterator.call(context, value, index, obj);
+        behavior(result, key, value);
+      });
+      return result;
+    };
+  };
+
+  // Groups the object's values by a criterion. Pass either a string attribute
+  // to group by, or a function that returns the criterion.
+  _.groupBy = group(function(result, key, value) {
+    (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
+  });
+
+  // Indexes the object's values by a criterion, similar to `groupBy`, but for
+  // when you know that your index values will be unique.
+  _.indexBy = group(function(result, key, value) {
+    result[key] = value;
+  });
+
+  // Counts instances of an object that group by a certain criterion. Pass
+  // either a string attribute to count by, or a function that returns the
+  // criterion.
+  _.countBy = group(function(result, key) {
+    _.has(result, key) ? result[key]++ : result[key] = 1;
+  });
+
+  // Use a comparator function to figure out the smallest index at which
+  // an object should be inserted so as to maintain order. Uses binary search.
+  _.sortedIndex = function(array, obj, iterator, context) {
+    iterator = iterator == null ? _.identity : lookupIterator(iterator);
+    var value = iterator.call(context, obj);
+    var low = 0, high = array.length;
+    while (low < high) {
+      var mid = (low + high) >>> 1;
+      iterator.call(context, array[mid]) < value ? low = mid + 1 : high = mid;
+    }
+    return low;
+  };
+
+  // Safely create a real, live array from anything iterable.
+  _.toArray = function(obj) {
+    if (!obj) return [];
+    if (_.isArray(obj)) return slice.call(obj);
+    if (obj.length === +obj.length) return _.map(obj, _.identity);
+    return _.values(obj);
+  };
+
+  // Return the number of elements in an object.
+  _.size = function(obj) {
+    if (obj == null) return 0;
+    return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
+  };
+
+  // Array Functions
+  // ---------------
+
+  // Get the first element of an array. Passing **n** will return the first N
+  // values in the array. Aliased as `head` and `take`. The **guard** check
+  // allows it to work with `_.map`.
+  _.first = _.head = _.take = function(array, n, guard) {
+    if (array == null) return void 0;
+    return (n == null) || guard ? array[0] : slice.call(array, 0, n);
+  };
+
+  // Returns everything but the last entry of the array. Especially useful on
+  // the arguments object. Passing **n** will return all the values in
+  // the array, excluding the last N. The **guard** check allows it to work with
+  // `_.map`.
+  _.initial = function(array, n, guard) {
+    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
+  };
+
+  // Get the last element of an array. Passing **n** will return the last N
+  // values in the array. The **guard** check allows it to work with `_.map`.
+  _.last = function(array, n, guard) {
+    if (array == null) return void 0;
+    if ((n == null) || guard) {
+      return array[array.length - 1];
+    } else {
+      return slice.call(array, Math.max(array.length - n, 0));
+    }
+  };
+
+  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+  // Especially useful on the arguments object. Passing an **n** will return
+  // the rest N values in the array. The **guard**
+  // check allows it to work with `_.map`.
+  _.rest = _.tail = _.drop = function(array, n, guard) {
+    return slice.call(array, (n == null) || guard ? 1 : n);
+  };
+
+  // Trim out all falsy values from an array.
+  _.compact = function(array) {
+    return _.filter(array, _.identity);
+  };
+
+  // Internal implementation of a recursive `flatten` function.
+  var flatten = function(input, shallow, output) {
+    if (shallow && _.every(input, _.isArray)) {
+      return concat.apply(output, input);
+    }
+    each(input, function(value) {
+      if (_.isArray(value) || _.isArguments(value)) {
+        shallow ? push.apply(output, value) : flatten(value, shallow, output);
+      } else {
+        output.push(value);
+      }
+    });
+    return output;
+  };
+
+  // Flatten out an array, either recursively (by default), or just one level.
+  _.flatten = function(array, shallow) {
+    return flatten(array, shallow, []);
+  };
+
+  // Return a version of the array that does not contain the specified value(s).
+  _.without = function(array) {
+    return _.difference(array, slice.call(arguments, 1));
+  };
+
+  // Produce a duplicate-free version of the array. If the array has already
+  // been sorted, you have the option of using a faster algorithm.
+  // Aliased as `unique`.
+  _.uniq = _.unique = function(array, isSorted, iterator, context) {
+    if (_.isFunction(isSorted)) {
+      context = iterator;
+      iterator = isSorted;
+      isSorted = false;
+    }
+    var initial = iterator ? _.map(array, iterator, context) : array;
+    var results = [];
+    var seen = [];
+    each(initial, function(value, index) {
+      if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {
+        seen.push(value);
+        results.push(array[index]);
+      }
+    });
+    return results;
+  };
+
+  // Produce an array that contains the union: each distinct element from all of
+  // the passed-in arrays.
+  _.union = function() {
+    return _.uniq(_.flatten(arguments, true));
+  };
+
+  // Produce an array that contains every item shared between all the
+  // passed-in arrays.
+  _.intersection = function(array) {
+    var rest = slice.call(arguments, 1);
+    return _.filter(_.uniq(array), function(item) {
+      return _.every(rest, function(other) {
+        return _.indexOf(other, item) >= 0;
+      });
+    });
+  };
+
+  // Take the difference between one array and a number of other arrays.
+  // Only the elements present in just the first array will remain.
+  _.difference = function(array) {
+    var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
+    return _.filter(array, function(value){ return !_.contains(rest, value); });
+  };
+
+  // Zip together multiple lists into a single array -- elements that share
+  // an index go together.
+  _.zip = function() {
+    var length = _.max(_.pluck(arguments, "length").concat(0));
+    var results = new Array(length);
+    for (var i = 0; i < length; i++) {
+      results[i] = _.pluck(arguments, '' + i);
+    }
+    return results;
+  };
+
+  // Converts lists into objects. Pass either a single array of `[key, value]`
+  // pairs, or two parallel arrays of the same length -- one of keys, and one of
+  // the corresponding values.
+  _.object = function(list, values) {
+    if (list == null) return {};
+    var result = {};
+    for (var i = 0, length = list.length; i < length; i++) {
+      if (values) {
+        result[list[i]] = values[i];
+      } else {
+        result[list[i][0]] = list[i][1];
+      }
+    }
+    return result;
+  };
+
+  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
+  // we need this function. Return the position of the first occurrence of an
+  // item in an array, or -1 if the item is not included in the array.
+  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    if (array == null) return -1;
+    var i = 0, length = array.length;
+    if (isSorted) {
+      if (typeof isSorted == 'number') {
+        i = (isSorted < 0 ? Math.max(0, length + isSorted) : isSorted);
+      } else {
+        i = _.sortedIndex(array, item);
+        return array[i] === item ? i : -1;
+      }
+    }
+    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
+    for (; i < length; i++) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
+  _.lastIndexOf = function(array, item, from) {
+    if (array == null) return -1;
+    var hasIndex = from != null;
+    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
+      return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
+    }
+    var i = (hasIndex ? from : array.length);
+    while (i--) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Generate an integer Array containing an arithmetic progression. A port of
+  // the native Python `range()` function. See
+  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+  _.range = function(start, stop, step) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = arguments[2] || 1;
+
+    var length = Math.max(Math.ceil((stop - start) / step), 0);
+    var idx = 0;
+    var range = new Array(length);
+
+    while(idx < length) {
+      range[idx++] = start;
+      start += step;
+    }
+
+    return range;
+  };
+
+  // Function (ahem) Functions
+  // ------------------
+
+  // Reusable constructor function for prototype setting.
+  var ctor = function(){};
+
+  // Create a function bound to a given object (assigning `this`, and arguments,
+  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+  // available.
+  _.bind = function(func, context) {
+    var args, bound;
+    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (!_.isFunction(func)) throw new TypeError;
+    args = slice.call(arguments, 2);
+    return bound = function() {
+      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+      ctor.prototype = func.prototype;
+      var self = new ctor;
+      ctor.prototype = null;
+      var result = func.apply(self, args.concat(slice.call(arguments)));
+      if (Object(result) === result) return result;
+      return self;
+    };
+  };
+
+  // Partially apply a function by creating a version that has had some of its
+  // arguments pre-filled, without changing its dynamic `this` context.
+  _.partial = function(func) {
+    var args = slice.call(arguments, 1);
+    return function() {
+      return func.apply(this, args.concat(slice.call(arguments)));
+    };
+  };
+
+  // Bind all of an object's methods to that object. Useful for ensuring that
+  // all callbacks defined on an object belong to it.
+  _.bindAll = function(obj) {
+    var funcs = slice.call(arguments, 1);
+    if (funcs.length === 0) throw new Error("bindAll must be passed function names");
+    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
+    return obj;
+  };
+
+  // Memoize an expensive function by storing its results.
+  _.memoize = function(func, hasher) {
+    var memo = {};
+    hasher || (hasher = _.identity);
+    return function() {
+      var key = hasher.apply(this, arguments);
+      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+    };
+  };
+
+  // Delays a function for the given number of milliseconds, and then calls
+  // it with the arguments supplied.
+  _.delay = function(func, wait) {
+    var args = slice.call(arguments, 2);
+    return setTimeout(function(){ return func.apply(null, args); }, wait);
+  };
+
+  // Defers a function, scheduling it to run after the current call stack has
+  // cleared.
+  _.defer = function(func) {
+    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+  };
+
+  // Returns a function, that, when invoked, will only be triggered at most once
+  // during a given window of time. Normally, the throttled function will run
+  // as much as it can, without ever going more than once per `wait` duration;
+  // but if you'd like to disable the execution on the leading edge, pass
+  // `{leading: false}`. To disable execution on the trailing edge, ditto.
+  _.throttle = function(func, wait, options) {
+    var context, args, result;
+    var timeout = null;
+    var previous = 0;
+    options || (options = {});
+    var later = function() {
+      previous = options.leading === false ? 0 : new Date;
+      timeout = null;
+      result = func.apply(context, args);
+    };
+    return function() {
+      var now = new Date;
+      if (!previous && options.leading === false) previous = now;
+      var remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timeout && options.trailing !== false) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  };
+
+  // Returns a function, that, as long as it continues to be invoked, will not
+  // be triggered. The function will be called after it stops being called for
+  // N milliseconds. If `immediate` is passed, trigger the function on the
+  // leading edge, instead of the trailing.
+  _.debounce = function(func, wait, immediate) {
+    var timeout, args, context, timestamp, result;
+    return function() {
+      context = this;
+      args = arguments;
+      timestamp = new Date();
+      var later = function() {
+        var last = (new Date()) - timestamp;
+        if (last < wait) {
+          timeout = setTimeout(later, wait - last);
+        } else {
+          timeout = null;
+          if (!immediate) result = func.apply(context, args);
+        }
+      };
+      var callNow = immediate && !timeout;
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
+      if (callNow) result = func.apply(context, args);
+      return result;
+    };
+  };
+
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = function(func) {
+    var ran = false, memo;
+    return function() {
+      if (ran) return memo;
+      ran = true;
+      memo = func.apply(this, arguments);
+      func = null;
+      return memo;
+    };
+  };
+
+  // Returns the first function passed as an argument to the second,
+  // allowing you to adjust arguments, run code before and after, and
+  // conditionally execute the original function.
+  _.wrap = function(func, wrapper) {
+    return function() {
+      var args = [func];
+      push.apply(args, arguments);
+      return wrapper.apply(this, args);
+    };
+  };
+
+  // Returns a function that is the composition of a list of functions, each
+  // consuming the return value of the function that follows.
+  _.compose = function() {
+    var funcs = arguments;
+    return function() {
+      var args = arguments;
+      for (var i = funcs.length - 1; i >= 0; i--) {
+        args = [funcs[i].apply(this, args)];
+      }
+      return args[0];
+    };
+  };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    return function() {
+      if (--times < 1) {
+        return func.apply(this, arguments);
+      }
+    };
+  };
+
+  // Object Functions
+  // ----------------
+
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
+  _.keys = nativeKeys || function(obj) {
+    if (obj !== Object(obj)) throw new TypeError('Invalid object');
+    var keys = [];
+    for (var key in obj) if (_.has(obj, key)) keys.push(key);
+    return keys;
+  };
+
+  // Retrieve the values of an object's properties.
+  _.values = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var values = new Array(length);
+    for (var i = 0; i < length; i++) {
+      values[i] = obj[keys[i]];
+    }
+    return values;
+  };
+
+  // Convert an object into a list of `[key, value]` pairs.
+  _.pairs = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var pairs = new Array(length);
+    for (var i = 0; i < length; i++) {
+      pairs[i] = [keys[i], obj[keys[i]]];
+    }
+    return pairs;
+  };
+
+  // Invert the keys and values of an object. The values must be serializable.
+  _.invert = function(obj) {
+    var result = {};
+    var keys = _.keys(obj);
+    for (var i = 0, length = keys.length; i < length; i++) {
+      result[obj[keys[i]]] = keys[i];
+    }
+    return result;
+  };
+
+  // Return a sorted list of the function names available on the object.
+  // Aliased as `methods`
+  _.functions = _.methods = function(obj) {
+    var names = [];
+    for (var key in obj) {
+      if (_.isFunction(obj[key])) names.push(key);
+    }
+    return names.sort();
+  };
+
+  // Extend a given object with all the properties in passed-in object(s).
+  _.extend = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Return a copy of the object only containing the whitelisted properties.
+  _.pick = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    each(keys, function(key) {
+      if (key in obj) copy[key] = obj[key];
+    });
+    return copy;
+  };
+
+   // Return a copy of the object without the blacklisted properties.
+  _.omit = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    for (var key in obj) {
+      if (!_.contains(keys, key)) copy[key] = obj[key];
+    }
+    return copy;
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          if (obj[prop] === void 0) obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Create a (shallow-cloned) duplicate of an object.
+  _.clone = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+  };
+
+  // Invokes interceptor with the obj, and then returns obj.
+  // The primary purpose of this method is to "tap into" a method chain, in
+  // order to perform operations on intermediate results within the chain.
+  _.tap = function(obj, interceptor) {
+    interceptor(obj);
+    return obj;
+  };
+
+  // Internal recursive comparison function for `isEqual`.
+  var eq = function(a, b, aStack, bStack) {
+    // Identical objects are equal. `0 === -0`, but they aren't identical.
+    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
+    if (a === b) return a !== 0 || 1 / a == 1 / b;
+    // A strict comparison is necessary because `null == undefined`.
+    if (a == null || b == null) return a === b;
+    // Unwrap any wrapped objects.
+    if (a instanceof _) a = a._wrapped;
+    if (b instanceof _) b = b._wrapped;
+    // Compare `[[Class]]` names.
+    var className = toString.call(a);
+    if (className != toString.call(b)) return false;
+    switch (className) {
+      // Strings, numbers, dates, and booleans are compared by value.
+      case '[object String]':
+        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+        // equivalent to `new String("5")`.
+        return a == String(b);
+      case '[object Number]':
+        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+        // other numeric values.
+        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+      case '[object Date]':
+      case '[object Boolean]':
+        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+        // millisecond representations. Note that invalid dates with millisecond representations
+        // of `NaN` are not equivalent.
+        return +a == +b;
+      // RegExps are compared by their source patterns and flags.
+      case '[object RegExp]':
+        return a.source == b.source &&
+               a.global == b.global &&
+               a.multiline == b.multiline &&
+               a.ignoreCase == b.ignoreCase;
+    }
+    if (typeof a != 'object' || typeof b != 'object') return false;
+    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+    var length = aStack.length;
+    while (length--) {
+      // Linear search. Performance is inversely proportional to the number of
+      // unique nested structures.
+      if (aStack[length] == a) return bStack[length] == b;
+    }
+    // Objects with different constructors are not equivalent, but `Object`s
+    // from different frames are.
+    var aCtor = a.constructor, bCtor = b.constructor;
+    if (aCtor !== bCtor && !(_.isFunction(aCtor) && (aCtor instanceof aCtor) &&
+                             _.isFunction(bCtor) && (bCtor instanceof bCtor))) {
+      return false;
+    }
+    // Add the first object to the stack of traversed objects.
+    aStack.push(a);
+    bStack.push(b);
+    var size = 0, result = true;
+    // Recursively compare objects and arrays.
+    if (className == '[object Array]') {
+      // Compare array lengths to determine if a deep comparison is necessary.
+      size = a.length;
+      result = size == b.length;
+      if (result) {
+        // Deep compare the contents, ignoring non-numeric properties.
+        while (size--) {
+          if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+        }
+      }
+    } else {
+      // Deep compare objects.
+      for (var key in a) {
+        if (_.has(a, key)) {
+          // Count the expected number of properties.
+          size++;
+          // Deep compare each member.
+          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+        }
+      }
+      // Ensure that both objects contain the same number of properties.
+      if (result) {
+        for (key in b) {
+          if (_.has(b, key) && !(size--)) break;
+        }
+        result = !size;
+      }
+    }
+    // Remove the first object from the stack of traversed objects.
+    aStack.pop();
+    bStack.pop();
+    return result;
+  };
+
+  // Perform a deep comparison to check if two objects are equal.
+  _.isEqual = function(a, b) {
+    return eq(a, b, [], []);
+  };
+
+  // Is a given array, string, or object empty?
+  // An "empty" object has no enumerable own-properties.
+  _.isEmpty = function(obj) {
+    if (obj == null) return true;
+    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+    for (var key in obj) if (_.has(obj, key)) return false;
+    return true;
+  };
+
+  // Is a given value a DOM element?
+  _.isElement = function(obj) {
+    return !!(obj && obj.nodeType === 1);
+  };
+
+  // Is a given value an array?
+  // Delegates to ECMA5's native Array.isArray
+  _.isArray = nativeIsArray || function(obj) {
+    return toString.call(obj) == '[object Array]';
+  };
+
+  // Is a given variable an object?
+  _.isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
+  each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
+    _['is' + name] = function(obj) {
+      return toString.call(obj) == '[object ' + name + ']';
+    };
+  });
+
+  // Define a fallback version of the method in browsers (ahem, IE), where
+  // there isn't any inspectable "Arguments" type.
+  if (!_.isArguments(arguments)) {
+    _.isArguments = function(obj) {
+      return !!(obj && _.has(obj, 'callee'));
+    };
+  }
+
+  // Optimize `isFunction` if appropriate.
+  if (typeof (/./) !== 'function') {
+    _.isFunction = function(obj) {
+      return typeof obj === 'function';
+    };
+  }
+
+  // Is a given object a finite number?
+  _.isFinite = function(obj) {
+    return isFinite(obj) && !isNaN(parseFloat(obj));
+  };
+
+  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+  _.isNaN = function(obj) {
+    return _.isNumber(obj) && obj != +obj;
+  };
+
+  // Is a given value a boolean?
+  _.isBoolean = function(obj) {
+    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
+  };
+
+  // Is a given value equal to null?
+  _.isNull = function(obj) {
+    return obj === null;
+  };
+
+  // Is a given variable undefined?
+  _.isUndefined = function(obj) {
+    return obj === void 0;
+  };
+
+  // Shortcut function for checking if an object has a given property directly
+  // on itself (in other words, not on a prototype).
+  _.has = function(obj, key) {
+    return hasOwnProperty.call(obj, key);
+  };
+
+  // Utility Functions
+  // -----------------
+
+  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+  // previous owner. Returns a reference to the Underscore object.
+  _.noConflict = function() {
+    root._ = previousUnderscore;
+    return this;
+  };
+
+  // Keep the identity function around for default iterators.
+  _.identity = function(value) {
+    return value;
+  };
+
+  // Run a function **n** times.
+  _.times = function(n, iterator, context) {
+    var accum = Array(Math.max(0, n));
+    for (var i = 0; i < n; i++) accum[i] = iterator.call(context, i);
+    return accum;
+  };
+
+  // Return a random integer between min and max (inclusive).
+  _.random = function(min, max) {
+    if (max == null) {
+      max = min;
+      min = 0;
+    }
+    return min + Math.floor(Math.random() * (max - min + 1));
+  };
+
+  // List of HTML entities for escaping.
+  var entityMap = {
+    escape: {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;'
+    }
+  };
+  entityMap.unescape = _.invert(entityMap.escape);
+
+  // Regexes containing the keys and values listed immediately above.
+  var entityRegexes = {
+    escape:   new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
+    unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
+  };
+
+  // Functions for escaping and unescaping strings to/from HTML interpolation.
+  _.each(['escape', 'unescape'], function(method) {
+    _[method] = function(string) {
+      if (string == null) return '';
+      return ('' + string).replace(entityRegexes[method], function(match) {
+        return entityMap[method][match];
+      });
+    };
+  });
+
+  // If the value of the named `property` is a function then invoke it with the
+  // `object` as context; otherwise, return it.
+  _.result = function(object, property) {
+    if (object == null) return void 0;
+    var value = object[property];
+    return _.isFunction(value) ? value.call(object) : value;
+  };
+
+  // Add your own custom functions to the Underscore object.
+  _.mixin = function(obj) {
+    each(_.functions(obj), function(name) {
+      var func = _[name] = obj[name];
+      _.prototype[name] = function() {
+        var args = [this._wrapped];
+        push.apply(args, arguments);
+        return result.call(this, func.apply(_, args));
+      };
+    });
+  };
+
+  // Generate a unique integer id (unique within the entire client session).
+  // Useful for temporary DOM ids.
+  var idCounter = 0;
+  _.uniqueId = function(prefix) {
+    var id = ++idCounter + '';
+    return prefix ? prefix + id : id;
+  };
+
+  // By default, Underscore uses ERB-style template delimiters, change the
+  // following template settings to use alternative delimiters.
+  _.templateSettings = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  // When customizing `templateSettings`, if you don't want to define an
+  // interpolation, evaluation or escaping regex, we need one that is
+  // guaranteed not to match.
+  var noMatch = /(.)^/;
+
+  // Certain characters need to be escaped so that they can be put into a
+  // string literal.
+  var escapes = {
+    "'":      "'",
+    '\\':     '\\',
+    '\r':     'r',
+    '\n':     'n',
+    '\t':     't',
+    '\u2028': 'u2028',
+    '\u2029': 'u2029'
+  };
+
+  var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+  // JavaScript micro-templating, similar to John Resig's implementation.
+  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+  // and correctly escapes quotes within interpolated code.
+  _.template = function(text, data, settings) {
+    var render;
+    settings = _.defaults({}, settings, _.templateSettings);
+
+    // Combine delimiters into one regular expression via alternation.
+    var matcher = new RegExp([
+      (settings.escape || noMatch).source,
+      (settings.interpolate || noMatch).source,
+      (settings.evaluate || noMatch).source
+    ].join('|') + '|$', 'g');
+
+    // Compile the template source, escaping string literals appropriately.
+    var index = 0;
+    var source = "__p+='";
+    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+      source += text.slice(index, offset)
+        .replace(escaper, function(match) { return '\\' + escapes[match]; });
+
+      if (escape) {
+        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+      }
+      if (interpolate) {
+        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+      }
+      if (evaluate) {
+        source += "';\n" + evaluate + "\n__p+='";
+      }
+      index = offset + match.length;
+      return match;
+    });
+    source += "';\n";
+
+    // If a variable is not specified, place data values in local scope.
+    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+    source = "var __t,__p='',__j=Array.prototype.join," +
+      "print=function(){__p+=__j.call(arguments,'');};\n" +
+      source + "return __p;\n";
+
+    try {
+      render = new Function(settings.variable || 'obj', '_', source);
+    } catch (e) {
+      e.source = source;
+      throw e;
+    }
+
+    if (data) return render(data, _);
+    var template = function(data) {
+      return render.call(this, data, _);
+    };
+
+    // Provide the compiled function source as a convenience for precompilation.
+    template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
+
+    return template;
+  };
+
+  // Add a "chain" function, which will delegate to the wrapper.
+  _.chain = function(obj) {
+    return _(obj).chain();
+  };
+
+  // OOP
+  // ---------------
+  // If Underscore is called as a function, it returns a wrapped object that
+  // can be used OO-style. This wrapper holds altered versions of all the
+  // underscore functions. Wrapped objects may be chained.
+
+  // Helper function to continue chaining intermediate results.
+  var result = function(obj) {
+    return this._chain ? _(obj).chain() : obj;
+  };
+
+  // Add all of the Underscore functions to the wrapper object.
+  _.mixin(_);
+
+  // Add all mutator Array functions to the wrapper.
+  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      var obj = this._wrapped;
+      method.apply(obj, arguments);
+      if ((name == 'shift' || name == 'splice') && obj.length === 0) delete obj[0];
+      return result.call(this, obj);
+    };
+  });
+
+  // Add all accessor Array functions to the wrapper.
+  each(['concat', 'join', 'slice'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      return result.call(this, method.apply(this._wrapped, arguments));
+    };
+  });
+
+  _.extend(_.prototype, {
+
+    // Start chaining a wrapped Underscore object.
+    chain: function() {
+      this._chain = true;
+      return this;
+    },
+
+    // Extracts the result from a wrapped and chained object.
+    value: function() {
+      return this._wrapped;
+    }
+
+  });
+
+}).call(this);
+
+},{}],176:[function(require,module,exports){
+"use strict";
+
+var Lens = require("lens");
+var panels = Lens.getDefaultPanels();
+  
+// All available converters
+var LensConverter = require("lens-converter");
+var ElifeConverter = require("lens-converter/elife_converter");
+
+var LensApp = function(config) {
+  Lens.call(this, config);
+};
+
+LensApp.Prototype = function() {
+
+  // Custom converters
+  // --------------
+  // 
+  // Provides a sequence of converter instances
+  // Converter.match will be called on each instance with the
+  // XML document to processed. The one that returns true first
+  // will be chosen. You can change the order prioritize
+  // converters over others
+
+  this.getConverters = function(converterOptions) {
+    return [
+      new ElifeConverter(converterOptions),
+      new LensConverter(converterOptions)
+    ]
+  };
+
+  // Custom panels
+  // --------------
+  // 
+
+  this.getPanels = function() {
+    return panels.slice(0);
+  };
+};
+
+LensApp.Prototype.prototype = Lens.prototype;
+LensApp.prototype = new LensApp.Prototype();
+LensApp.prototype.constructor = LensApp;
+
+module.exports = LensApp;
+},{"lens":122,"lens-converter":120,"lens-converter/elife_converter":119}],177:[function(require,module,exports){
+
+},{}]},{},[1]);
