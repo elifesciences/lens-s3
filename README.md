@@ -5,14 +5,21 @@ Deployment of eLife lens on Amazon S3 and CloudFront.
 
 See [https://github.com/elifesciences/lens] for the lens code.
 
-# Updating
+# Updating Lens
 
 Currently requires some manual steps:
 
-* Overwrite the ``dist`` folder contents with the ``dist`` from the lens repo
+* Overwrite the ``dist`` folder contents with the ``dist`` from the lens release (the bundled files)
 * Zip the ``dist`` folder contents, with version number, and add the zip file to the repo
 
-Note: eLife bot also contains lens template files that may require updating when a new lens version is deployed. These are used to generate directories named ``/xxxxx/`` automatically when new articles are published. Workflows will need to be re-run for all articles using new templates.
+Note: eLife bot also contains lens template files that may require updating when a new lens version is deployed. These are used to generate directories named ``/xxxxx/`` automatically when new articles are published. ``LensArticlePublish`` workflows will need to be re-run for all articles using new templates.
+
+# Updating Lens Browser
+
+Lens browser runs the default index page.
+
+* Overwrite the ``lens-browser-dist`` folder contents with the files from the lens browser release (the bundled files)
+* Update the ``index.html`` file if it has changed, making sure to point to the correct CSS and JS files folder (``lens-browser-dist/``)
 
 # Deploying
 
