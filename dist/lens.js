@@ -4843,7 +4843,7 @@ VideoView.Prototype = function() {
     if (node.url_webm) {
       sources.push($$('source', {
         src: node.url_webm,
-        type: "video/webm; codecs=&quot;vp8, vorbis%quot;",
+        type: "video/webm"
       }));
     }
 
@@ -5185,18 +5185,6 @@ ElifeConverter.Prototype = function() {
     node.url = this.resolveURL(state, url);
   };
 
-  // Add additional information to the info view
-  // ---------
-  //
-  this.enhanceVideo = function(state, node, element) {
-    var href = element.getAttribute("xlink:href").split(".");
-    var name = href[0];
-
-    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
-    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
-    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
-  };
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
   this.resolveURL = function(state, url) {
@@ -5352,10 +5340,10 @@ ElifeConverter.Prototype = function() {
   this.enhanceVideo = function(state, node, element) {
     var href = element.getAttribute("xlink:href").split(".");
     var name = href[0];
-    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
-    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
-    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
+    node.url = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file/"+name+".mp4";
+    node.url_ogv = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file//"+name+".ogv";
+    node.url_webm = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file//"+name+".webm";
+    node.poster = "http://api.elifesciences.org/v2/articles/"+state.doc.id+"/media/file/"+name+".jpg";
   };
 
   // Example url to JPG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.jpg
@@ -7995,49 +7983,6 @@ var Lens = function(config) {
 
 Lens.Prototype = function() {
 
-  this.determineDevice = function() {
-
-    // Check for devices
-    // --------
-    //
-
-    function isIOSDevice() {
-      var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
-      var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
-      return iPadAgent || iPodAgent;
-    }
-
-    function isIphone() {
-      var iPhoneAgent = navigator.userAgent.match(/iPhone/i) != null;
-      return true // iPhoneAgent;
-    }
-
-    function isMobile() {
-      var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
-      var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
-      var AndroidAgent = navigator.userAgent.match(/Android/i) != null;
-      var webOSAgent = navigator.userAgent.match(/webOS/i) != null;
-
-      return iPadAgent || iPodAgent || AndroidAgent || webOSAgent;
-    }
-
-    function isTouchDevice() {
-      return 'ontouchstart' in document.documentElement;
-    }
-
-    if (isTouchDevice()) {
-      $('#container').addClass('touchable');
-    }
-
-    if (isIOSDevice()) {
-      $('#container').addClass('ios');
-    }
-
-    if (isIphone()) {
-      $('#container').addClass('iphone');
-    }
-  };
-
   this.start = function() {
     Application.prototype.start.call(this);
   };
@@ -8048,7 +7993,6 @@ Lens.Prototype = function() {
   this.render = function() {
     this.view = this.controller.createView();
     this.$el.html(this.view.render().el);
-    this.determineDevice();
   };
 
   this.getRoutes = function() {
@@ -8182,8 +8126,11 @@ LensController.Prototype = function() {
   // After a file gets drag and dropped it will be remembered in Local Storage
   // ---------
 
-  this.importXML = function(xmlData) {
-    var doc = this.convertDocument(xml);
+  this.importXML = function(rawXML) {
+    var parser = new DOMParser();
+    var xmlDoc = parser.parseFromString(rawXML,"text/xml");
+
+    var doc = this.convertDocument(xmlDoc);
     this.createReader(doc, {
       panel: 'toc'
     });
@@ -8374,7 +8321,6 @@ var _ = require("underscore");
 var View = require("substance-application").View;
 var $$ = require("substance-application").$$;
 
-
 // Lens.View Constructor
 // ========
 //
@@ -8397,7 +8343,6 @@ var LensView = function(controller) {
 };
 
 LensView.Prototype = function() {
-
 
   this.handleDroppedFile = function(/*e*/) {
     var ctrl = this.controller;
@@ -8577,7 +8522,6 @@ module.exports = ContainerPanelController;
 
 var _ = require("underscore");
 var Scrollbar = require("./surface_scrollbar");
-
 var Surface = require("../lens_surface");
 var PanelView = require("./panel_view");
 
@@ -8602,7 +8546,6 @@ var ContainerPanelView = function( panelCtrl, viewFactory, config ) {
   this.el.appendChild(this.scrollbar.el);
 
   this.$activeResource = null;
-  this.lastScrollPos = 0;
 };
 
 ContainerPanelView.Prototype = function() {
@@ -8639,44 +8582,21 @@ ContainerPanelView.Prototype = function() {
       var windowHeight = $(window).height();
       var panelHeight = this.surface.$el.height();
       var scrollTop;
-      var mobileView = windowHeight < panelHeight
 
-      // In the mobile view we don't relative positioning / absolute.
-      // Everything is in flow of the body element.
-      // This affects how to compute the top offset of a content-node
-      // offset (dependent on scrollpos) vs position (independent of scrollpos)
-      if (mobileView) {
-        scrollTop = $(document).scrollTop();
-
-        var elTop = $n.position().top; // offset from top of panel (either panel-view or document)
-        var elHeight = $n.height();
-        var topOffset;
-
-        // Do not scroll if the element is fully visible
-        if (elTop > scrollTop && elTop < scrollTop + windowHeight) {
-          // everything fine
-          return;
-        } else {
-          topOffset = elTop;
-          $(document).scrollTop(topOffset);
-        }
-
-      } else {
-        scrollTop = this.surface.$el.scrollTop();
-        var elTop = $n.offset().top;
-        var elHeight = $n.height();
-        var topOffset;
-        // Do not scroll if the element is fully visible
-        if ((elTop > 0 && elTop + elHeight < panelHeight) || (elTop >= 0 && elTop < panelHeight)) {
-          // everything fine
-          return;
-        }
-        // In all other cases scroll to the top of the element
-        else {
-          topOffset = scrollTop + elTop;
-        }
-        this.surface.$el.scrollTop(topOffset);
+      scrollTop = this.surface.$el.scrollTop();
+      var elTop = $n.offset().top;
+      var elHeight = $n.height();
+      var topOffset;
+      // Do not scroll if the element is fully visible
+      if ((elTop > 0 && elTop + elHeight < panelHeight) || (elTop >= 0 && elTop < panelHeight)) {
+        // everything fine
+        return;
       }
+      // In all other cases scroll to the top of the element
+      else {
+        topOffset = scrollTop + elTop;
+      }
+      this.surface.$el.scrollTop(topOffset);
 
       this.scrollbar.update();
     } else {
@@ -8705,18 +8625,14 @@ ContainerPanelView.Prototype = function() {
     this.scrollbar.update();
   };
 
-  // Note: scrollpos recovery not working atm (only relevant to mobile view)
   this.hide = function() {
     if (this.hidden) return;
-    this.lastScrollPos = $(document).scrollTop();
     PanelView.prototype.hide.call(this);
   };
 
-  // Note: scrollpos recovery not working atm (only relevant to mobile view)
   this.show = function() {
     this.scrollbar.update();
     PanelView.prototype.show.call(this);
-    $(document).scrollTop(this.lastScrollPos);
   };
 
 };
@@ -9653,21 +9569,12 @@ var ReaderView = function(readerCtrl) {
     if (currentPanel && currentPanel.hasScrollbar()) {
       currentPanel.scrollbar.update();
     }
-    this.detectRenderMode();
   }, this), 1));
 
 };
 
 ReaderView.Prototype = function() {
 
-  // Mobile or desktop?
-  this.detectRenderMode = function() {
-    if ($(window).width()<=850) {
-      this.renderMode = "mobile";
-    } else {
-      this.renderMode = "desktop";
-    }
-  };
 
   // Rendering
   // --------
@@ -9731,8 +9638,6 @@ ReaderView.Prototype = function() {
       });
     }, this), 1);
 
-    this.detectRenderMode();
-
     return this;
   };
 
@@ -9749,7 +9654,7 @@ ReaderView.Prototype = function() {
     _.each(this.panelViews, function(panelView) {
       panelView.off('toggle', this._onClickPanel);
       panelView.dispose();
-    });
+    }, this);
     this.resources.dispose();
     this.stopListening();
   };
@@ -10005,9 +9910,9 @@ var Workflow = require('./workflow');
 
 var JumpToTop = function() {
   Workflow.apply(this, arguments);
-
   this._gotoTop = _.bind(this.gotoTop, this);
 };
+
 
 JumpToTop.Prototype = function() {
 
@@ -10024,11 +9929,9 @@ JumpToTop.Prototype = function() {
     e.stopPropagation();
     // Jump to cover node as that's easiest
     this.readerCtrl.contentView.jumpToNode("cover");
-    // Note: this is for mobile view only
-    $(document).scrollTop(0);
   };
-
 };
+
 JumpToTop.Prototype.prototype = Workflow.prototype;
 JumpToTop.prototype = new JumpToTop.Prototype();
 
