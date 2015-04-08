@@ -9,10 +9,9 @@ See [https://github.com/elifesciences/lens] for the lens code.
 
 Currently requires some manual steps:
 
-* Overwrite the ``dist`` folder contents with the ``dist`` from the lens release (the bundled files)
-* Zip the ``dist`` folder contents, with version number, and add the zip file to the repo
+* Overwrite the ``dist`` folder contents with the ``dist`` from the lens release (the bundled files). Lens releases are here [https://github.com/elifesciences/lens/releases]
 
-Note: eLife bot also contains lens template files that may require updating when a new lens version is deployed. These are used to generate directories named ``/xxxxx/`` automatically when new articles are published. ``LensArticlePublish`` workflows will need to be re-run for all articles using new templates.
+Note: eLife bot also contains lens template files that may require updating when a new lens version is deployed. These are used to generate directories named ``/xxxxx/`` automatically when new articles are published. ``LensArticlePublish`` workflows will need to be re-run for all articles using new templates. Lens template is in [https://github.com/elifesciences/elife-bot/tree/master/template].
 
 # Updating Lens Browser
 
