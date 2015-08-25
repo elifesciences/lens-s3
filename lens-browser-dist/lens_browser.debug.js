@@ -1,12 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.LensBrowser = require("./src/lens_browser");
 
-},{"./src/lens_browser":26}],2:[function(require,module,exports){
-module.exports = {
-  // api_url: 'http://0.0.0.0:4002'
-  api_url: 'https://elife-lens-indexer.herokuapp.com'
-};
-},{}],3:[function(require,module,exports){
+},{"./src/lens_browser":25}],2:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -22,7 +17,7 @@ if (typeof window !== 'undefined') {
 
 module.exports = Application;
 
-},{"./src/application":4,"./src/controller":5,"./src/default_router":6,"./src/renderers/element_renderer":7,"./src/router":8,"./src/view":9}],4:[function(require,module,exports){
+},{"./src/application":3,"./src/controller":4,"./src/default_router":5,"./src/renderers/element_renderer":6,"./src/router":7,"./src/view":8}],3:[function(require,module,exports){
 "use strict";
 
 var View = require("./view");
@@ -242,7 +237,7 @@ Object.defineProperty(Application.prototype, "controller", {
 
 module.exports = Application;
 
-},{"./view":9,"substance-util":12,"underscore":20}],5:[function(require,module,exports){
+},{"./view":8,"substance-util":11,"underscore":19}],4:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -516,7 +511,7 @@ Object.defineProperty(Controller.prototype, "childController", {
 
 module.exports = Controller;
 
-},{"substance-util":12,"underscore":20}],6:[function(require,module,exports){
+},{"substance-util":11,"underscore":19}],5:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -565,7 +560,7 @@ DefaultRouter.prototype = new DefaultRouter.Prototype();
 
 module.exports = DefaultRouter;
 
-},{"./router":8,"underscore":20}],7:[function(require,module,exports){
+},{"./router":7,"underscore":19}],6:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -676,7 +671,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":10,"substance-util":12}],8:[function(require,module,exports){
+},{"substance-regexp":9,"substance-util":11}],7:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1006,7 +1001,7 @@ Router.history = new History();
 
 
 module.exports = Router;
-},{"substance-util":12,"underscore":20}],9:[function(require,module,exports){
+},{"substance-util":11,"underscore":19}],8:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1092,12 +1087,12 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":12}],10:[function(require,module,exports){
+},{"substance-util":11}],9:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
 
-},{"./src/regexp":11}],11:[function(require,module,exports){
+},{"./src/regexp":10}],10:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -1176,7 +1171,7 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -1190,7 +1185,7 @@ util.Fragmenter = require("./src/fragmenter");
 
 module.exports = util;
 
-},{"./src/async":13,"./src/dom":14,"./src/errors":15,"./src/fragmenter":16,"./src/html":17,"./src/regexp":18,"./src/util":19}],13:[function(require,module,exports){
+},{"./src/async":12,"./src/dom":13,"./src/errors":14,"./src/fragmenter":15,"./src/html":16,"./src/regexp":17,"./src/util":18}],12:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1387,7 +1382,7 @@ async.each = function(options, cb) {
 
 module.exports = async;
 
-},{"./util.js":19,"underscore":20}],14:[function(require,module,exports){
+},{"./util.js":18,"underscore":19}],13:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1452,7 +1447,7 @@ dom.getNodeType = function(el) {
 
 module.exports = dom;
 
-},{"underscore":20}],15:[function(require,module,exports){
+},{"underscore":19}],14:[function(require,module,exports){
 "use strict";
 
 var util = require('./util');
@@ -1556,7 +1551,7 @@ errors.define = function(className, code, parent) {
 
 module.exports = errors;
 
-},{"./util":19}],16:[function(require,module,exports){
+},{"./util":18}],15:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1757,7 +1752,7 @@ Fragmenter.prototype = new Fragmenter.Prototype();
 
 module.exports = Fragmenter;
 
-},{"underscore":20}],17:[function(require,module,exports){
+},{"underscore":19}],16:[function(require,module,exports){
 "use strict";
 
 var html = {};
@@ -1803,7 +1798,7 @@ html.tpl = function (tpl, ctx) {
 
 module.exports = html;
 
-},{"underscore":20}],18:[function(require,module,exports){
+},{"underscore":19}],17:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -1882,7 +1877,7 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -2454,7 +2449,7 @@ util.getReadableFileSizeString = function(fileSizeInBytes) {
 
 module.exports = util;
 
-},{"fs":31,"underscore":20}],20:[function(require,module,exports){
+},{"fs":31,"underscore":19}],19:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -3732,7 +3727,7 @@ module.exports = util;
 
 }).call(this);
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var AVAILABLE_FACETS = {
   "article_type": {
     "doc_count_error_upper_bound": 0,
@@ -3988,7 +3983,7 @@ var AVAILABLE_FACETS = {
 
 
 module.exports = AVAILABLE_FACETS;
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var AVAILABLE_KEYWORDS = [
 	"synaptic plasticity",
 	"STDP",
@@ -4010,7 +4005,7 @@ var AVAILABLE_KEYWORDS = [
 ];
 
 module.exports = AVAILABLE_KEYWORDS;
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -4208,7 +4203,7 @@ BrowserController.prototype = new BrowserController.Prototype();
 BrowserController.Controller = BrowserController;
 
 module.exports = BrowserController;
-},{"./available_facets":21,"./available_keywords":22,"./browser_view":24,"./search_query":28,"./search_result":29,"substance-application":3,"substance-util":12,"underscore":20}],24:[function(require,module,exports){
+},{"./available_facets":20,"./available_keywords":21,"./browser_view":23,"./search_query":27,"./search_result":28,"substance-application":2,"substance-util":11,"underscore":19}],23:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -4217,7 +4212,7 @@ var $$ = require("substance-application").$$;
 var SearchbarView = require("./searchbar_view");
 var PreviewView = require("./preview_view");
 var FacetsView = require("./facets_view");
-
+var util = require("./util");
 
 var ARTICLE_TYPES = {
   "Research article": "research-article",
@@ -4422,13 +4417,13 @@ BrowserView.Prototype = function() {
           });
         });
 
-
         var elems = [
           $$('.meta-info', {
             children: [
               $$('.article-type.'+ARTICLE_TYPES[doc.article_type], {html: doc.article_type+" "}),
               $$('.doi', {html: doc.doi+" "}),
-              $$('.published-on', {text: "published on "+ new Date(doc.published_on).toDateString()})
+
+              $$('.published-on', {text: "published on "+ util.formatDate(doc.published_on)})
             ]
           }),
           $$('.title', {
@@ -4515,7 +4510,7 @@ BrowserView.prototype = new BrowserView.Prototype();
 
 module.exports = BrowserView;
 
-},{"./facets_view":25,"./preview_view":27,"./searchbar_view":30,"substance-application":3,"underscore":20}],25:[function(require,module,exports){
+},{"./facets_view":24,"./preview_view":26,"./searchbar_view":29,"./util":30,"substance-application":2,"underscore":19}],24:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -4618,16 +4613,15 @@ FacetsView.Prototype.prototype = View.prototype;
 FacetsView.prototype = new FacetsView.Prototype();
 
 module.exports = FacetsView;
-},{"substance-application":3,"underscore":20}],26:[function(require,module,exports){
+},{"substance-application":2,"underscore":19}],25:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var Application = require("substance-application");
 var BrowserController = require("./browser_controller");
 var DefaultRouter = require("substance-application").DefaultRouter;
-var config = require("../config");
 
-var LensBrowserApplication = function() {
+var LensBrowserApplication = function(config) {
   Application.call(this);
   this.controller = new BrowserController(this, config);
   var router = new DefaultRouter(this);
@@ -4654,7 +4648,7 @@ LensBrowserApplication.prototype = new LensBrowserApplication.Prototype();
 
 module.exports = LensBrowserApplication;
 
-},{"../config":2,"./browser_controller":23,"substance-application":3,"underscore":20}],27:[function(require,module,exports){
+},{"./browser_controller":22,"substance-application":2,"underscore":19}],26:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -4729,7 +4723,7 @@ PreviewView.Prototype.prototype = View.prototype;
 PreviewView.prototype = new PreviewView.Prototype();
 
 module.exports = PreviewView;
-},{"substance-application":3,"underscore":20}],28:[function(require,module,exports){
+},{"substance-application":2,"underscore":19}],27:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -4808,7 +4802,7 @@ SearchQuery.prototype = new SearchQuery.Prototype();
 
 module.exports = SearchQuery;
 
-},{"substance-util":12,"underscore":20}],29:[function(require,module,exports){
+},{"substance-util":11,"underscore":19}],28:[function(require,module,exports){
 var _ = require("underscore");
 
 // Search Result
@@ -4923,7 +4917,7 @@ SearchResult.prototype = new SearchResult.Prototype();
 
 module.exports = SearchResult;
 
-},{"./available_facets":21,"underscore":20}],30:[function(require,module,exports){
+},{"./available_facets":20,"underscore":19}],29:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -5197,6 +5191,41 @@ SearchbarView.Prototype.prototype = View.prototype;
 SearchbarView.prototype = new SearchbarView.Prototype();
 
 module.exports = SearchbarView;
-},{"substance-application":3,"underscore":20}],31:[function(require,module,exports){
+},{"substance-application":2,"underscore":19}],30:[function(require,module,exports){
+var MONTH_MAPPING = {
+  "1": "January",
+  "2": "February",
+  "3": "March",
+  "4": "April",
+  "5": "May",
+  "6": "June",
+  "7": "July",
+  "8": "August",
+  "9": "September",
+  "10": "October",
+  "11": "November",
+  "12": "December"
+};
+
+var util = {};
+
+util.formatDate = function (pubDate) {
+  var parts = pubDate.split("-");
+  if (parts.length >= 3) {
+    // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+    // Note: months are 0-based
+    var localDate = new Date(parts[0], parts[1]-1, parts[2]);
+    return localDate.toUTCString().slice(0, 16);
+  } else if (parts.length === 2) {
+    var month = parts[1].replace(/^0/, "");
+    var year = parts[0];
+    return MONTH_MAPPING[month]+" "+year;
+  } else {
+    return year;
+  }
+};
+
+module.exports = util;
+},{}],31:[function(require,module,exports){
 
 },{}]},{},[1]);
