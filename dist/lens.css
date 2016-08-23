@@ -1,4 +1,3 @@
-@charset "UTF-8";
 /* Lens Base styles */
 /* Textish Styles
 -------------------------------------------------------------------------------*/
@@ -25,7 +24,7 @@
 .content-node.paragraph .content-node.text.heading {
   display: block; }
 
-.content-node.paragraph .content-node.text div {
+.content-node.paragraph > .content-node.text > div {
   display: inline;
   width: auto; }
 
@@ -278,6 +277,19 @@ Definition
 
 /* Figure Node
 -------------------------------------------------------------------------------*/
+/* When displayed in resource panel */
+.resources .nodes > .content-node.figure .label {
+  display: none; }
+
+.panel.content .nodes > .content-node.figure .label {
+  color: #777;
+  padding-bottom: 10px; }
+
+/* Special styles when figure is displayed in document flow */
+.panel.content .nodes > .content-node.figure > .content {
+  padding: 15px;
+  border: 1px solid #ddd; }
+
 .content-node.figure div.image-wrapper {
   text-align: center;
   padding-top: 20px;
@@ -391,6 +403,17 @@ Contributor
   font-size: 14px;
   margin-top: 20px;
   color: #999; }
+
+.content-node.quote > .content {
+  padding: 20px; }
+
+.document .content-node.quote .content-node.paragraph {
+  padding: 10px 40px 10px 40px;
+  border-left: 3px solid #ccc; }
+
+.surface.content .content-node.quote > .content > .label {
+  font-weight: 600;
+  padding-bottom: 20px; }
 
 /* Publication Info */
 .lens-article .content-node.publication-info {
@@ -614,7 +637,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding-right: 50px;
   position: relative; }
 
-/* It's not exactly good to have the overflow-y: scroll for the container AND the surface.
+/* It's not exactly good to have the overflow-y: scroll for the container AND the surface.
    There should be just one overflowing container, if possible
 */
 .article .resources .panel {
@@ -1137,8 +1160,12 @@ TOC
 
 /* Colors for scroll-bar overlays */
 .article .resources .figures .surface-scrollbar .highlighted,
-.article .content .surface-scrollbar .highlighted.figure_reference {
+.article .content .surface-scrollbar .highlighted.figure_reference,
+.article .content .surface-scrollbar .highlighted.figure {
   background-color: #91bb04; }
+
+.article .content .surface-scrollbar .highlighted.figure.main-occurrence {
+  border-right: 3px solid #5C6148; }
 
 .article .resources .citations .surface-scrollbar .highlighted,
 .article .content .surface-scrollbar .highlighted.citation_reference {
@@ -1162,6 +1189,35 @@ TOC
 
 .panel.document .nodes > .content-node > .focus-handle:hover {
   border-left: 3px solid #bbb; }
+
+/* Footnote
+=============================== */
+.content-node.footnote {
+  font-size: 13px;
+  display: block !important;
+  margin: 20px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px; }
+
+.footnote-reference > a {
+  color: #444;
+  vertical-align: super;
+  padding: 0 2px;
+  border: 1px solid #ddd;
+  font-size: 13px; }
+
+.footnote-reference > a:hover {
+  background: #eee; }
+
+.footnote-reference.sm-expanded > a {
+  background: #ddd; }
+
+.footnote-reference > .footnote {
+  display: none !important; }
+
+.footnote-reference.sm-expanded > .footnote {
+  display: block !important; }
 
 /*
   Typography / Basics
