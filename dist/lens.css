@@ -1326,6 +1326,9 @@ p:last-child {
   font-weight: bold;
   color: gold; }
 
+.lens-article .content-node.cover .subjects a:not(:last-child):after {
+  content: ', '; }
+
 /* main
    --------------------------------------- */
 #main {
