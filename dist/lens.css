@@ -305,8 +305,8 @@ Definition
   position: relative;
   border-collapse: collapse;
   border-spacing: 0;
-  margin-bottom: 20px;
-  margin: 0 auto; }
+  margin: 0 auto;
+  margin-bottom: 20px; }
 
 .lens-article .content-node.html-table thead tr {
   background: #eee; }
@@ -1325,6 +1325,39 @@ p:last-child {
 .article span.annotation.author-callout-style4 {
   font-weight: bold;
   color: gold; }
+
+.author-callout-style-a1 {
+  color: #366bfb; }
+
+.author-callout-style-a2 {
+  color: #9c27b0; }
+
+.author-callout-style-a3 {
+  color: #d50000; }
+
+.author-callout-style-b1 {
+  background-color: #90caf9; }
+
+.author-callout-style-b2 {
+  background-color: #c5e1a5; }
+
+.author-callout-style-b3 {
+  background-color: #ffb74d; }
+
+.author-callout-style-b4 {
+  background-color: #fff176; }
+
+.author-callout-style-b5 {
+  background-color: #9e86c9; }
+
+.author-callout-style-b6 {
+  background-color: #e57373; }
+
+.author-callout-style-b7 {
+  background-color: #f48fb1; }
+
+.author-callout-style-b8 {
+  background-color: #e6e6e6; }
 
 .lens-article .content-node.cover .subjects a:not(:last-child):after {
   content: ', '; }
