@@ -13,13 +13,6 @@ Currently requires some manual steps:
 
 Note: eLife bot also contains lens template files that may require updating when a new lens version is deployed. These are used to generate directories named ``/xxxxx/`` automatically when new articles are published. ``LensArticlePublish`` workflows will need to be re-run for all articles using new templates. Lens template is in [https://github.com/elifesciences/elife-bot/tree/master/template].
 
-# Updating Lens Browser
-
-Lens browser runs the default index page.
-
-* Overwrite the ``lens-browser-dist`` folder contents with the files from the lens browser release (the bundled files)
-* Update the ``index.html`` file if it has changed, making sure to point to the correct CSS and JS files folder (``lens-browser-dist/``)
-
 # Deploying
 
 * Copy files to the S3 bucket, replacing existing files.
