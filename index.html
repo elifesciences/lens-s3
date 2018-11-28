@@ -2,46 +2,81 @@
 <html xmlns:mml="http://www.w3.org/1998/Math/MathML">
   <head>
     <title>eLife Lens</title>
+    <link href='http://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+    <link href='dist/styles/font-awesome.css' rel='stylesheet' type='text/css'/>
+    <link href='dist/lens.css' rel='stylesheet' type='text/css'/>
+    <style type='text/css'>
+    .logo
+    {
+      float: right;
+      margin: 10px;
+      width: 170px;
+    }
+    .article .document
+    {
+      width: 100%;
+      border-right: none;
+    }
+    .content-node .content
+    {
+      background: transparent;
+    }
+    </style>
 
-    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,400italic' rel='stylesheet' type='text/css'>
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, user-scalable=yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <link href='lens-browser-dist/styles/lens_browser.css' rel='stylesheet' type='text/css'/>
-    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-
-    <script src='lens-browser-dist/lens_browser.js'></script>
-
-    <script>
-      $(function() {
-
-        // Create a new Lens app instance
-        // --------
-        //
-        // Injects itself into body
-
-        var app = new window.LensBrowser({
-          api_url: "https://elife-lens-indexer.herokuapp.com"
-        });
-        app.start();
-
-        window.app = app;
-      });
-    </script>
   </head>
-  <body>
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  <body class="current-view reader">
+    <div class="article lens-article">
+      <div class="document">
+        <div class="surface content">
+          <div class="nodes">
+            <div class="content-node cover" id="cover">
+              <div class="content">
+                <div class="title">
+                eLife Lens
+                <img src="http://f.cl.ly/items/1h453d1H2M3Q3u1T1U0W/elife-full-color-horizontal.png" class="logo">
+                </div>
 
-      ga('create', 'UA-30290146-5', 'auto');
-      ga('send', 'pageview');
+              </div>
+            </div>
+            <div class="content-node paragraph">
 
-    </script>
+              eLife Lens provides a novel way of looking at content on the web. It is designed to make life easier for researchers, reviewers, authors and readers.
+              
+            </div>
+            <div class="content-node heading">
+              <div class="content">
+              Example article
+              </div>
+            </div>
+            <div class="content-node paragraph">
+              <a href="/00778">Direct single molecule measurement of TCR triggering by agonist pMHC in living primary T cells</a><br>
+              http://dx.doi.org/10.7554/eLife.00778
+            </div>
+            <div class="content-node heading">
+              <div class="content">
+              <a href="http://elifesciences.org/elife-news/lens" class="about-lens">About Lens</a><br>
+              <a href="/lens-2.0.0-beta2.zip" class="about-lens">Download Lens 2.0.0 beta2</a><br>
+              </div>
+            </div>
+            <div class="content-node heading">
+              <div class="content">
+              For developers:
+              </div>
+            </div>
+            <div class="content-node paragraph">
+              <a href="http://github.com/elifesciences/lens" class="about-lens">Source Code</a><br>
+              <a href="http://groups.google.com/d/forum/elife-lens" class="about-lens">eLife Lens mailing list</a><br>
+            </div>
+          </div>
+        </div>  
+      </div>
+    </div>
+    
+    <script src="ga.js"></script>
+    
   </body>
 </html>
