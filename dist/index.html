@@ -23,7 +23,7 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
     <script src='lens.js'></script>
-
+    <script src="elife_api.js"></script>
     <script>
 
       // Little helper used to parse query strings from urls
@@ -48,13 +48,14 @@
             query_string[pair[0]].push(pair[1]);
           }
         }
+        elifeApiCall();
         return query_string;
       } ();
 
       // This document gets loaded by default
       // --------
 
-      var documentURL = "https://cdn.elifesciences.org/articles/00778/elife-00778-v1.xml";
+      var documentURL = "https://s3.amazonaws.com/elife-publishing-cdn/00778/elife-00778-v1.xml";
 
       $(function() {
 
